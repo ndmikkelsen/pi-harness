@@ -1,0 +1,7 @@
+{
+  "governance": "GSD",
+  "source_of_truth": [
+    ".rules/",
+    ".planning/"
+  ]
+}

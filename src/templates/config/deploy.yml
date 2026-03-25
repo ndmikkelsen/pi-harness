@@ -1,0 +1,19 @@
+service: {{APP_SLUG}}
+image: {{APP_SLUG}}/base
+
+servers:
+  - {{COMPUTE_HOST}}
+
+registry:
+  server: {{REGISTRY_HOST}}
+  username: admin
+  password:
+    - KAMAL_REGISTRY_PASSWORD
+
+ssh:
+  user: {{COMPUTE_USER}}
+  keys:
+    - {{SSH_KEY_PATH}}
+
+builder:
+  arch: amd64

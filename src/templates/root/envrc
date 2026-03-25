@@ -1,0 +1,5 @@
+# direnv file for local, machine-specific secrets.
+# Run: direnv allow
+
+# Optional: only set this when your Dolt server requires authentication.
+# export BEADS_DOLT_PASSWORD="CHANGE_ME_DOLT_PASSWORD"

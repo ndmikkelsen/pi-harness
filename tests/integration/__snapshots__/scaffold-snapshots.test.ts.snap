@@ -1,0 +1,382 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`scaffold snapshots > matches the Claude scaffold snapshot 1`] = `
+{
+  ".gitignore": ".env
+.env.local
+.env.*.local
+node_modules/
+dist/
+coverage/
+.turbo/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+.venv/
+*.log
+.vscode/
+.idea/
+.DS_Store
+.claude/settings.local.json
+STICKYNOTE.md
+.beads/.sync.lock
+.beads/sync_base.jsonl
+.beads/*.db
+.beads/backup/
+.beads/export/
+.beads/README.md
+.beads/interactions.jsonl
+.kamal/secrets
+.kamal/secrets.*
+.kamal/secrets-common
+!.kamal/secrets.example
+cognee_data/
+",
+  "CLAUDE.md": "# Snapshot Claude
+
+This repository is configured for the local AI workflow used by Claude Code, GSD, Beads, and Cognee.
+
+
+
+## Start here
+
+- Read .rules/patterns/git-workflow.md before committing.
+- Read .rules/patterns/env-security.md before adding environment variables.
+- Read .planning/PROJECT.md before starting implementation work.
+
+## AI Workflow Scaffold
+
+- Read \`.rules/patterns/git-workflow.md\` before committing.
+- Read \`.rules/patterns/env-security.md\` before adding environment variables.
+- Use \`.planning/PROJECT.md\` as the living product definition.
+- Run \`gitleaks detect --source . --no-git\` before environment-related commits.
+- Run Beads commands through \`./.claude/scripts/bd\` and initialize new repositories with \`bd init\`.
+- On a fresh worktree, run \`./.claude/scripts/bootstrap-worktree.sh\` once before starting.
+- Prefer reusable role briefs in \`.claude/agents\` and \`.agents\`.
+- Use \`.claude/commands\` as a bounded command surface for quality gates and routines.
+
+## Useful commands
+
+- gitleaks detect --source . --no-git
+- ./.claude/scripts/bd ready
+- ./.claude/scripts/cognee-bridge.sh health
+
+## Response formatting
+
+- When the user asks for \`task table\`, format the response as a Markdown table with columns \`ID | Priority | Status | Title\`.
+",
+  "README.md": "# Snapshot Claude
+
+This project is scaffolded for the local AI workflow used across Claude, GSD, Beads, and Cognee.
+
+## What was added
+
+- Planning artifacts in .planning/
+- Claude workflow configuration in .claude/
+- Beads command wrapper in .claude/scripts/ with native \`bd\` usage
+- Deployment templates in config/ and .kamal/
+
+
+## Next steps
+
+1. Update .planning/PROJECT.md with the real product definition.
+2. Review CLAUDE.md and the guides in .rules/.
+3. Copy .env.example to .env and fill in local values.
+4. Run \`bd init\` once in the repository before using Beads.
+5. Create a feature branch before your first commit.
+",
+  "files": [
+    ".agents/README.md",
+    ".agents/gsd-cognee-advisor.md",
+    ".agents/reviewer.md",
+    ".agents/scaffold-developer.md",
+    ".claude/INDEX.md",
+    ".claude/agents/README.md",
+    ".claude/agents/gsd-cognee-advisor.md",
+    ".claude/agents/reviewer.md",
+    ".claude/agents/scaffold-developer.md",
+    ".claude/commands/deploy.md",
+    ".claude/commands/land.md",
+    ".claude/commands/polish.md",
+    ".claude/commands/query.md",
+    ".claude/commands/review.md",
+    ".claude/commands/scrutinize.md",
+    ".claude/commands/verify-stack.md",
+    ".claude/docker/Dockerfile.cognee",
+    ".claude/hooks/gsd-check-update.js",
+    ".claude/hooks/gsd-statusline.js",
+    ".claude/scripts/bd",
+    ".claude/scripts/bootstrap-worktree.sh",
+    ".claude/scripts/cognee-bridge.sh",
+    ".claude/scripts/cognee-sync-planning.sh",
+    ".claude/scripts/sync-to-cognee.sh",
+    ".claude/settings.json",
+    ".env.example",
+    ".envrc",
+    ".gitignore",
+    ".gitleaks.toml",
+    ".kamal/secrets.example",
+    ".planning/PROJECT.md",
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    ".planning/TRACEABILITY.md",
+    ".planning/codebase/README.md",
+    ".planning/config.json",
+    ".planning/milestones/README.md",
+    ".planning/phases/README.md",
+    ".planning/research/README.md",
+    ".pre-commit-config.yaml",
+    ".rules/index.md",
+    ".rules/patterns/bdd-workflow.md",
+    ".rules/patterns/beads-integration.md",
+    ".rules/patterns/cognee-gsd-integration.md",
+    ".rules/patterns/deployment.md",
+    ".rules/patterns/env-security.md",
+    ".rules/patterns/git-workflow.md",
+    ".rules/patterns/gsd-workflow.md",
+    "CLAUDE.md",
+    "CONSTITUTION.md",
+    "README.md",
+    "STICKYNOTE.example.md",
+    "STICKYNOTE.md",
+    "VISION.md",
+    "config/deploy.cognee.yml",
+    "config/deploy.yml",
+    "scripts/hooks/post-checkout",
+  ],
+}
+`;
+
+exports[`scaffold snapshots > matches the Codex scaffold snapshot 1`] = `
+{
+  ".codex/README.md": "# Codex Compatibility Layer
+
+This repository already has working project systems for backlog tracking, planning, and knowledge capture.
+Codex should use them directly through this thin adapter layer.
+
+## Canonical Systems
+
+- .rules/ is the source of truth for architecture and workflow patterns
+- .planning/ is the GSD execution and handoff workspace
+- .claude/scripts/ contains the live Cognee and planning sync plumbing
+
+## Codex Mapping
+
+| Existing project surface | Codex entrypoint |
+| --- | --- |
+| Claude-compatible backend scripts | .codex/scripts/*.sh |
+| Agent role briefs | .codex/agents/*.md |
+| Cognee advisor | ./.codex/scripts/cognee-brief.sh |
+| Planning sync | ./.codex/scripts/sync-planning-to-cognee.sh |
+| Landing protocol | ./.codex/scripts/land.sh |
+
+## Default Workflow
+
+1. Read relevant .rules/ and current .planning/ context.
+2. Review .planning/STATE.md before starting implementation.
+3. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
+4. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+5. Break work into waves using .codex/workflows/parallel-execution.md.
+6. Validate each wave before handing off or merging into the next.
+7. Finish with ./.codex/scripts/land.sh.
+
+## Rules
+
+- Do not create parallel planning systems under .codex/.
+- Treat .codex/ as documentation and wrappers only.
+- If Cognee is unavailable, continue with .rules/, .planning/, and repo search.
+",
+  ".gitignore": ".env
+.env.local
+.env.*.local
+node_modules/
+dist/
+coverage/
+.turbo/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+.venv/
+*.log
+.vscode/
+.idea/
+.DS_Store
+.claude/settings.local.json
+STICKYNOTE.md
+.beads/.sync.lock
+.beads/sync_base.jsonl
+.beads/*.db
+.beads/backup/
+.beads/export/
+.beads/README.md
+.beads/interactions.jsonl
+.kamal/secrets
+.kamal/secrets.*
+.kamal/secrets-common
+!.kamal/secrets.example
+cognee_data/
+",
+  "AGENTS.md": "# AGENTS.md
+
+> AI Development Guide
+
+## Overview
+
+This repository is prepared for Codex through a thin compatibility layer while keeping .rules/ and .planning/ as the canonical project systems.
+
+## Codex Workflow
+
+Codex works in this repository through a thin adapter layer. The canonical systems remain:
+
+- .rules/ for architecture and workflow rules
+- .planning/ for GSD planning, execution, and handoff artifacts
+- .claude/scripts/ for working Cognee and planning sync backends
+
+Use the Codex compatibility docs and scripts under .codex/ as entrypoints, not as a separate source of truth.
+
+### Codex Operating Sequence
+
+1. Read the relevant .rules/ documents before changing code or infrastructure.
+2. Inspect .planning/STATE.md and any active phase docs in .planning/.
+3. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
+4. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+5. Execute work in waves with explicit file ownership and validation boundaries.
+6. Land the session with ./.codex/scripts/land.sh.
+
+### Codex Guardrails
+
+- Do not create duplicate planning systems or issue trackers under .codex/.
+- Do not mirror .planning/ into .codex-specific directories.
+- Keep Cognee integration non-blocking; if it is down, continue using local docs and planning artifacts.
+- Treat .codex/agents/*.md as reusable role briefs and .codex/scripts/*.sh as the executable surface.
+- When the user asks for \`task table\`, format the response as a Markdown table with columns \`ID | Priority | Status | Title\`.
+",
+  "CLAUDE.md": "# Snapshot Codex
+
+This repository is configured for the local AI workflow used by Claude Code, GSD, Beads, and Cognee.
+
+Codex compatibility is also available through .codex/ and AGENTS.md, while the shared backend automation remains under .claude/scripts/.
+
+## Start here
+
+- Read .rules/patterns/git-workflow.md before committing.
+- Read .rules/patterns/env-security.md before adding environment variables.
+- Read .planning/PROJECT.md before starting implementation work.
+
+## AI Workflow Scaffold
+
+- Read \`.rules/patterns/git-workflow.md\` before committing.
+- Read \`.rules/patterns/env-security.md\` before adding environment variables.
+- Use \`.planning/PROJECT.md\` as the living product definition.
+- Run \`gitleaks detect --source . --no-git\` before environment-related commits.
+- Run Beads commands through \`./.claude/scripts/bd\` and initialize new repositories with \`bd init\`.
+- On a fresh worktree, run \`./.claude/scripts/bootstrap-worktree.sh\` once before starting.
+- Prefer reusable role briefs in \`.claude/agents\` and \`.agents\`.
+- Use \`.claude/commands\` as a bounded command surface for quality gates and routines.
+
+## Useful commands
+
+- gitleaks detect --source . --no-git
+- ./.claude/scripts/bd ready
+- ./.claude/scripts/cognee-bridge.sh health
+
+## Response formatting
+
+- When the user asks for \`task table\`, format the response as a Markdown table with columns \`ID | Priority | Status | Title\`.
+",
+  "README.md": "# Snapshot Codex
+
+This project is scaffolded for the local AI workflow used across Codex, GSD, Beads, and Cognee.
+
+## What was added
+
+- Planning artifacts in .planning/
+- Claude workflow configuration in .claude/
+- Beads command wrapper in .claude/scripts/ with native \`bd\` usage
+- Deployment templates in config/ and .kamal/
+- Codex compatibility files in .codex/ and AGENTS.md
+
+## Next steps
+
+1. Update .planning/PROJECT.md with the real product definition.
+2. Review CLAUDE.md and the guides in .rules/.
+3. Copy .env.example to .env and fill in local values.
+4. Run \`bd init\` once in the repository before using Beads.
+5. Create a feature branch before your first commit.
+",
+  "files": [
+    ".agents/README.md",
+    ".agents/gsd-cognee-advisor.md",
+    ".agents/reviewer.md",
+    ".agents/scaffold-developer.md",
+    ".claude/INDEX.md",
+    ".claude/agents/README.md",
+    ".claude/agents/gsd-cognee-advisor.md",
+    ".claude/agents/reviewer.md",
+    ".claude/agents/scaffold-developer.md",
+    ".claude/commands/deploy.md",
+    ".claude/commands/land.md",
+    ".claude/commands/polish.md",
+    ".claude/commands/query.md",
+    ".claude/commands/review.md",
+    ".claude/commands/scrutinize.md",
+    ".claude/commands/verify-stack.md",
+    ".claude/docker/Dockerfile.cognee",
+    ".claude/hooks/gsd-check-update.js",
+    ".claude/hooks/gsd-statusline.js",
+    ".claude/scripts/bd",
+    ".claude/scripts/bootstrap-worktree.sh",
+    ".claude/scripts/cognee-bridge.sh",
+    ".claude/scripts/cognee-sync-planning.sh",
+    ".claude/scripts/sync-to-cognee.sh",
+    ".claude/settings.json",
+    ".codex/README.md",
+    ".codex/agents/gsd-cognee-advisor.md",
+    ".codex/agents/implementer.md",
+    ".codex/agents/orchestrator.md",
+    ".codex/agents/reviewer.md",
+    ".codex/scripts/bootstrap-worktree.sh",
+    ".codex/scripts/cognee-brief.sh",
+    ".codex/scripts/land.sh",
+    ".codex/scripts/sync-planning-to-cognee.sh",
+    ".codex/templates/phase-execution.md",
+    ".codex/templates/session-handoff.md",
+    ".codex/workflows/parallel-execution.md",
+    ".env.example",
+    ".envrc",
+    ".gitignore",
+    ".gitleaks.toml",
+    ".kamal/secrets.example",
+    ".planning/PROJECT.md",
+    ".planning/ROADMAP.md",
+    ".planning/STATE.md",
+    ".planning/TRACEABILITY.md",
+    ".planning/codebase/README.md",
+    ".planning/config.json",
+    ".planning/milestones/README.md",
+    ".planning/phases/README.md",
+    ".planning/research/README.md",
+    ".pre-commit-config.yaml",
+    ".rules/index.md",
+    ".rules/patterns/bdd-workflow.md",
+    ".rules/patterns/beads-integration.md",
+    ".rules/patterns/cognee-gsd-integration.md",
+    ".rules/patterns/deployment.md",
+    ".rules/patterns/env-security.md",
+    ".rules/patterns/git-workflow.md",
+    ".rules/patterns/gsd-workflow.md",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CONSTITUTION.md",
+    "README.md",
+    "STICKYNOTE.example.md",
+    "STICKYNOTE.md",
+    "VISION.md",
+    "config/deploy.cognee.yml",
+    "config/deploy.yml",
+    "scripts/hooks/post-checkout",
+  ],
+}
+`;

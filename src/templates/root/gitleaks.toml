@@ -1,0 +1,20 @@
+title = "{{APP_NAME}} gitleaks config"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allow placeholder-only files"
+paths = [
+  '''\\.env\\.example$''',
+  '''\\.kamal/secrets\\.example$''',
+  '''node_modules/''',
+  '''\\.beads/''',
+  '''\\.planning/'''
+]
+
+regexes = [
+  '''YOUR_\\w+_HERE''',
+  '''CHANGE_ME''',
+  '''example\\.com'''
+]
