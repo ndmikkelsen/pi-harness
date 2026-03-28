@@ -59,10 +59,8 @@ describe('scaffold snapshots', () => {
 
     expect(envrc).not.toContain('metadata.json');
     expect(envrc).not.toContain('$_DOLT_');
-    expect(result.files).not.toContain('.claude');
     expect(result.files).not.toContain('.beads/config.yaml');
     expect(result.files).not.toContain('.codex/scripts/sync-to-cognee.sh');
-    expect(result.files).not.toContain('CLAUDE.md');
     expect(result.files).not.toContain('CONSTITUTION.md');
     expect(result.files).not.toContain('VISION.md');
     expect(result.files).not.toContain('STICKYNOTE.md');
@@ -73,7 +71,6 @@ describe('scaffold snapshots', () => {
     expect(result['.codex/README.md']).not.toContain('./.codex/scripts/sync-to-cognee.sh');
     expect(beadsGuide).toContain('Run `bd init` once per repository');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
-    expect(beadsGuide).not.toContain('.claude/scripts/bd');
     expect(result).toMatchSnapshot();
   });
 

@@ -45,3 +45,8 @@ Use `manifest-discovery.md`.
 - deployment model
 - current workstream or roadmap hints
 - any repo-specific conventions that should shape `AGENTS.md` or `.planning/*`
+
+## Legacy AI framework cleanup
+
+- identify whether curated legacy runtime files are present before invoking `--cleanup-manifest legacy-ai-frameworks-v1`
+- if a path looks user-authored or ambiguous, require a confirmation step before deletion

@@ -71,9 +71,7 @@ The kept systems are:
 ## Removed Shape
 
 The scaffold no longer generates:
-- `.claude/`
-- `.agents/`
-- root `CLAUDE.md`, `CONSTITUTION.md`, and `VISION.md`
+- legacy assistant runtime directories and placeholder governance docs
 - Beads wrapper scripts or Beads config templates
 - broad Cognee repo sync helpers
 - dead `.codex` template files
@@ -82,6 +80,7 @@ The scaffold no longer generates:
 
 - default behavior: create missing scaffold files and skip all pre-existing scaffold files unchanged
 - optional behavior: `--merge-root-files` appends scaffold entries into `.gitignore` and `.env.example`
+- optional behavior: `--cleanup-manifest legacy-ai-frameworks-v1` removes curated legacy AI-framework files before scaffolding
 - `--force` still overwrites managed files explicitly when you want full regeneration
 ## Deploy Review
 

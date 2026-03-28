@@ -41,6 +41,9 @@ pnpm exec tsx src/cli.ts --mode existing . --merge-root-files
 # emit machine-readable scaffold results
 pnpm exec tsx src/cli.ts --mode existing . --init-json
 
+# remove curated legacy AI-framework files before adopting
+pnpm exec tsx src/cli.ts --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --init-json
+
 # preview changes only
 pnpm exec tsx src/cli.ts sample-app --dry-run
 
@@ -71,6 +74,7 @@ New repositories receive the full scaffold. Existing repositories create the sam
 
 - existing files are preserved by default
 - missing scaffold files are added without rewriting pre-existing scaffold files
+- curated legacy AI-framework cleanup is opt-in via `--cleanup-manifest legacy-ai-frameworks-v1`
 - `.gitignore` and `.env.example` are only merged when `--merge-root-files` is explicitly set
 - `STICKYNOTE.md` is intentionally local-only and can be seeded from `STICKYNOTE.example.md`
 - `AGENTS.md` is added for Codex/OpenCode-targeted projects
@@ -79,10 +83,11 @@ New repositories receive the full scaffold. Existing repositories create the sam
 ## Existing repo workflow
 
 1. gather project context from git, docs, manifests, Beads, and Cognee when available
-2. run `scaiff --mode existing <path> --init-json`
-3. customize only the files listed in `createdPaths`
-4. rerun with `--merge-root-files` only if you explicitly want `.gitignore` and `.env.example` merged
-5. finish with `scaiff doctor <path> --assistant <codex|opencode>`
+2. optionally run `scaiff --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json` to remove curated legacy AI-framework files
+3. run `scaiff --mode existing <path> --init-json`
+4. customize only the files listed in `createdPaths`
+5. rerun with `--merge-root-files` only if you explicitly want `.gitignore` and `.env.example` merged
+6. finish with `scaiff doctor <path> --assistant <codex|opencode>`
 
 ## Development
 

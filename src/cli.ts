@@ -44,6 +44,8 @@ program
   .option('--dry-run', 'show planned changes without writing files', false)
   .option('--force', 'overwrite managed files', false)
   .option('--merge-root-files', 'in existing-project mode, merge scaffold entries into .gitignore and .env.example', false)
+  .option('--cleanup-manifest <id>', 'in existing-project mode, apply a curated cleanup manifest before scaffolding')
+  .option('--non-interactive', 'disable prompts and report prompt-required cleanup actions instead', false)
   .option('--skip-git', 'skip git initialization', false)
   .option('--detect-ports', 'probe the compute host for available service ports', false)
   .option('--dolt-port <port>', 'explicit Dolt port', (value) => Number.parseInt(value, 10))
@@ -61,6 +63,8 @@ program
       dryRun: options.dryRun,
       force: options.force,
       mergeRootFiles: options.mergeRootFiles,
+      cleanupManifestId: options.cleanupManifest,
+      nonInteractive: options.nonInteractive,
       skipGit: options.skipGit,
       detectPorts: options.detectPorts,
       doltPort: options.doltPort,
@@ -72,10 +76,16 @@ program
 
     if (options.initJson) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
+      if (result.cleanup.status === 'blocked') {
+        process.exitCode = 1;
+      }
       return;
     }
 
     process.stdout.write(formatInitReport(result));
+    if (result.cleanup.status === 'blocked') {
+      process.exitCode = 1;
+    }
   });
 
 program

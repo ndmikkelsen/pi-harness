@@ -28,9 +28,8 @@ The project is intentionally split into small layers:
 - generator modules grouped by domain (`root`, `planning`, `codex`, `config`, `rules`, `project-docs`)
 - Codex/OpenCode runtime assets now live directly under `.codex/` as the single assistant runtime surface.
 - preserve-by-default adoption for existing repos, with explicit opt-in merging for `.gitignore` and `.env.example`
-- preserve-by-default adoption for existing repos, with explicit opt-in merging for `.gitignore` and `.env.example`
 - optional remote port detection instead of mandatory network coupling
-- Codex/OpenCode support shares one runtime surface so the scaffold stays assistant-focused without Claude-specific artifacts
+- Codex/OpenCode support shares one runtime surface so the scaffold stays focused on the supported assistants and avoids deprecated parallel artifacts
 
 ## Deferred work
 

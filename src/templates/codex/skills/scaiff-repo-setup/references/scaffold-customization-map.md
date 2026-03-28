@@ -1,6 +1,7 @@
 # Scaffold Customization Map
 
 Customize only files that `scaiff` reported in `createdPaths`.
+If cleanup was requested, review `cleanup.actions` first so you know which legacy files were removed, preserved, or still need confirmation.
 
 ## Planning files
 
