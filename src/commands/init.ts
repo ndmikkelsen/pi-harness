@@ -1,5 +1,6 @@
 import path from 'node:path';
 
+import { runCleanup } from '../core/cleanup.js';
 import { ensureGitRepository } from '../core/git.js';
 import { applyManagedEntries } from '../core/filesystem.js';
 import { DEFAULT_POLICY } from '../core/policy.js';
@@ -37,6 +38,18 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
     generatedOn: new Date().toISOString().slice(0, 10)
   };
 
+  if (options.cleanupManifestId && context.mode !== 'existing') {
+    throw new Error('Cleanup manifests can only be used in existing-project mode.');
+  }
+
+  const cleanup = await runCleanup({
+    targetDir: context.targetDir,
+    manifestId: options.cleanupManifestId,
+    dryRun: options.dryRun,
+    nonInteractive: options.nonInteractive,
+    confirmCleanup: options.confirmCleanup
+  });
+
   const entryResult = await applyManagedEntries(context, buildManagedEntries(context), {
     targetDir: context.targetDir,
     force: options.force,
@@ -55,7 +68,8 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
     mode: context.mode,
     targetDir: context.targetDir,
     appName: context.appName,
-    notes
+    notes,
+    cleanup
   };
 }
 
@@ -66,6 +80,13 @@ export function formatInitReport(result: InitResult): string {
     `Created: ${result.createdPaths.length}`,
     `Skipped: ${result.skippedPaths.length}`
   ];
+
+  if (result.cleanup.enabled) {
+    lines.push(`Cleanup removed: ${result.cleanup.summary.deleted}`);
+    if (result.cleanup.summary.promptRequired > 0) {
+      lines.push(`Cleanup prompts required: ${result.cleanup.summary.promptRequired}`);
+    }
+  }
 
   if (result.createdPaths.length > 0) {
     lines.push('', 'Created files:');
@@ -81,6 +102,13 @@ export function formatInitReport(result: InitResult): string {
     lines.push('', 'Notes:');
     for (const note of result.notes) {
       lines.push(`- ${note}`);
+    }
+  }
+
+  if (result.cleanup.enabled && result.cleanup.actions.length > 0) {
+    lines.push('', 'Cleanup:');
+    for (const action of result.cleanup.actions) {
+      lines.push(`- ${action.path} (${action.status})`);
     }
   }
 

@@ -17,5 +17,6 @@ This project is scaffolded for the local AI workflow used across {{ASSISTANT_LAB
 2. {{WORKFLOW_GUIDE_LINE}}
 3. Copy .env.example to .env and fill in local values.
 4. Run `bd init` once in the repository before using Beads.
-5. Create a feature branch before your first commit.
-6. Use `.codex/skills/scaiff-repo-setup/SKILL.md` when adopting or bootstrapping another repository.
+5. Use `.codex/skills/scaiff-repo-setup/SKILL.md` when adopting or bootstrapping another repository.
+6. If you are adopting a repo with legacy AI framework files, use `scaiff --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+7. Create a feature branch before your first commit.

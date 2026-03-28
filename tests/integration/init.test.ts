@@ -4,7 +4,11 @@ import path from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
+import { getCleanupManifest } from '../../src/core/cleanup-manifests.js';
 import { runInit } from '../../src/commands/init.js';
+
+const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
+const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 
 describe('runInit', () => {
   it('creates the scaffold for a new project', async () => {
@@ -33,14 +37,11 @@ describe('runInit', () => {
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(result.createdPaths).not.toContain('.planning/TRACEABILITY.md');
-    expect(result.createdPaths).not.toContain('.claude/settings.json');
-    expect(result.createdPaths).not.toContain('.claude/INDEX.md');
-    expect(result.createdPaths).not.toContain('CLAUDE.md');
     expect(result.createdPaths).not.toContain('CONSTITUTION.md');
     expect(result.createdPaths).not.toContain('VISION.md');
     expect(result.createdPaths).not.toContain('STICKYNOTE.md');
     expect(result.createdPaths).toContain('STICKYNOTE.example.md');
-    await expect(readFile(path.join(workspace, 'sample-app', '.claude', 'INDEX.md'), 'utf8')).rejects.toThrow();
+    expect(result.cleanup.enabled).toBe(false);
   });
 
   it('seeds GSD planning artifacts with official core documents', async () => {
@@ -73,7 +74,6 @@ describe('runInit', () => {
     expect(quickGuide).toContain('.planning/quick/');
     expect(stickyExample).toContain('## Current focus');
     await expect(readFile(path.join(projectDir, '.planning', 'TRACEABILITY.md'), 'utf8')).rejects.toThrow();
-    await expect(readFile(path.join(projectDir, 'CLAUDE.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, 'CONSTITUTION.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, 'VISION.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, 'STICKYNOTE.md'), 'utf8')).rejects.toThrow();
@@ -104,7 +104,6 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
-    expect(result.createdPaths).not.toContain('.claude/settings.json');
     expect(codexReadme).toContain('Codex Compatibility Layer');
     expect(codexReadme).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     expect(codexReadme).toContain('.codex/skills/scaiff-repo-setup/SKILL.md');
@@ -183,6 +182,7 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.planning/config.json');
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/skills/scaiff-repo-setup/SKILL.md');
+    expect(result.cleanup.enabled).toBe(false);
   });
 
   it('merges root files in existing-project mode only when explicitly requested', async () => {
@@ -238,6 +238,101 @@ describe('runInit', () => {
     expect(secondEnvExample).toBe(firstEnvExample);
     expect(secondResult.skippedPaths).toContain('.gitignore');
     expect(secondResult.skippedPaths).toContain('.env.example');
+  });
+
+  it('applies safe curated cleanup entries before scaffolding existing repos', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'scaiff-'));
+    const targetDir = path.join(workspace, 'existing-cleanup');
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const envExamplePath = path.join(targetDir, '.env.example');
+
+    await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(gitignorePath, 'dist/\n', 'utf8');
+    await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      skipGit: true,
+      detectPorts: false
+    });
+
+    expect(result.cleanup.enabled).toBe(true);
+    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.removedPaths).toEqual(
+      expect.arrayContaining(['.codex/templates/session-handoff.md', '.codex/scripts/sync-to-cognee.sh'])
+    );
+    expect(result.cleanup.summary.deleted).toBe(2);
+    expect(result.createdPaths).toContain('.codex/README.md');
+    expect(await readFile(gitignorePath, 'utf8')).toBe('dist/\n');
+    expect(await readFile(envExamplePath, 'utf8')).toBe('EXISTING_ONLY=true\n');
+    await expect(readFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), 'utf8')).rejects.toThrow();
+    await expect(readFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), 'utf8')).rejects.toThrow();
+  });
+
+  it('blocks ambiguous curated cleanup entries without deleting them in non-interactive mode', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'scaiff-'));
+    const targetDir = path.join(workspace, 'existing-ambiguous-cleanup');
+
+    await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
+    await writeFile(path.join(targetDir, legacyRuntimeDir, 'notes.md'), '# notes\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      nonInteractive: true,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    expect(result.cleanup.enabled).toBe(true);
+    expect(result.cleanup.status).toBe('blocked');
+    expect(result.cleanup.summary.promptRequired).toBeGreaterThan(0);
+    expect(result.cleanup.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })
+      ])
+    );
+    expect(result.createdPaths).toContain('.codex/README.md');
+    expect(await readFile(path.join(targetDir, legacyRuntimeDir, 'notes.md'), 'utf8')).toContain('notes');
+  });
+
+  it('deletes prompt-before-delete entries when confirmation is provided', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'scaiff-'));
+    const targetDir = path.join(workspace, 'existing-confirmed-cleanup');
+
+    await mkdir(path.join(targetDir, '.agents'), { recursive: true });
+    await writeFile(path.join(targetDir, '.agents', 'implementer.md'), '# implementer\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      skipGit: true,
+      detectPorts: false,
+      confirmCleanup: async (entry) => entry.path === '.agents'
+    });
+
+    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.removedPaths).toContain('.agents');
+    await expect(readFile(path.join(targetDir, '.agents', 'implementer.md'), 'utf8')).rejects.toThrow();
   });
 
   it('supports dry-run mode without writing files', async () => {

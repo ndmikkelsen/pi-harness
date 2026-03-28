@@ -68,7 +68,7 @@ Approved direction:
 ## Governance docs decision
 
 Approved direction:
-- remove generated `CLAUDE.md`, `CONSTITUTION.md`, and `VISION.md`
+- keep root governance lean and avoid extra placeholder policy documents
 - keep `STICKYNOTE.example.md` as the reusable local handoff template
 - do not scaffold `STICKYNOTE.md`; let worktree bootstrap or landing flows create it locally
 - treat `AGENTS.md`, `.codex/README.md`, `.rules/`, and `.planning/` as the active documentation surface for this harness
@@ -80,6 +80,14 @@ Approved direction:
 - migrate shared backend scripts, bootstrap helpers, and Cognee assets into `.codex/`
 - use one Codex/OpenCode-friendly runtime surface for both supported assistants
 - keep deploy templates pointed at `.codex/docker/Dockerfile.cognee`
+
+## Cleanup decision
+
+Approved direction:
+- support opt-in cleanup through the curated `legacy-ai-frameworks-v1` manifest during existing-repo adoption
+- never infer deletions heuristically; only exact curated manifest entries are eligible
+- require confirmation for prompt-before-delete entries and report `prompt-required` in non-interactive runs
+- report cleanup actions alongside scaffold creation through `--init-json`
 
 ## Cognee decision
 

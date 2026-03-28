@@ -34,11 +34,12 @@ This repository already has working project systems for backlog tracking, planni
 
 1. Read relevant .rules/ and current .planning/ context.
 2. Review .planning/STATE.md before starting implementation.
-3. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
-4. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-5. Break work into waves using .codex/workflows/parallel-execution.md.
-6. Validate each wave before handing off or merging into the next.
-7. Finish with ./.codex/scripts/land.sh.
+3. For existing repos, optionally run `scaiff --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json` before tailoring new scaffold files.
+4. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
+5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+6. Break work into waves using .codex/workflows/parallel-execution.md.
+7. Validate each wave before handing off or merging into the next.
+8. Finish with ./.codex/scripts/land.sh.
 
 ## Rules
 

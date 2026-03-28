@@ -34,6 +34,8 @@ export interface InitCommandOptions {
   dryRun: boolean;
   force: boolean;
   mergeRootFiles?: boolean;
+  cleanupManifestId?: string;
+  nonInteractive?: boolean;
   skipGit: boolean;
   detectPorts: boolean;
   doltPort?: number;
@@ -41,7 +43,52 @@ export interface InitCommandOptions {
   computeHost?: string;
   computeUser?: string;
   sshKeyPath?: string;
+  confirmCleanup?: CleanupConfirmer;
 }
+
+export type CleanupDisposition = 'safe-delete' | 'prompt-before-delete';
+export type CleanupActionStatus = 'deleted' | 'skipped' | 'missing' | 'prompt-required' | 'declined' | 'planned';
+
+export interface CleanupManifestEntry {
+  id: string;
+  path: string;
+  kind: 'file' | 'directory';
+  disposition: CleanupDisposition;
+  reason: string;
+}
+
+export interface CleanupManifest {
+  id: string;
+  version: number;
+  description: string;
+  entries: CleanupManifestEntry[];
+}
+
+export interface CleanupAction {
+  path: string;
+  kind: 'file' | 'directory';
+  disposition: CleanupDisposition;
+  status: CleanupActionStatus;
+  reason: string;
+}
+
+export interface CleanupResult {
+  enabled: boolean;
+  manifestId?: string;
+  status: 'not-requested' | 'applied' | 'blocked' | 'dry-run';
+  summary: {
+    deleted: number;
+    skipped: number;
+    missing: number;
+    promptRequired: number;
+    declined: number;
+    planned: number;
+  };
+  removedPaths: string[];
+  actions: CleanupAction[];
+}
+
+export type CleanupConfirmer = (entry: CleanupManifestEntry) => Promise<boolean>;
 
 export interface ScaffoldContext extends ResolvedProjectInput {
   assistant: AssistantTarget;
@@ -88,6 +135,7 @@ export interface InitResult extends ApplyManagedEntriesResult {
   targetDir: string;
   appName: string;
   notes: string[];
+  cleanup: CleanupResult;
 }
 
 export interface DoctorCommandOptions {
