@@ -70,7 +70,7 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
-STICKYNOTE.md
+/STICKYNOTE.md
 .beads/.sync.lock
 .beads/dolt-server.port
 .beads/sync_base.jsonl
@@ -144,6 +144,21 @@ This project is scaffolded for the local AI workflow used across Codex, GSD, Bea
 - Beads workflow guidance using native \`bd\`
 - Deployment templates in config/ and .kamal/
 - Codex runtime files in .codex/ and AGENTS.md
+
+## Harness baseline
+
+- Scaffolded with \`ai-harness\` v0.1.0 on 2026-03-30
+- Record the \`ai-harness\` version and source commit in the PR or handoff note each time you refresh this scaffold
+- Supported update flow today is checkout-based: pull the \`ai-harness\` checkout forward, rebuild \`dist/\`, rerun \`ai-harness --mode existing <path> --assistant <codex|opencode> --init-json\`, then customize only \`createdPaths\`
+- This scaffold assumes \`ai-harness\` is used locally to set up and refresh repos, not consumed as a registry-published package
+- Finish updates with \`ai-harness doctor <path> --assistant <codex|opencode>\`
+
+## If you are migrating from scaiff
+
+- \`ai-harness\` is the renamed successor to \`scaiff\`
+- use \`ai-harness\` for installs and updates; there is no separate \`scaiff\` binary or package alias
+- the old global OpenCode skill name \`scaiff-repo-setup\` is replaced by \`harness\`
+- use \`--cleanup-manifest legacy-ai-frameworks-v1\` only when you intentionally want curated legacy workflow leftovers removed
 
 ## Next steps
 
@@ -302,7 +317,7 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
-STICKYNOTE.md
+/STICKYNOTE.md
 .beads/.sync.lock
 .beads/dolt-server.port
 .beads/sync_base.jsonl
@@ -376,6 +391,21 @@ This project is scaffolded for the local AI workflow used across OpenCode, GSD, 
 - Beads workflow guidance using native \`bd\`
 - Deployment templates in config/ and .kamal/
 - OpenCode runtime files in .codex/ and AGENTS.md
+
+## Harness baseline
+
+- Scaffolded with \`ai-harness\` v0.1.0 on 2026-03-30
+- Record the \`ai-harness\` version and source commit in the PR or handoff note each time you refresh this scaffold
+- Supported update flow today is checkout-based: pull the \`ai-harness\` checkout forward, rebuild \`dist/\`, rerun \`ai-harness --mode existing <path> --assistant <codex|opencode> --init-json\`, then customize only \`createdPaths\`
+- This scaffold assumes \`ai-harness\` is used locally to set up and refresh repos, not consumed as a registry-published package
+- Finish updates with \`ai-harness doctor <path> --assistant <codex|opencode>\`
+
+## If you are migrating from scaiff
+
+- \`ai-harness\` is the renamed successor to \`scaiff\`
+- use \`ai-harness\` for installs and updates; there is no separate \`scaiff\` binary or package alias
+- the old global OpenCode skill name \`scaiff-repo-setup\` is replaced by \`harness\`
+- use \`--cleanup-manifest legacy-ai-frameworks-v1\` only when you intentionally want curated legacy workflow leftovers removed
 
 ## Next steps
 

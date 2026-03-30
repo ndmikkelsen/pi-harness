@@ -18,7 +18,7 @@
 
 ## v2 Requirements
 
-- Publish or package `ai-harness` for broader installation beyond a local checkout.
+- Improve local installation and refresh ergonomics beyond the current checkout + `install:local` flow.
 - Improve merge and update ergonomics for existing scaffold files beyond root-file merges.
 - Add richer inspection and repo-adoption assistance beyond `doctor` and `init-json`.
 
@@ -36,8 +36,8 @@
 | CORE-02 Existing-repo adoption | Phase 1 | Done |
 | CORE-03 Shared Codex/OpenCode runtime | Phase 1 | Done |
 | CORE-04 Global `harness` skill install | Phase 2 | Done |
-| CORE-05 Self-hosted scaffold adoption | Phase 2 | In Progress |
-| CORE-06 Packaging and distribution hardening | Phase 3 | Planned |
+| CORE-05 Self-hosted scaffold adoption | Phase 2 | Done |
+| CORE-06 Local-use distribution and migration hardening | Phase 3 | Done |
 
 ## Notes
 

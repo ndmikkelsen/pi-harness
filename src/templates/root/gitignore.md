@@ -14,7 +14,7 @@ __pycache__/
 .vscode/
 .idea/
 .DS_Store
-STICKYNOTE.md
+/STICKYNOTE.md
 .beads/.sync.lock
 .beads/dolt-server.port
 .beads/sync_base.jsonl

@@ -10,6 +10,7 @@ Generated on: {{GENERATED_ON}}
 
 ## Active Context
 
+- Scaffold baseline: `ai-harness` v{{HARNESS_VERSION}} (generated {{GENERATED_ON}})
 - Current focus:
 - Current branch:
 - Latest artifact reviewed:

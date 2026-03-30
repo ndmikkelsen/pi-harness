@@ -1,4 +1,5 @@
 import type { ManagedEntry } from '../core/types.js';
+import { AI_HARNESS_VERSION } from '../core/harness-release.js';
 import { loadTemplate } from '../core/template-loader.js';
 
 export function buildPlanningEntries(): ManagedEntry[] {
@@ -54,7 +55,8 @@ export function buildPlanningEntries(): ManagedEntry[] {
       path: '.planning/STATE.md',
       content: (context) =>
         loadTemplate('planning/STATE.md', {
-          GENERATED_ON: context.generatedOn
+          GENERATED_ON: context.generatedOn,
+          HARNESS_VERSION: context.harnessVersion ?? AI_HARNESS_VERSION
         })
     },
     {

@@ -37,6 +37,6 @@ The project is intentionally split into small layers:
 ## Deferred work
 
 - deeper YAML-aware merging for files like `.pre-commit-config.yaml`
-- package or release distribution beyond a local checkout and source install
-- clearer migration guidance for older `scaiff` users outside this repository
+- better local refresh ergonomics beyond the current checkout + `pnpm install:local` flow
+- richer upgrade assistance for older `scaiff`-era repos without weakening explicit review
 - fuller parity for deploy/runtime automation that still depends on machine-specific tools

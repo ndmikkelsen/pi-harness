@@ -33,6 +33,25 @@ The most important product promises are:
 - make the workflow usable both from the local CLI and from the global OpenCode `harness` skill
 - keep the scaffold source, generated docs, and shipped `dist/` output aligned
 
+## Product doctrine
+
+The harness is intentionally opinionated.
+
+- foundation installed by default: Beads, GSD, Codex, and OpenCode, with Cognee as optional supporting plumbing
+- source of truth: `src/templates/**` for scaffold content, `src/generators/**` for mapping that content into repo outputs, and `dist/` as the built copy
+- preserve by default: existing repositories keep user-owned files unless the user explicitly opts into force or a narrow merge path
+- cleanup by curation only: known non-harness AI workflow droppings are removed only through explicit manifests, never broad heuristic deletion
+- dogfood as product discipline: this repository is expected to use the same scaffold it ships, so local docs and runtime files should reflect the real harness contract
+
+## Adoption contract
+
+When `ai-harness` adopts an existing repository it should be clear what happens:
+
+- installs: the missing harness foundation files, including root hygiene, `.planning/`, `.rules/`, `.codex/`, deployment starters, and `STICKYNOTE.example.md`
+- preserves: existing user-owned docs, prompts, scripts, and workflow files that are not explicitly managed or explicitly selected for safe merge
+- removes: only known conflicting AI workflow artifacts covered by a curated cleanup manifest and only when the cleanup option is requested
+- reports: created, skipped, merged, removed, and prompt-required cleanup actions through the scaffold result surface
+
 ## System decisions
 
 | Component | Decision | Notes |
@@ -88,7 +107,7 @@ Approved direction:
 ## Cleanup decision
 
 Approved direction:
-- support opt-in cleanup through the curated `legacy-ai-frameworks-v1` manifest during existing-repo adoption
+- support opt-in cleanup through curated manifests during existing-repo adoption, starting with `legacy-ai-frameworks-v1`
 - never infer deletions heuristically; only exact curated manifest entries are eligible
 - require confirmation for prompt-before-delete entries and report `prompt-required` in non-interactive runs
 - report cleanup actions alongside scaffold creation through `--init-json`
@@ -113,6 +132,5 @@ Approved direction:
 
 ## Current product questions
 
-- what is the right distribution model for `ai-harness` beyond a local checkout?
-- should there be any temporary compatibility alias for older `scaiff` users?
+- how much of the local refresh flow should become more automated over time?
 - how much additional upgrade or merge behavior should existing-repo adoption support without sacrificing safety?

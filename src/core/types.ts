@@ -92,6 +92,7 @@ export type CleanupConfirmer = (entry: CleanupManifestEntry) => Promise<boolean>
 
 export interface ScaffoldContext extends ResolvedProjectInput {
   assistant: AssistantTarget;
+  harnessVersion?: string;
   doltPort: number;
   cogneeDbPort: number;
   computeHost: string;

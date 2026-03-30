@@ -16,6 +16,23 @@ const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 
 describe('CLI init', () => {
+  it('prints local install guidance in the human-readable report', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'human-output-app');
+
+    const result = await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--assistant', 'codex', '--skip-git', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    expect(result.stdout).toContain('Scaffolded human-output-app (new, codex)');
+    expect(result.stdout).toContain('Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
+  });
+
   it('preserves existing scaffold files by default in existing mode', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-preserve');
@@ -73,6 +90,7 @@ describe('CLI init', () => {
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('# AI workflow scaffold');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
   });
 
   it('reports curated cleanup removals in init-json output', async () => {
@@ -159,5 +177,50 @@ describe('CLI init', () => {
         expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })
       ])
     );
+  });
+
+  it('reports mixed adoption outcomes for created skipped and removed files in init-json output', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-mixed');
+
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await mkdir(path.join(targetDir, '.github', 'prompts'), { recursive: true });
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.planning', 'PROJECT.md'), '# Custom Project\n', 'utf8');
+    await writeFile(path.join(targetDir, '.github', 'prompts', 'review.md'), '# keep\n', 'utf8');
+
+    const result = await execFile(
+      process.execPath,
+      [
+        tsxCli,
+        'src/cli.ts',
+        '--mode',
+        'existing',
+        '--assistant',
+        'codex',
+        '--cleanup-manifest',
+        'legacy-ai-frameworks-v1',
+        '--init-json',
+        targetDir
+      ],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const payload = JSON.parse(result.stdout) as {
+      createdPaths: string[];
+      skippedPaths: string[];
+      cleanup: { removedPaths: string[]; status: string };
+    };
+
+    expect(payload.cleanup.status).toBe('applied');
+    expect(payload.cleanup.removedPaths).toContain('.codex/scripts/sync-to-cognee.sh');
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(['.codex/README.md', 'AGENTS.md']));
+    expect(payload.skippedPaths).toContain('.planning/PROJECT.md');
+    expect(await readFile(path.join(targetDir, '.planning', 'PROJECT.md'), 'utf8')).toBe('# Custom Project\n');
+    expect(await readFile(path.join(targetDir, '.github', 'prompts', 'review.md'), 'utf8')).toBe('# keep\n');
   });
 });

@@ -24,6 +24,8 @@ describe('runInit', () => {
       detectPorts: false
     });
 
+    const envExample = await readFile(path.join(workspace, 'sample-app', '.env.example'), 'utf8');
+
     expect(result.mode).toBe('new');
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.gitignore');
@@ -42,6 +44,9 @@ describe('runInit', () => {
     expect(result.createdPaths).not.toContain('VISION.md');
     expect(result.createdPaths).not.toContain('STICKYNOTE.md');
     expect(result.createdPaths).toContain('STICKYNOTE.example.md');
+    expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envExample).toContain('COGNEE_URL=https://sample-app-cognee.apps.compute.lan');
+    expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
     expect(result.cleanup.enabled).toBe(false);
   });
 
@@ -71,6 +76,7 @@ describe('runInit', () => {
     expect(requirements).toContain('## Traceability');
     expect(roadmap).toContain('## Phase Overview');
     expect(state).toContain('## Current Status');
+    expect(state).toContain('Scaffold baseline: `ai-harness` v0.1.0');
     expect(phasesGuide).toContain('.planning/phases/<phase-slug>/');
     expect(quickGuide).toContain('.planning/quick/');
     expect(stickyExample).toContain('# Session Handoff');
@@ -226,6 +232,7 @@ describe('runInit', () => {
     expect(firstEnvExample).toContain('EXISTING_ONLY=true');
     expect(firstEnvExample).toContain('# AI workflow scaffold');
     expect(firstEnvExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(firstEnvExample).not.toContain('BEADS_DOLT_PASSWORD');
 
     const secondResult = await runInit({
       cwd: workspace,
@@ -341,6 +348,127 @@ describe('runInit', () => {
     expect(result.cleanup.status).toBe('applied');
     expect(result.cleanup.removedPaths).toContain('.agents');
     await expect(readFile(path.join(targetDir, '.agents', 'implementer.md'), 'utf8')).rejects.toThrow();
+  });
+
+  it('removes legacy Claude workflow artifacts only when confirmation is provided', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const targetDir = path.join(workspace, 'existing-confirmed-claude-cleanup');
+
+    await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
+    await writeFile(path.join(targetDir, '.claude', 'commands', 'review.md'), '# review\n', 'utf8');
+    await writeFile(path.join(targetDir, 'CLAUDE.md'), '# Claude\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      skipGit: true,
+      detectPorts: false,
+      confirmCleanup: async (entry) => entry.path === '.claude' || entry.path === 'CLAUDE.md'
+    });
+
+    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.removedPaths).toEqual(expect.arrayContaining(['.claude', 'CLAUDE.md']));
+    await expect(readFile(path.join(targetDir, '.claude', 'commands', 'review.md'), 'utf8')).rejects.toThrow();
+    await expect(readFile(path.join(targetDir, 'CLAUDE.md'), 'utf8')).rejects.toThrow();
+  });
+
+  it('removes the deprecated traceability placeholder only when confirmation is provided', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const targetDir = path.join(workspace, 'existing-confirmed-traceability-cleanup');
+
+    await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      skipGit: true,
+      detectPorts: false,
+      confirmCleanup: async (entry) => entry.path === '.planning/TRACEABILITY.md'
+    });
+
+    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.removedPaths).toContain('.planning/TRACEABILITY.md');
+    await expect(readFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), 'utf8')).rejects.toThrow();
+  });
+
+  it('preserves mixed custom AI files while removing curated leftovers and creating missing harness files', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const targetDir = path.join(workspace, 'existing-mixed-adoption');
+
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(targetDir, '.github', 'prompts'), { recursive: true });
+    await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.github', 'prompts', 'review.md'), '# custom prompt\n', 'utf8');
+    await writeFile(path.join(targetDir, '.planning', 'PROJECT.md'), '# Custom Project\n', 'utf8');
+    await writeFile(path.join(targetDir, '.env.example'), 'EXISTING_ONLY=true\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      skipGit: true,
+      detectPorts: false
+    });
+
+    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.removedPaths).toContain('.codex/scripts/sync-to-cognee.sh');
+    expect(result.createdPaths).toEqual(
+      expect.arrayContaining(['.codex/README.md', 'AGENTS.md', '.planning/REQUIREMENTS.md'])
+    );
+    expect(result.skippedPaths).toEqual(expect.arrayContaining(['.planning/PROJECT.md', '.env.example']));
+    expect(await readFile(path.join(targetDir, '.planning', 'PROJECT.md'), 'utf8')).toBe('# Custom Project\n');
+    expect(await readFile(path.join(targetDir, '.github', 'prompts', 'review.md'), 'utf8')).toBe('# custom prompt\n');
+    await expect(readFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), 'utf8')).rejects.toThrow();
+  });
+
+  it('reports prompt-required in mixed repos while still removing safe curated leftovers', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const targetDir = path.join(workspace, 'existing-mixed-blocked-adoption');
+
+    await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(targetDir, 'docs'), { recursive: true });
+    await writeFile(path.join(targetDir, '.claude', 'commands', 'review.md'), '# legacy review\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, 'docs', 'ai-notes.md'), '# keep me\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      assistant: 'codex',
+      mode: 'existing',
+      dryRun: false,
+      force: false,
+      cleanupManifestId: 'legacy-ai-frameworks-v1',
+      nonInteractive: true,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    expect(result.cleanup.status).toBe('blocked');
+    expect(result.cleanup.removedPaths).toContain('.codex/scripts/sync-to-cognee.sh');
+    expect(result.cleanup.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.claude', status: 'prompt-required' })])
+    );
+    expect(await readFile(path.join(targetDir, '.claude', 'commands', 'review.md'), 'utf8')).toBe('# legacy review\n');
+    expect(await readFile(path.join(targetDir, 'docs', 'ai-notes.md'), 'utf8')).toBe('# keep me\n');
+    await expect(readFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), 'utf8')).rejects.toThrow();
   });
 
   it('supports dry-run mode without writing files', async () => {

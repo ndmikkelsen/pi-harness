@@ -6,7 +6,7 @@ const LEGACY_RUNTIME_GUIDE = ['CL', 'AUDE.md'].join('');
 const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
   id: 'legacy-ai-frameworks-v1',
   version: 1,
-  description: 'Curated cleanup entries for legacy assistant runtime artifacts replaced by ai-harness.',
+  description: 'Curated cleanup entries for legacy AI workflow artifacts replaced by ai-harness.',
   entries: [
     {
       id: 'legacy-runtime-dir',
@@ -42,6 +42,13 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       kind: 'file',
       disposition: 'prompt-before-delete',
       reason: 'legacy vision placeholder replaced by .planning/PROJECT.md and requirements docs'
+    },
+    {
+      id: 'legacy-planning-traceability',
+      path: '.planning/TRACEABILITY.md',
+      kind: 'file',
+      disposition: 'prompt-before-delete',
+      reason: 'legacy traceability placeholder replaced by traceability inside .planning/REQUIREMENTS.md'
     },
     {
       id: 'legacy-broad-cognee-sync',

@@ -36,7 +36,7 @@ const program = new Command();
 
 program
   .name('ai-harness')
-  .description('Modular AI workflow scaffolder for new and existing projects.')
+  .description('AI workflow scaffolder for local setup of new and existing projects.')
   .argument('[project]', 'project name or target path')
   .argument('[target]', 'target directory')
   .option('--assistant <assistant>', 'assistant target: codex or opencode', parseAssistant, 'codex')

@@ -57,7 +57,8 @@ export async function runInstallSkill(options: InstallSkillCommandOptions): Prom
     unchangedPaths,
     notes: [
       'Restart OpenCode after installing or updating global skills.',
-      'Make sure the `ai-harness` CLI is on your PATH before invoking the installed skill.'
+      'Make sure the `ai-harness` CLI is on your PATH before invoking the installed skill.',
+      'The installed skill expects `ai-harness` to be available locally on your machine, typically via a checkout plus `pnpm install:local`.'
     ]
   };
 }

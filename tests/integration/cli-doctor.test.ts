@@ -43,4 +43,29 @@ describe('CLI doctor', () => {
     expect(payload.assistant).toBe('opencode');
     expect(payload.status).toBe('pass');
   });
+
+  it('prints local-use guidance in the human-readable doctor report', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-cli-guidance',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-cli-guidance');
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', 'doctor', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
+
+    expect(result.stdout).toContain('Status: pass');
+    expect(result.stdout).toContain('Guidance:');
+    expect(result.stdout).toContain('`ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.');
+  });
 });

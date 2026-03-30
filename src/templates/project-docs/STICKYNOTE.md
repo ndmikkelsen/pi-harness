@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Project:** AI Harness
+**Project:** {{APP_TITLE}}
 
 This file is the default handoff note for the scaffolded repository.
 

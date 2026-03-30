@@ -15,7 +15,7 @@ __pycache__/
 .venv/
 .vscode/
 .idea/
-STICKYNOTE.md
+/STICKYNOTE.md
 .beads/.sync.lock
 .beads/dolt-server.port
 .beads/dolt-monitor.pid

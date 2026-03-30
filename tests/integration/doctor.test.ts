@@ -180,11 +180,60 @@ describe('runDoctor', () => {
     expect(result.groups).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'root-scaffold-hints', status: 'warn' })])
     );
+    expect(result.groups.filter((group) => group.name === 'root-scaffold-hints')).toHaveLength(1);
+    expect(
+      result.warnings.filter((issue) => issue.reason === 'missing STICKYNOTE.md ignore rule')
+    ).toHaveLength(1);
     expect(result.warnings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: '.gitignore', reason: 'missing .kamal/secrets ignore rule' }),
+        expect.objectContaining({ path: '.gitignore', reason: 'missing STICKYNOTE.md ignore rule' }),
         expect.objectContaining({ path: '.env.example', reason: 'missing LLM_API_KEY scaffold value' })
       ])
     );
+  });
+
+  it('warns when deprecated curated workflow artifacts are still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-deprecated',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-deprecated');
+    await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('warn');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'deprecated-artifacts', status: 'warn' })])
+    );
+    expect(result.warnings).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.planning/TRACEABILITY.md',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/sync-to-cognee.sh',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        })
+      ])
+    );
+    expect(formatDoctorReport(result)).toContain('deprecated-artifacts: warn');
   });
 });

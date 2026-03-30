@@ -10,6 +10,7 @@ import { runCleanup } from '../../src/core/cleanup.js';
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 const legacyRuntimeGuide = manifest.entries.find((entry) => entry.id === 'legacy-runtime-guide')!.path;
+const legacyTraceabilityDoc = manifest.entries.find((entry) => entry.id === 'legacy-planning-traceability')?.path;
 
 describe('cleanup manifests', () => {
   it('exposes the curated legacy cleanup manifest', () => {
@@ -19,6 +20,7 @@ describe('cleanup manifests', () => {
       expect.arrayContaining([
         expect.objectContaining({ path: legacyRuntimeGuide, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyRuntimeDir, disposition: 'prompt-before-delete' }),
+        expect.objectContaining({ path: legacyTraceabilityDoc, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: '.codex/scripts/sync-to-cognee.sh', disposition: 'safe-delete' })
       ])
     );
@@ -65,6 +67,50 @@ describe('runCleanup', () => {
     expect(result.actions).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ path: '.agents', status: 'deleted' })
+      ])
+    );
+  });
+
+  it('deletes legacy Claude runtime entries only when explicitly confirmed', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
+    await writeFile(path.join(targetDir, '.claude', 'commands', 'review.md'), '# review\n', 'utf8');
+    await writeFile(path.join(targetDir, 'CLAUDE.md'), '# Claude\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      confirmCleanup: async (entry) => entry.path === '.claude' || entry.path === 'CLAUDE.md'
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toEqual(expect.arrayContaining(['.claude', 'CLAUDE.md']));
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: '.claude', status: 'deleted' }),
+        expect.objectContaining({ path: 'CLAUDE.md', status: 'deleted' })
+      ])
+    );
+  });
+
+  it('deletes the deprecated traceability placeholder only when explicitly confirmed', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      confirmCleanup: async (entry) => entry.path === '.planning/TRACEABILITY.md'
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toContain('.planning/TRACEABILITY.md');
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: '.planning/TRACEABILITY.md', status: 'deleted' })
       ])
     );
   });

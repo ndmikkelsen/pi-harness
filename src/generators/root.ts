@@ -1,5 +1,6 @@
 import type { ManagedEntry, ScaffoldContext } from '../core/types.js';
 import { assistantDisplayName } from '../core/assistant.js';
+import { AI_HARNESS_VERSION } from '../core/harness-release.js';
 import { loadTemplate } from '../core/template-loader.js';
 
 function mergeUniqueLines(existingContent: string, generatedContent: string): string | null {
@@ -62,7 +63,9 @@ function readme(context: ScaffoldContext): string {
     APP_TITLE: context.appTitle,
     ASSISTANT_LABEL: assistantLabel,
     CODEx_BULLET: codexBullet,
-    WORKFLOW_GUIDE_LINE: workflowGuideLine
+    WORKFLOW_GUIDE_LINE: workflowGuideLine,
+    GENERATED_ON: context.generatedOn,
+    HARNESS_VERSION: context.harnessVersion ?? AI_HARNESS_VERSION
   });
 }
 

@@ -12,6 +12,7 @@ import type {
   ManagedFile,
   ScaffoldContext
 } from '../core/types.js';
+import { getCleanupManifest } from '../core/cleanup-manifests.js';
 import { DEFAULT_POLICY } from '../core/policy.js';
 import { buildManagedEntries } from '../generators/index.js';
 
@@ -77,6 +78,15 @@ async function isExecutable(targetDir: string, relativePath: string): Promise<bo
   }
 }
 
+async function pathKind(targetDir: string, relativePath: string): Promise<'file' | 'directory' | 'missing'> {
+  try {
+    const fileStat = await stat(path.join(targetDir, relativePath));
+    return fileStat.isDirectory() ? 'directory' : 'file';
+  } catch {
+    return 'missing';
+  }
+}
+
 function buildGroupStatus(name: string, issues: { missing?: number; invalid?: number; warnings?: number }): DoctorGroupResult {
   if ((issues.missing ?? 0) > 0 || (issues.invalid ?? 0) > 0) {
     return { name, status: 'fail' };
@@ -92,10 +102,13 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const assistant = options.assistant === 'auto' ? inferAssistant(targetDir) : options.assistant;
 
   const selectedEntries = fileEntriesForAssistant(targetDir, assistant);
+  const cleanupManifest = getCleanupManifest('legacy-ai-frameworks-v1');
 
   const missing: string[] = [];
   const invalid: DoctorIssue[] = [];
-  const warnings: DoctorIssue[] = [];
+  const rootWarnings: DoctorIssue[] = [];
+  const deprecatedWarnings: DoctorIssue[] = [];
+  const executableWarnings: DoctorIssue[] = [];
 
   for (const entry of selectedEntries) {
     if (!(await fileExists(targetDir, entry.path))) {
@@ -106,11 +119,10 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const gitignore = await readFileIfPresent(targetDir, '.gitignore');
   if (gitignore !== null) {
     if (!gitignore.includes('.kamal/secrets')) {
-      warnings.push({ path: '.gitignore', reason: 'missing .kamal/secrets ignore rule' });
+      rootWarnings.push({ path: '.gitignore', reason: 'missing .kamal/secrets ignore rule' });
     }
     if (!gitignore.includes('STICKYNOTE.md')) {
-      warnings.push({ path: '.gitignore', reason: 'missing STICKYNOTE.md ignore rule' });
-      warnings.push({ path: '.gitignore', reason: 'missing STICKYNOTE.md ignore rule' });
+      rootWarnings.push({ path: '.gitignore', reason: 'missing STICKYNOTE.md ignore rule' });
     }
   }
 
@@ -118,9 +130,24 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (envExample !== null) {
     for (const token of ['LLM_API_KEY', 'COGNEE_URL']) {
       if (!envExample.includes(token)) {
-        warnings.push({ path: '.env.example', reason: `missing ${token} scaffold value` });
+        rootWarnings.push({ path: '.env.example', reason: `missing ${token} scaffold value` });
       }
     }
+  }
+
+  for (const entry of cleanupManifest.entries) {
+    const presentKind = await pathKind(targetDir, entry.path);
+    if (presentKind === 'missing') {
+      continue;
+    }
+
+    const mismatchSuffix =
+      presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
+
+    deprecatedWarnings.push({
+      path: entry.path,
+      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ai-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`
+    });
   }
 
   const codexBrief = await readFileIfPresent(targetDir, '.codex/scripts/cognee-brief.sh');
@@ -146,21 +173,21 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   for (const entry of selectedEntries.filter((candidate) => candidate.executable)) {
     if (await fileExists(targetDir, entry.path)) {
       if (!(await isExecutable(targetDir, entry.path))) {
-        warnings.push({ path: entry.path, reason: 'not executable' });
+        executableWarnings.push({ path: entry.path, reason: 'not executable' });
       }
     }
   }
 
+  const warnings = [...rootWarnings, ...deprecatedWarnings, ...executableWarnings];
+
   const runtimeMissingCount = missing.length;
-  const rootWarningCount = warnings.filter((issue) => ['.gitignore', '.env.example'].includes(issue.path)).length;
   const invalidCodexCount = invalid.filter((issue) => issue.path.startsWith('.codex/') || issue.path === 'AGENTS.md').length;
-  const executableWarningCount = warnings.filter((issue) => !['.gitignore', '.env.example'].includes(issue.path)).length;
 
   const groups: DoctorGroupResult[] = [
     buildGroupStatus('codex-runtime', { missing: runtimeMissingCount, invalid: invalidCodexCount }),
-    buildGroupStatus('root-scaffold-hints', { warnings: rootWarningCount }),
-    buildGroupStatus('root-scaffold-hints', { warnings: rootWarningCount }),
-    buildGroupStatus('executables', { warnings: executableWarningCount })
+    buildGroupStatus('root-scaffold-hints', { warnings: rootWarnings.length }),
+    buildGroupStatus('deprecated-artifacts', { warnings: deprecatedWarnings.length }),
+    buildGroupStatus('executables', { warnings: executableWarnings.length })
   ];
 
   const status = missing.length > 0 || invalid.length > 0 ? 'fail' : warnings.length > 0 ? 'warn' : 'pass';
@@ -216,6 +243,12 @@ export function formatDoctorReport(result: DoctorResult): string {
       lines.push(`- ${issue.path} (${issue.reason})`);
     }
   }
+
+  lines.push(
+    '',
+    'Guidance:',
+    '- `ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.'
+  );
 
   return `${lines.join('\n')}\n`;
 }
