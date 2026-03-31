@@ -76,7 +76,7 @@ elif command -v pytest >/dev/null 2>&1; then
 fi
 
 if command -v gitleaks >/dev/null 2>&1 && [[ -f .gitleaks.toml ]]; then
-  run_cmd gitleaks detect --source . --no-git --config .gitleaks.toml
+  run_cmd gitleaks detect --source . --config .gitleaks.toml
 fi
 
 if [[ -f STICKYNOTE.example.md && ! -f STICKYNOTE.md ]]; then

@@ -2,7 +2,7 @@ import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { runInit } from '../../src/commands/init.js';
 
@@ -39,6 +39,15 @@ async function snapshotForProject(rootDir: string, includeCodex: boolean) {
 }
 
 describe('scaffold snapshots', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-30T00:00:00Z'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('matches the Codex scaffold snapshot', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-snapshot-'));
 

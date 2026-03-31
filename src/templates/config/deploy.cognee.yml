@@ -1,6 +1,9 @@
 service: {{APP_SLUG}}-cognee
 image: {{APP_SLUG}}/cognee
 
+servers:
+  - {{COMPUTE_HOST}}
+
 proxy:
   host: {{APP_SLUG}}-cognee.apps.compute.lan
   app_port: 8000
@@ -49,7 +52,6 @@ accessories:
   db:
     image: pgvector/pgvector:pg17
     host: {{COMPUTE_HOST}}
-    port: "{{COGNEE_DB_PORT}}:5432"
     env:
       clear:
         POSTGRES_USER: cognee

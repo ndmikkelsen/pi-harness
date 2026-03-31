@@ -1,6 +1,9 @@
 service: ai-harness-cognee
 image: ai-harness/cognee
 
+servers:
+  - 10.10.20.138
+
 proxy:
   host: ai-harness-cognee.apps.compute.lan
   app_port: 8000
@@ -49,7 +52,6 @@ accessories:
   db:
     image: pgvector/pgvector:pg17
     host: 10.10.20.138
-    port: "5432:5432"
     env:
       clear:
         POSTGRES_USER: cognee
