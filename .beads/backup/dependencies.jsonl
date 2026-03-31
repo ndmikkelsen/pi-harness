@@ -14,6 +14,7 @@
 {"created_at":"2026-03-29T01:47:48Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-anr","issue_id":"ai-harness-64p","type":"discovered-from"}
 {"created_at":"2026-03-30T15:53:37Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-4cp","issue_id":"ai-harness-8wh","type":"discovered-from"}
 {"created_at":"2026-03-29T23:32:17Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-x8a","issue_id":"ai-harness-9nc","type":"discovered-from"}
+{"created_at":"2026-03-31T14:24:49Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-a1p","issue_id":"ai-harness-9nr","type":"discovered-from"}
 {"created_at":"2026-03-30T23:11:21Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-099","issue_id":"ai-harness-a1p","type":"discovered-from"}
 {"created_at":"2026-03-29T12:43:33Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-b42","type":"blocks"}
 {"created_at":"2026-03-29T12:42:33Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-b42.1","type":"blocks"}
