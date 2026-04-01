@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -31,6 +31,47 @@ describe('CLI init', () => {
 
     expect(result.stdout).toContain('Scaffolded human-output-app (new, codex)');
     expect(result.stdout).toContain('Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
+  });
+
+  it('installs post-checkout hook support when pre-commit is available', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'hooked-app');
+    const binDir = path.join(workspace, 'bin');
+    const preCommitLog = path.join(workspace, 'pre-commit.log');
+
+    await mkdir(binDir, { recursive: true });
+    await writeFile(
+      path.join(binDir, 'pre-commit'),
+      `#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "${preCommitLog}"
+exit 0
+`,
+      'utf8'
+    );
+    await chmod(path.join(binDir, 'pre-commit'), 0o755);
+
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'codex', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH ?? ''}`
+      }
+    });
+
+    const preCommitCalls = await readFile(preCommitLog, 'utf8');
+    const preCommitConfig = await readFile(path.join(targetDir, '.pre-commit-config.yaml'), 'utf8');
+    const postCheckoutHook = path.join(targetDir, 'scripts', 'hooks', 'post-checkout');
+
+    expect(result.stdout).toContain('Initialized a git repository on main.');
+    expect(preCommitCalls).toContain('install');
+    expect(preCommitCalls).toContain('install --hook-type post-checkout');
+    expect(preCommitConfig).toContain('default_install_hook_types:');
+    expect(preCommitConfig).toContain('- post-checkout');
+    expect(preCommitConfig).toContain('entry: scripts/hooks/post-checkout');
+    expect(preCommitConfig).toContain('stages: [post-checkout]');
+    expect((await stat(postCheckoutHook)).mode & 0o111).toBeGreaterThan(0);
   });
 
   it('preserves existing scaffold files by default in existing mode', async () => {
@@ -222,5 +263,76 @@ describe('CLI init', () => {
     expect(payload.skippedPaths).toContain('.planning/PROJECT.md');
     expect(await readFile(path.join(targetDir, '.planning', 'PROJECT.md'), 'utf8')).toBe('# Custom Project\n');
     expect(await readFile(path.join(targetDir, '.github', 'prompts', 'review.md'), 'utf8')).toBe('# keep\n');
+  });
+
+  it('wires the active custom post-checkout hook during existing-repo adoption', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-hooks');
+
+    await mkdir(path.join(targetDir, '.beads', 'hooks'), { recursive: true });
+    await execFile('git', ['init', '--initial-branch=main'], { cwd: targetDir });
+    await execFile('git', ['config', 'core.hooksPath', '.beads/hooks'], { cwd: targetDir });
+    await writeFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), '#!/bin/sh\nexit 0\n', 'utf8');
+    await chmod(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 0o755);
+
+    await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--init-json', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const activeHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
+
+    expect(activeHook).toContain('BEGIN AI HARNESS WORKTREE HOOK');
+    expect(activeHook).toContain('.codex/scripts/bootstrap-worktree.sh');
+  });
+
+  it('falls back to a direct post-checkout hook when an existing pre-commit config lacks bootstrap wiring', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-default-hooks');
+    const binDir = path.join(workspace, 'bin');
+    const preCommitLog = path.join(workspace, 'pre-commit.log');
+
+    await mkdir(binDir, { recursive: true });
+    await writeFile(preCommitLog, '', 'utf8');
+    await execFile('git', ['init', '--initial-branch=main', targetDir]);
+    await writeFile(
+      path.join(targetDir, '.pre-commit-config.yaml'),
+      'default_install_hook_types:\n  - pre-commit\n\nrepos:\n  - repo: https://github.com/gitleaks/gitleaks\n    rev: v8.30.0\n    hooks:\n      - id: gitleaks\n',
+      'utf8'
+    );
+    await writeFile(
+      path.join(binDir, 'pre-commit'),
+      `#!/usr/bin/env bash
+set -euo pipefail
+printf '%s\n' "$*" >> "${preCommitLog}"
+exit 0
+`,
+      'utf8'
+    );
+    await chmod(path.join(binDir, 'pre-commit'), 0o755);
+
+    const result = await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        env: {
+          ...process.env,
+          PATH: `${binDir}:${process.env.PATH ?? ''}`
+        }
+      }
+    );
+
+    const preCommitCalls = await readFile(preCommitLog, 'utf8');
+    const directHook = await readFile(path.join(targetDir, '.git', 'hooks', 'post-checkout'), 'utf8');
+
+    expect(preCommitCalls).toBe('');
+    expect(result.stdout).toContain('fell back to a direct post-checkout hook');
+    expect(directHook).toContain('BEGIN AI HARNESS WORKTREE HOOK');
   });
 });

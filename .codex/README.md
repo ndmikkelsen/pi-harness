@@ -27,8 +27,8 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 - `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
 - `./.codex/scripts/cognee-sync-planning.sh` - sync GSD planning artifacts into Cognee
 - `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
-- `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state
-- `.codex/workflows/autonomous-execution.md` - Beads-aware single-agent phase workflow with graceful degradation
+- `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy shared across Codex and OpenCode
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - source skill instructions mirrored by the globally installed OpenCode `harness` skill
 
@@ -36,14 +36,15 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 
 1. Read `README.md`, `docs/ai-harness-premise.md`, and `.planning/STATE.md` before editing scaffold behavior.
 2. For scaffold changes, update `src/templates/**` and relevant generators before rebuilding `dist/`.
-3. If Beads is available, use `bd ready --json`, claim the active issue, and carry the issue ID through the GSD phase loop.
-4. Use `ai-harness --mode existing . --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
-5. Use `ai-harness doctor . --assistant codex` to audit the current repo after runtime changes.
-6. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
-7. Use `.codex/workflows/autonomous-execution.md` for one-agent phase work, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-8. Run `pnpm typecheck`, `pnpm test`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
-9. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
-10. Finish with ./.codex/scripts/land.sh when using the full landing protocol.
+3. Follow `.rules/patterns/operator-workflow.md` as the canonical operator runbook.
+4. If Beads is available, use `bd ready --json`, claim the active issue, and start from `/gsd-next`.
+5. Use `ai-harness --mode existing . --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
+6. Use `ai-harness doctor . --assistant codex` to audit the current repo after runtime changes.
+7. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
+8. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
+9. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+10. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
+11. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
 
 ## Rules
 

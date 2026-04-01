@@ -97,9 +97,41 @@ function buildGroupStatus(name: string, issues: { missing?: number; invalid?: nu
   return { name, status: 'pass' };
 }
 
+function buildRecommendations(
+  targetLabel: string,
+  assistant: AssistantTarget,
+  warnings: {
+    rootWarnings: DoctorIssue[];
+    deprecatedWarnings: DoctorIssue[];
+    executableWarnings: DoctorIssue[];
+  }
+): string[] {
+  const recommendations: string[] = [];
+
+  if (warnings.rootWarnings.length > 0) {
+    recommendations.push(
+      `Preserved root files are missing scaffold hints. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`
+    );
+  }
+
+  if (warnings.deprecatedWarnings.length > 0) {
+    recommendations.push(
+      `Deprecated curated artifacts are still present. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`
+    );
+  }
+
+  if (warnings.executableWarnings.length > 0) {
+    const executablePaths = warnings.executableWarnings.map((issue) => issue.path).join(' ');
+    recommendations.push(`Restore execute bits with \`chmod +x ${executablePaths}\` from ${targetLabel}.`);
+  }
+
+  return recommendations;
+}
+
 export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorResult> {
   const targetDir = path.resolve(options.cwd, options.targetArg ?? '.');
   const assistant = options.assistant === 'auto' ? inferAssistant(targetDir) : options.assistant;
+  const targetLabel = path.relative(options.cwd, targetDir) || '.';
 
   const selectedEntries = fileEntriesForAssistant(targetDir, assistant);
   const cleanupManifest = getCleanupManifest('legacy-ai-frameworks-v1');
@@ -191,6 +223,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   ];
 
   const status = missing.length > 0 || invalid.length > 0 ? 'fail' : warnings.length > 0 ? 'warn' : 'pass';
+  const recommendations = buildRecommendations(targetLabel, assistant, {
+    rootWarnings,
+    deprecatedWarnings,
+    executableWarnings
+  });
 
   return {
     targetDir,
@@ -205,7 +242,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     groups,
     missing,
     invalid,
-    warnings
+    warnings,
+    recommendations
   };
 }
 
@@ -241,6 +279,13 @@ export function formatDoctorReport(result: DoctorResult): string {
     lines.push('', 'Warnings:');
     for (const issue of result.warnings) {
       lines.push(`- ${issue.path} (${issue.reason})`);
+    }
+  }
+
+  if (result.recommendations.length > 0) {
+    lines.push('', 'Recommendations:');
+    for (const recommendation of result.recommendations) {
+      lines.push(`- ${recommendation}`);
     }
   }
 

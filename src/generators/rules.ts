@@ -11,6 +11,10 @@ function gitWorkflow(): string {
   return loadTemplate('rules/patterns/git-workflow.md');
 }
 
+function operatorWorkflow(): string {
+  return loadTemplate('rules/patterns/operator-workflow.md');
+}
+
 function gsdWorkflow(): string {
   return loadTemplate('rules/patterns/gsd-workflow.md');
 }
@@ -44,6 +48,11 @@ export function buildRuleEntries(): ManagedEntry[] {
       kind: 'file',
       path: '.rules/index.md',
       content: (context) => indexContent(context.appTitle)
+    },
+    {
+      kind: 'file',
+      path: '.rules/patterns/operator-workflow.md',
+      content: () => operatorWorkflow()
     },
     {
       kind: 'file',

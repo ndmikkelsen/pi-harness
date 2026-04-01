@@ -23,6 +23,7 @@ That gives you:
 
 - `ai-harness` on your `PATH`
 - the global OpenCode `harness` skill
+- the managed OpenCode `/gsd-autonomous` workflow at `~/.config/opencode/get-shit-done/workflows/autonomous.md`
 
 ## Mental model
 
@@ -77,7 +78,7 @@ Generated repos also start with a scaffold baseline marker in `.planning/STATE.m
 3. Copy `.env.example` to `.env` and fill in local values.
 4. Run `bd init` once before using Beads in that repo.
 5. Run `ai-harness doctor . --assistant opencode`.
-6. Start normal work with `bd ready --json` and the GSD phase loop.
+6. Start normal work with `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next`.
 
 ## Existing repository walkthrough
 
@@ -157,7 +158,7 @@ ai-harness --mode existing . --assistant opencode --cleanup-manifest legacy-ai-f
 3. Review any cleanup results before continuing.
 4. Run `ai-harness doctor . --assistant opencode`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
-6. Start the normal loop: `bd ready --json` -> claim issue -> GSD phase workflow -> verify -> close.
+6. Start the normal loop: `bd ready --json` -> claim issue -> `/gsd-next` -> verify -> close -> `./.codex/scripts/land.sh`.
 
 ## Refreshing an already scaffolded repo later
 
@@ -180,11 +181,10 @@ Once a repo is scaffolded, the intended default loop is:
 ```bash
 bd ready --json
 bd update <id> --claim --json
-/gsd:discuss-phase
-/gsd:plan-phase
-/gsd:execute-phase
-/gsd:verify-work
+/gsd-next
+/gsd-verify-work <phase>
 bd close <id> --reason "Verified"
+./.codex/scripts/land.sh
 ```
 
-If verification finds gaps, create follow-up issues instead of closing the parent work early.
+Use `/gsd-resume-work` to re-enter an active phase, and if `/gsd-next` routes you into phase work, continue with `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>`.

@@ -20,4 +20,4 @@ State the one thing that must work for this project to be successful.
 
 ## Notes
 
-- Replace this starter brief during `/gsd:new-project` or your first planning pass.
+- Replace this starter brief during `/gsd-new-project` or your first planning pass.

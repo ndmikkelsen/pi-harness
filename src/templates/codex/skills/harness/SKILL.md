@@ -26,7 +26,8 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 4. When adopting the current repository, run `ai-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`
 5. In existing repos, customize only the files listed in `createdPaths`, guided by `references/scaffold-customization-map.md`
 6. Run `ai-harness doctor <target> --assistant <codex|opencode>` after setup
-7. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
+7. If the user relies on OpenCode, remind them that `ai-harness install-skill --assistant opencode` refreshes both the global `harness` skill and the managed `/gsd-autonomous` entrypoint
+8. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
 
 ## Existing Repository Adaptation
 

@@ -2,6 +2,8 @@
 
 Use native `bd` commands for Beads.
 
+`operator-workflow.md` is the canonical interactive and autonomous runbook. This file only adds Beads-specific guidance.
+
 Run `bd init` once per repository to initialize Beads using the official defaults.
 Treat `.beads/` as project-local issue state by default.
 Do not require a Beads Dolt remote or remote sync step for normal repository use.
@@ -14,11 +16,9 @@ Use this loop for phase-based work when Beads is available:
 
 1. `bd ready --json`
 2. `bd update <id> --claim --json`
-3. `/gsd:discuss-phase`
-4. `/gsd:plan-phase`
-5. `/gsd:execute-phase`
-6. `/gsd:verify-work`
-7. `bd close <id> --reason "Verified: <artifact or phase> passed"`
+3. `/gsd-next`
+4. If phase work is required, continue with `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>`
+5. `bd close <id> --reason "Verified: <artifact or phase> passed" --json`
 
 - reference the active Beads issue IDs in phase context notes and handoff docs
 - do not close Beads issues ad hoc before verification passes
@@ -29,5 +29,6 @@ Use this loop for phase-based work when Beads is available:
 
 - if a repo adds an automated or autonomous GSD driver, gate all Beads operations behind a check for both `.beads/` and the `bd` executable
 - when Beads is unavailable, skip tracking steps and continue the GSD flow rather than blocking execution
-- if Beads is available, create or claim the phase-level issue before planning, keep child tasks tied to concrete plans, and close them only after verification passes
+- if Beads is available, start from ready work before roadmap-only phase work, create or claim the active issue before planning, keep child tasks tied to concrete plans, and close them only after verification passes
+- if verification reports retryable gaps, allow one automatic gap-closure cycle before stopping with follow-up tracking
 - validate Beads config keys against the installed `bd` version before codifying JSONL or events export behavior

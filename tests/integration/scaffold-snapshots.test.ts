@@ -2,7 +2,7 @@ import { mkdtemp, readFile, readdir } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
-import { describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 import { runInit } from '../../src/commands/init.js';
 
@@ -39,6 +39,15 @@ async function snapshotForProject(rootDir: string, includeCodex: boolean) {
 }
 
 describe('scaffold snapshots', () => {
+  beforeAll(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-30T00:00:00Z'));
+  });
+
+  afterAll(() => {
+    vi.useRealTimers();
+  });
+
   it('matches the Codex scaffold snapshot', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-snapshot-'));
 
@@ -69,16 +78,18 @@ describe('scaffold snapshots', () => {
     expect(result['README.md']).toContain('This scaffold assumes `ai-harness` is used locally to set up and refresh repos');
     expect(result['README.md']).toContain('there is no separate `scaiff` binary or package alias');
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(result['README.md']).toContain('Review AGENTS.md, .codex/README.md, and the guides in .rules/.');
+    expect(result['README.md']).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
     expect(result['.codex/README.md']).toContain('Use native `bd` as the Beads task-tracking interface after `bd init`');
     expect(result['.codex/README.md']).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');
+    expect(result['.codex/README.md']).toContain('pnpm test:bdd');
     expect(result['.codex/README.md']).not.toContain('./.codex/scripts/sync-to-cognee.sh');
     expect(beadsGuide).toContain('Run `bd init` once per repository');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
     expect(autonomousWorkflow).toContain('BEADS_AVAILABLE');
     expect(autonomousWorkflow).toContain('bd ready --json');
-    expect(autonomousWorkflow).toContain('/gsd:verify-work');
+    expect(autonomousWorkflow).toContain('/gsd-next');
+    expect(autonomousWorkflow).toContain('gaps_found');
     expect(result).toMatchSnapshot();
   });
 

@@ -17,3 +17,4 @@
 ## Milestone Notes
 
 - `v1.0` is complete: all `CORE-01` through `CORE-06` requirements are done, Phase 2 and Phase 3 have passed verification, and milestone audit evidence lives in `.planning/milestones/v1.0/`.
+- Post-v1.0 work now lives in Beads as operational follow-up and v2 ergonomics backlog; those items do not reopen roadmap phases unless the milestone scope changes.

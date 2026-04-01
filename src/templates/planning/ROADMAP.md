@@ -8,4 +8,4 @@
 
 ## Phase Notes
 
-- Replace this starter roadmap during `/gsd:new-project` with requirement-mapped phases.
+- Replace this starter roadmap during `/gsd-new-project` with requirement-mapped phases.

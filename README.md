@@ -122,23 +122,25 @@ New repositories receive the full scaffold. Existing repositories create the sam
 
 ## Beads + GSD loop
 
-When a repository uses both Beads and GSD, the intended default loop is:
+The canonical operator flow lives in `.rules/patterns/operator-workflow.md`.
+
+The default interactive path is:
 
 1. `bd ready --json`
 2. `bd update <id> --claim --json`
-3. `/gsd:discuss-phase`
-4. `/gsd:plan-phase`
-5. `/gsd:execute-phase`
-6. `/gsd:verify-work`
-7. `bd close <id> --reason "Verified"`
+3. `/gsd-next`
+4. If GSD routes you into phase work, continue with `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>`
+5. `bd close <id> --reason "Verified" --json`
+6. `./.codex/scripts/land.sh`
 
-If verification finds gaps, create follow-up bug issues instead of closing the parent work early. If a repo has no `.beads/` folder or no `bd` binary, GSD should continue without Beads rather than blocking execution.
+Use `/gsd-resume-work` to re-enter an active phase and `/gsd-autonomous` when you want a backlog-driven power mode that keeps going until work is verified or truly blocked.
 
 ## Development
 
 ```bash
 pnpm typecheck
 pnpm test
+pnpm test:bdd
 pnpm build
 pnpm install:local
 ```
@@ -198,6 +200,7 @@ That flow gives you:
 
 - a local `ai-harness` command on your `PATH` backed by this checkout
 - a global OpenCode skill that can scaffold whichever repository you `cd` into
+- a managed backlog-driven `/gsd-autonomous` workflow refreshed under `~/.config/opencode/get-shit-done/workflows/autonomous.md`
 
 ## Quickstart
 
@@ -210,6 +213,7 @@ pnpm install:local
 ai-harness install-skill --assistant opencode
 ```
 
+That install also refreshes the managed `/gsd-autonomous` workflow used by OpenCode.
 New repo:
 
 - OpenCode prompt: `Use harness to scaffold a new repository named my-app for OpenCode.`
@@ -228,7 +232,7 @@ ai-harness doctor . --assistant opencode
 
 See `docs/harness-usage.md` for the full new-repo and existing-repo walkthroughs.
 
-BDD specs live in `apps/cli/features/`, and executable regression coverage lives in `tests/`.
+BDD specs live in `apps/cli/features/`, executable regression coverage lives in `tests/`, and the Muninn-style BDD lane runs through `pnpm test:bdd`.
 
 ## Docs
 

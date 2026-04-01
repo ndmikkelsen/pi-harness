@@ -9,6 +9,6 @@ Common files:
 - `CONVENTIONS.md`
 - `CONCERNS.md`
 
-Populate this area through `/gsd:map-codebase` or equivalent repo analysis.
+Populate this area through `/gsd-map-codebase` or equivalent repo analysis.
 
 For this repo, capture the real layout across `src/commands`, `src/core`, `src/generators`, `src/templates`, `tests`, and `apps/cli/features`.

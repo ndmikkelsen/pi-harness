@@ -28,6 +28,9 @@ pnpm install:local
 ai-harness install-skill --assistant opencode
 ```
 
+- refreshes the global `harness` skill bundle under `~/.opencode/skills/ai-harness/`
+- refreshes the managed `/gsd-autonomous` entrypoint under `~/.config/opencode/get-shit-done/workflows/autonomous.md`
+- the shared autonomous policy now lives in repo files like `.rules/patterns/operator-workflow.md` and `.codex/workflows/autonomous-execution.md`
 ### New repository
 
 ```bash

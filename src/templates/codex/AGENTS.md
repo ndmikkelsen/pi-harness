@@ -23,7 +23,7 @@ Use the {{COMPAT_LABEL}} compatibility docs and scripts under .codex/ as entrypo
 3. Use native `bd` for task tracking after the repository is initialized with `bd init`.
 4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
 5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-6. Execute work in waves with explicit file ownership and validation boundaries.
+6. Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.
 7. Land the session with ./.codex/scripts/land.sh.
 
 ### {{COMPAT_LABEL}} Guardrails
@@ -40,7 +40,7 @@ Use the {{COMPAT_LABEL}} compatibility docs and scripts under .codex/ as entrypo
 - When Beads is available, use `bd ready --json` and `bd update <id> --claim --json` before phase work.
 - Use `.codex/workflows/autonomous-execution.md` for one-agent phase execution, or `.codex/workflows/parallel-execution.md` for multi-wave work.
 - Carry the active Beads issue ID through phase notes, execution context, and handoff docs.
-- Use `/gsd:discuss-phase`, `/gsd:plan-phase`, `/gsd:execute-phase`, and `/gsd:verify-work` in sequence for phase-based work.
+- Use `/gsd-next` first, then `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>` when phase work is required.
 - Close Beads issues only after verification passes.
 - If verification finds gaps, create follow-up Beads bug issues instead of closing the parent work early.
 - If `.beads/` or `bd` is unavailable, continue the GSD workflow without blocking on issue tracking.

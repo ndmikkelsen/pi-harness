@@ -1,1 +1,2 @@
-FROM cognee/cognee:latest
+# Cognee release tags are not consistently published to Docker Hub.
+FROM cognee/cognee:latest@sha256:eba227c33dd7f5eb997a0072f418792fd8aaa8873e9bb12240915d4e69396970

@@ -1,8 +1,19 @@
 default_install_hook_types:
   - pre-commit
+  - post-checkout
 
 repos:
   - repo: https://github.com/gitleaks/gitleaks
     rev: v8.30.0
     hooks:
       - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: ai-harness-worktree-bootstrap
+        name: Run ai-harness worktree bootstrap
+        language: script
+        entry: scripts/hooks/post-checkout
+        stages: [post-checkout]
+        always_run: true
+        pass_filenames: false

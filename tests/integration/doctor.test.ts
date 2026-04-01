@@ -191,6 +191,11 @@ describe('runDoctor', () => {
         expect.objectContaining({ path: '.env.example', reason: 'missing LLM_API_KEY scaffold value' })
       ])
     );
+    expect(result.recommendations).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('--merge-root-files --init-json')
+      ])
+    );
   });
 
   it('warns when deprecated curated workflow artifacts are still present', async () => {
@@ -235,5 +240,10 @@ describe('runDoctor', () => {
       ])
     );
     expect(formatDoctorReport(result)).toContain('deprecated-artifacts: warn');
+    expect(result.recommendations).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+      ])
+    );
   });
 });

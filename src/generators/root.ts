@@ -31,6 +31,10 @@ function preCommit(): string {
   return loadTemplate('root/pre-commit.yaml');
 }
 
+function postCheckoutHook(): string {
+  return loadTemplate('root/scripts/hooks/post-checkout');
+}
+
 function envExample(context: ScaffoldContext): string {
   return loadTemplate('root/env.example', {
     APP_TITLE: context.appTitle,
@@ -57,7 +61,7 @@ function envrc(context: ScaffoldContext): string {
 function readme(context: ScaffoldContext): string {
   const assistantLabel = assistantDisplayName(context.assistant);
   const codexBullet = `- ${context.assistant === 'opencode' ? 'OpenCode' : 'Codex'} runtime files in .codex/ and AGENTS.md`;
-  const workflowGuideLine = 'Review AGENTS.md, .codex/README.md, and the guides in .rules/.';
+  const workflowGuideLine = 'Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.';
 
   return loadTemplate('root/README.md', {
     APP_TITLE: context.appTitle,
@@ -71,6 +75,8 @@ function readme(context: ScaffoldContext): string {
 
 export function buildRootEntries(): ManagedEntry[] {
   return [
+    { kind: 'directory', path: 'scripts' },
+    { kind: 'directory', path: 'scripts/hooks' },
     {
       kind: 'file',
       path: '.gitignore',
@@ -95,6 +101,7 @@ export function buildRootEntries(): ManagedEntry[] {
         }
       },
     { kind: 'file', path: '.envrc', content: (context) => envrc(context) },
+    { kind: 'file', path: 'scripts/hooks/post-checkout', content: () => postCheckoutHook(), executable: true },
     { kind: 'file', path: 'README.md', content: (context) => readme(context) }
   ];
 }

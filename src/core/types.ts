@@ -144,19 +144,30 @@ export interface OpenCodeSkillEntry {
   content: () => string;
 }
 
+export interface OpenCodeWorkflowEntry {
+  path: string;
+  content: () => string;
+}
+
 export interface InstallSkillCommandOptions {
   cwd: string;
   assistant: AssistantTarget;
   targetRoot?: string;
+  configRoot?: string;
 }
 
 export interface InstallSkillResult {
   assistant: AssistantTarget;
   skillName: string;
   targetRoot: string;
+  configRoot: string;
   installDir: string;
+  workflowDir: string;
+  workflowFilePath: string;
   writtenPaths: string[];
   unchangedPaths: string[];
+  writtenWorkflowPaths: string[];
+  unchangedWorkflowPaths: string[];
   notes: string[];
 }
 
@@ -192,4 +203,5 @@ export interface DoctorResult {
   missing: string[];
   invalid: DoctorIssue[];
   warnings: DoctorIssue[];
+  recommendations: string[];
 }

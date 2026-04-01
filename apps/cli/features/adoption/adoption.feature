@@ -26,9 +26,9 @@ Feature: Adopt an existing project into the AI workflow scaffold
   Scenario: Add Codex compatibility files to an existing project
     Given an existing project directory without Codex files
     When I apply the scaffold in existing-project mode for the "codex" assistant
-    Then Codex compatibility files are created
+    Then assistant compatibility files are created
 
   Scenario: Add OpenCode compatibility files to an existing project
     Given an existing project directory without Codex files
     When I apply the scaffold in existing-project mode for the "opencode" assistant
-    Then Codex compatibility files are created
+    Then assistant compatibility files are created

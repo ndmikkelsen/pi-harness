@@ -23,4 +23,4 @@
 
 ## Notes
 
-- Replace this scaffold during `/gsd:new-project` when GSD scopes v1, v2, and out-of-scope work.
+- Replace this scaffold during `/gsd-new-project` when GSD scopes v1, v2, and out-of-scope work.

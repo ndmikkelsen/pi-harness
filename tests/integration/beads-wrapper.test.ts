@@ -28,15 +28,15 @@ describe('Beads integration', () => {
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
 
     expect(readme).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(readme).toContain('Review AGENTS.md, .codex/README.md, and the guides in .rules/.');
+    expect(readme).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
     expect(beadsGuide).toContain('## Beads -> GSD -> Beads');
     expect(beadsGuide).toContain('`bd update <id> --claim --json`');
-    expect(beadsGuide).toContain('`/gsd:verify-work`');
+    expect(beadsGuide).toContain('`/gsd-next`');
     expect(codexReadme).toContain('Use native `bd` as the Beads task-tracking interface after `bd init`');
     expect(codexReadme).toContain('Close or update Beads issues only after verification passes');
     expect(codexReadme).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(agentsGuide).toContain('Use native `bd` for task tracking after the repository is initialized with `bd init`.');
+    expect(agentsGuide).toContain('Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.');
     expect(agentsGuide).toContain('### Beads + GSD Loop');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
   });

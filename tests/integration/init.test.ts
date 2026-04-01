@@ -34,6 +34,7 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-sync-planning.sh');
     expect(result.createdPaths).toContain('.codex/scripts/sync-planning-to-cognee.sh');
@@ -110,11 +111,13 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('AGENTS.md');
     expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('Codex Compatibility Layer');
+    expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
     expect(codexReadme).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     expect(codexReadme).toContain('.codex/skills/harness/SKILL.md');
@@ -123,6 +126,59 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
     expect(codexBridgeWrapper).toContain('.codex/scripts/cognee-bridge.sh');
     expect(planningSyncWrapper).toContain('.codex/scripts/cognee-sync-planning.sh');
+  });
+
+  it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'cognee-app',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const deployConfig = await readFile(path.join(workspace, 'cognee-app', 'config', 'deploy.cognee.yml'), 'utf8');
+    const dockerfile = await readFile(path.join(workspace, 'cognee-app', '.codex', 'docker', 'Dockerfile.cognee'), 'utf8');
+
+    expect(deployConfig).toContain('REQUIRE_AUTHENTICATION: "false"');
+    expect(deployConfig).toContain('ENABLE_BACKEND_ACCESS_CONTROL: "false"');
+    expect(deployConfig).toContain('LLM_MODEL: gpt-4o-mini');
+    expect(deployConfig).toContain('VECTOR_DATASET_DATABASE_HANDLER: pgvector');
+    expect(deployConfig).toContain('response_timeout: 300');
+    expect(deployConfig).toContain('path: /health');
+    expect(dockerfile).toContain('Cognee release tags are not consistently published to Docker Hub.');
+    expect(dockerfile).toContain(
+      'FROM cognee/cognee:latest@sha256:eba227c33dd7f5eb997a0072f418792fd8aaa8873e9bb12240915d4e69396970'
+    );
+  });
+
+  it('creates a worktree bootstrap script that links shared local env files', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'bootstrap-app',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const bootstrapScript = await readFile(
+      path.join(workspace, 'bootstrap-app', '.codex', 'scripts', 'bootstrap-worktree.sh'),
+      'utf8'
+    );
+
+    expect(bootstrapScript).toContain('.env');
+    expect(bootstrapScript).toContain('.kamal/secrets');
+    expect(bootstrapScript).toContain('direnv allow');
   });
 
   it('creates OpenCode-compatible files on the Codex scaffold when opencode is selected', async () => {
@@ -149,6 +205,7 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('OpenCode Compatibility Layer');
+    expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(agentsGuide).toContain('OpenCode Workflow');
     expect(agentsGuide).toContain('.codex/');
   });

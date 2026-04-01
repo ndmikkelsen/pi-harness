@@ -23,7 +23,7 @@ Use the Codex compatibility docs and scripts under .codex/ as entrypoints, not a
 3. Use native `bd` for task tracking after the repository is initialized with `bd init`.
 4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
 5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-6. Execute work in waves with explicit file ownership and validation boundaries.
+6. Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.
 7. Land the session with ./.codex/scripts/land.sh.
 
 ### Codex Guardrails
@@ -100,9 +100,10 @@ bd close bd-42 --reason "Completed" --json
 
 ### Workflow for AI Agents
 
-1. **Check ready work**: `bd ready` shows unblocked issues
-2. **Claim your task atomically**: `bd update <id> --claim`
-3. **Run the GSD loop when phase-based planning is needed**: `/gsd:discuss-phase` -> `/gsd:plan-phase` -> `/gsd:execute-phase` -> `/gsd:verify-work`
+1. **Check ready work**: `bd ready --json` shows unblocked issues
+2. **Claim your task atomically**: `bd update <id> --claim --json`
+3. **Use the interactive default**: `/gsd-next` routes to the next useful GSD step without extra command hunting
+4. **Use the explicit phase loop when needed**: `/gsd-discuss-phase <n>` -> `/gsd-plan-phase <n>` -> `/gsd-execute-phase <n>` -> `/gsd-verify-work <n>`
 4. **Work on it**: Implement, test, document
 5. **Discover new work?** Create linked issue:
    - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
@@ -110,10 +111,11 @@ bd close bd-42 --reason "Completed" --json
 
 ### Beads + GSD Harmonization
 
-- Prefer the loop `bd ready -> claim -> /gsd:discuss-phase -> /gsd:plan-phase -> /gsd:execute-phase -> /gsd:verify-work -> bd close`
+- Prefer the loop `bd ready -> claim -> /gsd-next -> /gsd-verify-work -> bd close`
+- When phase work is required, use `/gsd-discuss-phase <n> -> /gsd-plan-phase <n> -> /gsd-execute-phase <n> -> /gsd-verify-work <n>`
 - Use `.codex/workflows/autonomous-execution.md` for one-agent phase execution, or `.codex/workflows/parallel-execution.md` for multi-wave work
 - Reference active Beads issue IDs in phase context and handoff notes when the work maps to a phase
-- If `/gsd:verify-work` finds gaps, create bug or follow-up issues instead of closing the parent issue early
+- If `/gsd-verify-work <n>` finds gaps, create bug or follow-up issues instead of closing the parent issue early
 - If `.beads/` or `bd` is unavailable, continue with GSD rather than blocking execution
 
 ### Project-Local Beads State
@@ -134,31 +136,32 @@ Beads is project-local in this repository:
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 
-For more details, see README.md and docs/QUICKSTART.md.
+For more details, see README.md, `docs/harness-usage.md`, and `.rules/patterns/operator-workflow.md`.
 
 <!-- END BEADS INTEGRATION -->
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
 
 **MANDATORY WORKFLOW:**
 
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+4. **PUSH THE FEATURE BRANCH** - This is MANDATORY:
    ```bash
-   git pull --rebase
-   git push
-   git status  # MUST show "up to date with origin"
+   git push -u origin <feature-branch>
+   git status  # MUST show the current branch is clean and tracking origin/<feature-branch>
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. **OPEN OR UPDATE THE PR** - Create or refresh the PR from `<feature-branch>` to `dev`
+6. **Clean up** - Clear stashes, prune remote branches when safe
+7. **Verify** - All changes committed, pushed, and attached to the `dev` PR
+8. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
+- Work is NOT complete until the feature branch push succeeds and the PR to `dev` exists or is updated
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- NEVER use landing to merge into or push directly to `main`
+- If push or PR creation fails, resolve and retry until it succeeds

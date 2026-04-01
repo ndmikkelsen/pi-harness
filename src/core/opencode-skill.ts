@@ -1,7 +1,7 @@
 import os from 'node:os';
 import path from 'node:path';
 
-import type { OpenCodeSkillEntry } from './types.js';
+import type { OpenCodeSkillEntry, OpenCodeWorkflowEntry } from './types.js';
 import { loadTemplate } from './template-loader.js';
 
 export const OPENCODE_SKILL_REPO_NAME = 'ai-harness';
@@ -11,8 +11,16 @@ export function defaultOpenCodeSkillsRoot(): string {
   return path.join(os.homedir(), '.opencode', 'skills');
 }
 
+export function defaultOpenCodeConfigRoot(): string {
+  return path.join(os.homedir(), '.config', 'opencode');
+}
+
 export function openCodeSkillInstallDir(targetRoot = defaultOpenCodeSkillsRoot()): string {
   return path.join(targetRoot, OPENCODE_SKILL_REPO_NAME);
+}
+
+export function openCodeWorkflowInstallDir(configRoot = defaultOpenCodeConfigRoot()): string {
+  return path.join(configRoot, 'get-shit-done', 'workflows');
 }
 
 export function buildOpenCodeSkillEntries(): OpenCodeSkillEntry[] {
@@ -40,6 +48,15 @@ export function buildOpenCodeSkillEntries(): OpenCodeSkillEntry[] {
     {
       path: `skills/${OPENCODE_SKILL_NAME}/assets/adoption-notes-template.md`,
       content: () => loadTemplate('codex/skills/harness/assets/adoption-notes-template.md')
+    }
+  ];
+}
+
+export function buildOpenCodeWorkflowEntries(): OpenCodeWorkflowEntry[] {
+  return [
+    {
+      path: 'get-shit-done/workflows/autonomous.md',
+      content: () => loadTemplate('opencode/get-shit-done/workflows/autonomous.md')
     }
   ];
 }
