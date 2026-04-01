@@ -1,6 +1,7 @@
 {"created_at":"2026-03-29T23:33:35Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-p8s","issue_id":"ai-harness-1w8","type":"discovered-from"}
 {"created_at":"2026-03-29T23:33:36Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-p8s","issue_id":"ai-harness-36p","type":"discovered-from"}
 {"created_at":"2026-03-31T14:24:49Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-a1p","issue_id":"ai-harness-3rj","type":"discovered-from"}
+{"created_at":"2026-03-31T22:32:44Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-rl2","issue_id":"ai-harness-3rj","type":"blocks"}
 {"created_at":"2026-03-29T12:42:03Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-3uw.1","type":"parent-child"}
 {"created_at":"2026-03-29T12:42:09Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-3uw.2","type":"parent-child"}
 {"created_at":"2026-03-29T12:42:09Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw.1","issue_id":"ai-harness-3uw.2","type":"blocks"}
@@ -15,6 +16,7 @@
 {"created_at":"2026-03-29T01:47:48Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-anr","issue_id":"ai-harness-64p","type":"discovered-from"}
 {"created_at":"2026-03-30T15:53:37Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-4cp","issue_id":"ai-harness-8wh","type":"discovered-from"}
 {"created_at":"2026-03-29T23:32:17Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-x8a","issue_id":"ai-harness-9nc","type":"discovered-from"}
+{"created_at":"2026-03-31T22:32:44Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3rj","issue_id":"ai-harness-9nr","type":"blocks"}
 {"created_at":"2026-03-31T14:24:49Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-a1p","issue_id":"ai-harness-9nr","type":"discovered-from"}
 {"created_at":"2026-03-30T23:11:21Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-099","issue_id":"ai-harness-a1p","type":"discovered-from"}
 {"created_at":"2026-03-29T12:43:33Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-b42","type":"blocks"}
@@ -38,6 +40,7 @@
 {"created_at":"2026-03-30T14:38:35Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-f8n","issue_id":"ai-harness-pj3","type":"discovered-from"}
 {"created_at":"2026-03-29T23:50:46Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-p8s","issue_id":"ai-harness-q57","type":"discovered-from"}
 {"created_at":"2026-03-29T22:16:18Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-3uw","issue_id":"ai-harness-qd6","type":"discovered-from"}
+{"created_at":"2026-03-31T22:32:34Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-a1p","issue_id":"ai-harness-rl2","type":"discovered-from"}
 {"created_at":"2026-03-29T20:25:08Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-ct6","issue_id":"ai-harness-sam","type":"discovered-from"}
 {"created_at":"2026-03-30T14:38:26Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-f8n","issue_id":"ai-harness-ttu","type":"discovered-from"}
 {"created_at":"2026-03-29T23:11:19Z","created_by":"ndmikkelsen","depends_on_id":"ai-harness-p8s","issue_id":"ai-harness-x8a","type":"discovered-from"}
