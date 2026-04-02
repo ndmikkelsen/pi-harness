@@ -1,0 +1,118 @@
+/Users/naynay/.local/bin/ai-harness
+/tmp/ai-harness-f3-t5IIVo
+{
+  "createdPaths": [
+    ".gitignore",
+    ".gitleaks.toml",
+    ".pre-commit-config.yaml",
+    ".env.example",
+    ".envrc",
+    ".opencode/worktree.jsonc",
+    "scripts/hooks/post-checkout",
+    "README.md",
+    ".planning/phases/README.md",
+    ".planning/quick/README.md",
+    ".planning/milestones/README.md",
+    ".planning/research/README.md",
+    ".planning/codebase/README.md",
+    ".planning/config.json",
+    ".planning/PROJECT.md",
+    ".planning/REQUIREMENTS.md",
+    ".planning/STATE.md",
+    ".planning/ROADMAP.md",
+    ".codex/README.md",
+    ".codex/workflows/parallel-execution.md",
+    ".codex/workflows/autonomous-execution.md",
+    ".codex/agents/orchestrator.md",
+    ".codex/agents/implementer.md",
+    ".codex/agents/reviewer.md",
+    ".codex/agents/gsd-cognee-advisor.md",
+    ".codex/skills/harness/SKILL.md",
+    ".codex/skills/harness/references/ai-harness-command-matrix.md",
+    ".codex/skills/harness/references/existing-repo-context-checklist.md",
+    ".codex/skills/harness/references/scaffold-customization-map.md",
+    ".codex/skills/harness/references/manifest-discovery.md",
+    ".codex/skills/harness/assets/adoption-notes-template.md",
+    ".codex/templates/phase-execution.md",
+    ".codex/scripts/cognee-bridge.sh",
+    ".codex/scripts/cognee-sync-planning.sh",
+    ".codex/scripts/cognee-brief.sh",
+    ".codex/scripts/sync-planning-to-cognee.sh",
+    ".codex/scripts/bootstrap-worktree.sh",
+    ".codex/scripts/land.sh",
+    ".codex/docker/Dockerfile.cognee",
+    "AGENTS.md",
+    ".kamal/secrets.example",
+    "config/deploy.yml",
+    "config/deploy.cognee.yml",
+    ".rules/index.md",
+    ".rules/patterns/operator-workflow.md",
+    ".rules/patterns/git-workflow.md",
+    ".rules/patterns/gsd-workflow.md",
+    ".rules/patterns/cognee-gsd-integration.md",
+    ".rules/patterns/env-security.md",
+    ".rules/patterns/deployment.md",
+    ".rules/patterns/bdd-workflow.md",
+    ".rules/patterns/beads-integration.md",
+    "STICKYNOTE.example.md"
+  ],
+  "skippedPaths": [],
+  "assistant": "opencode",
+  "mode": "new",
+  "targetDir": "/tmp/ai-harness-f3-t5IIVo/smoke-opencode",
+  "appName": "smoke-opencode",
+  "notes": [
+    "Using default service ports. Pass --detect-ports to probe the compute host before writing Kamal configs.",
+    "Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.",
+    "Initialized a git repository on main. Create a feature branch before making your first commit.",
+    "Installed pre-commit hooks, including post-checkout worktree bootstrap."
+  ],
+  "cleanup": {
+    "enabled": false,
+    "status": "not-requested",
+    "summary": {
+      "deleted": 0,
+      "skipped": 0,
+      "missing": 0,
+      "promptRequired": 0,
+      "declined": 0,
+      "planned": 0
+    },
+    "removedPaths": [],
+    "actions": []
+  }
+}
+True
+{
+  "targetDir": "/tmp/ai-harness-f3-t5IIVo/smoke-opencode",
+  "assistant": "opencode",
+  "status": "pass",
+  "summary": {
+    "passed": 4,
+    "warnings": 0,
+    "missing": 0,
+    "invalid": 0
+  },
+  "groups": [
+    {
+      "name": "codex-runtime",
+      "status": "pass"
+    },
+    {
+      "name": "root-scaffold-hints",
+      "status": "pass"
+    },
+    {
+      "name": "deprecated-artifacts",
+      "status": "pass"
+    },
+    {
+      "name": "executables",
+      "status": "pass"
+    }
+  ],
+  "missing": [],
+  "invalid": [],
+  "warnings": [],
+  "recommendations": []
+}

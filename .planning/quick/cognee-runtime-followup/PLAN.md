@@ -30,5 +30,5 @@ Make the optional Cognee path reproducibly deployable and queryable, with enough
    - Acceptance: local changes are committed, pushed, and reflected in the active PR; committed `kamal deploy -c config/deploy.cognee.yml` keeps the service healthy.
 2. `ai-harness-3rj` (verified)
    - Acceptance: `POST /api/v1/add`, `POST /api/v1/cognify`, and `POST /api/v1/search` succeed against `ai-harness-cognee.apps.compute.lan` with a funded/supported provider path.
-3. `ai-harness-9nr` (in progress)
+3. `ai-harness-9nr` (closed)
    - Acceptance: docs capture the final preflight, deploy, and verification contract that actually worked in production-like validation.

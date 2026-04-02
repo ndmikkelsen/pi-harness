@@ -70,7 +70,12 @@ Install the skill bundle into OpenCode's global skills directory:
 ai-harness install-skill --assistant opencode
 ```
 
-That command writes the skill bundle to `~/.opencode/skills/ai-harness/skills/harness/`.
+That command refreshes these managed global files:
+
+- `~/.opencode/skills/ai-harness/skills/harness/`
+- `~/.config/opencode/oh-my-opencode.json`
+- `~/.config/opencode/get-shit-done/workflows/autonomous.md`
+- `~/.gsd/defaults.json`
 
 After installing or updating the skill:
 
@@ -83,9 +88,10 @@ After installing or updating the skill:
 New repositories receive the full scaffold. Existing repositories create the same missing files while preserving pre-existing scaffold files by default.
 
 - root hygiene files like `.gitignore`, `.env.example`, `.gitleaks.toml`, `.pre-commit-config.yaml`
-- Beads docs for native `bd`; run `bd init` to create `.beads/`
+- Beads docs for native `bd` plus a default `.beads/config.yaml`; run `bd init` before using Beads
 - `.planning/` for GSD planning artifacts
 - `.codex/` runtime scripts, docs, templates, agents, and docker assets shared by Codex and OpenCode
+- `.opencode/worktree.jsonc` for the optional `kdco/worktree` OpenCode worktree plugin path
 - `.codex/skills/harness/` for reusable repository setup guidance
 - `AGENTS.md` for the repo-level Codex/OpenCode operating guide
 - `.kamal/` and `config/` deployment templates
@@ -134,6 +140,18 @@ The default interactive path is:
 6. `./.codex/scripts/land.sh`
 
 Use `/gsd-resume-work` to re-enter an active phase and `/gsd-autonomous` when you want a backlog-driven power mode that keeps going until work is verified or truly blocked.
+
+## OpenCode worktrees
+
+If you use OpenCode and want lower-friction git worktrees, the scaffold now includes `.opencode/worktree.jsonc` for `kdco/worktree`.
+
+Install the plugin with:
+
+```bash
+ocx add kdco/worktree --from https://registry.kdco.dev
+```
+
+That config keeps the existing `./.codex/scripts/bootstrap-worktree.sh` flow as the post-create bootstrap path, so new worktrees still seed `STICKYNOTE.md`, link shared `.env*` and `.kamal/secrets*` files, and keep the Beads/GSD workflow intact.
 
 ## Development
 
@@ -200,9 +218,12 @@ That flow gives you:
 
 - a local `ai-harness` command on your `PATH` backed by this checkout
 - a global OpenCode skill that can scaffold whichever repository you `cd` into
+- managed OpenCode and GSD defaults refreshed under `~/.config/opencode/oh-my-opencode.json` and `~/.gsd/defaults.json`
 - a managed backlog-driven `/gsd-autonomous` workflow refreshed under `~/.config/opencode/get-shit-done/workflows/autonomous.md`
 
-## Quickstart
+## Current-state operator runbook
+
+Use this command chain as the supported current-state workflow.
 
 Install the local launcher and global OpenCode skill once:
 
@@ -213,24 +234,43 @@ pnpm install:local
 ai-harness install-skill --assistant opencode
 ```
 
-That install also refreshes the managed `/gsd-autonomous` workflow used by OpenCode.
-New repo:
+Then scaffold or adopt:
 
-- OpenCode prompt: `Use harness to scaffold a new repository named my-app for OpenCode.`
-- CLI equivalent: `ai-harness my-app --assistant opencode --init-json`
+- New repo: `ai-harness my-app --assistant opencode --init-json`
+- Existing repo: `ai-harness --mode existing . --assistant opencode --init-json`
 
-Existing repo:
-
-- OpenCode prompt: `Use harness to adopt this existing repository for OpenCode. Preserve existing files by default.`
-- CLI equivalent: `ai-harness --mode existing . --assistant opencode --init-json`
-
-After either flow:
+Run doctor after either path:
 
 ```bash
 ai-harness doctor . --assistant opencode
 ```
 
-See `docs/harness-usage.md` for the full new-repo and existing-repo walkthroughs.
+Optional OpenCode worktree plugin:
+
+```bash
+ocx add kdco/worktree --from https://registry.kdco.dev
+```
+
+The scaffolded `.opencode/worktree.jsonc` keeps worktree bootstrap on `./.codex/scripts/bootstrap-worktree.sh --quiet`.
+
+Day-to-day loop:
+
+```bash
+bd ready --json
+bd update <id> --claim --json
+/gsd-next
+# if routed into phase work:
+/gsd-discuss-phase <n>
+/gsd-plan-phase <n>
+/gsd-execute-phase <n>
+/gsd-verify-work <n>
+bd close <id> --reason "Verified: <artifact or phase> passed" --json
+./.codex/scripts/land.sh
+```
+
+Use `/gsd-resume-work` to re-enter active phase work.
+
+See `docs/harness-usage.md` for the detailed walkthrough.
 
 BDD specs live in `apps/cli/features/`, executable regression coverage lives in `tests/`, and the Muninn-style BDD lane runs through `pnpm test:bdd`.
 

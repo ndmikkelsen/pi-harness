@@ -123,13 +123,15 @@ program
   .option('--assistant <assistant>', 'assistant target: opencode', parseAssistant, 'opencode')
   .option('--target-root <path>', 'override the OpenCode skills root directory')
   .option('--config-root <path>', 'override the OpenCode config root directory')
+  .option('--gsd-root <path>', 'override the GSD defaults root directory')
   .option('--json', 'emit machine-readable JSON output', false)
   .action(async (options) => {
     const result = await runInstallSkill({
       cwd: process.cwd(),
       assistant: options.assistant as AssistantTarget,
       targetRoot: options.targetRoot,
-      configRoot: options.configRoot
+      configRoot: options.configRoot,
+      gsdRoot: options.gsdRoot
     });
 
     if (options.json) {

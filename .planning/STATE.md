@@ -10,7 +10,7 @@ Generated on: 2026-03-31
 
 ## Active Context
 
-- Current focus: v1.0 remains complete while post-v1.0 ergonomics now auto-wire worktree bootstrap hooks for new and adopted repos, and the optional Cognee deploy path is now live, queryable, and documented for repeatable operator use.
+- Current focus: v1.0 remains complete while post-v1.0 ergonomics now auto-wire worktree bootstrap hooks for new and adopted repos, and the optional Cognee deploy follow-up is live, queryable, documented, and fully closed.
 - Current branch: `feat/workflow-orientation`
 - Active Beads epic: None
 - Latest artifact reviewed: `src/core/git.ts`
@@ -34,6 +34,7 @@ Generated on: 2026-03-31
 - The optional Cognee pgvector deploy flow now sets `ENABLE_BACKEND_ACCESS_CONTROL=false` alongside `REQUIRE_AUTHENTICATION=false` so single-tenant installs do not boot into unsupported multi-user handler validation.
 - The optional Cognee deploy flow now follows the hardened sibling-repo pattern more closely: it pins the published image digest, probes `/health`, extends kamal-proxy `response_timeout` to `300`, sets `LLM_MODEL=gpt-4o-mini`, and forces `VECTOR_DATASET_DATABASE_HANDLER=pgvector`.
 - With a funded `LLM_API_KEY` injected through `.kamal/secrets`, the committed Cognee deploy now passes end-to-end verification: `/health` and `/api/v1/settings` return `200`, `/api/v1/add` and `/api/v1/cognify` complete successfully, and `/api/v1/search` returns a grounded answer from the uploaded smoke dataset.
+- The optional Cognee verification/documentation Beads chain is now closed: `ai-harness-099`, `ai-harness-a1p`, `ai-harness-3rj`, and `ai-harness-9nr` all have live verification evidence and no remaining ready follow-up work.
 - `ai-harness` now auto-wires post-checkout worktree bootstrap for both fresh scaffolds and existing-repo adoption: prefer `pre-commit` when the scaffolded hook config is present, patch the active `core.hooksPath` when a repo uses custom hooks such as Beads, and fall back to a direct `.git/hooks/post-checkout` shim when needed.
 
 ## Open Questions

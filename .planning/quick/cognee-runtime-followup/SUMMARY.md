@@ -17,7 +17,7 @@
 - `POST /api/v1/search` now returns `200` with a grounded answer derived from the uploaded dataset.
 - The durable operator guidance now needs to preserve one important gotcha: editing `.env` alone is not enough if Kamal is reading `.kamal/secrets` (or a symlinked secrets file) for deploy-time injection.
 
-## Next Work
+## Closure
 
-- `ai-harness-3rj` - restore queryability with funded LLM access
-- `ai-harness-9nr` - document the preflight and post-deploy verification flow
+- `ai-harness-099`, `ai-harness-a1p`, `ai-harness-3rj`, and `ai-harness-9nr` are closed.
+- The remaining durable guidance lives in `.rules/patterns/deployment.md` and `src/templates/rules/patterns/deployment.md`.

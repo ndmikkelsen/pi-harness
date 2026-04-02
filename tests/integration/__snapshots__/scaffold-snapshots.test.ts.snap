@@ -31,6 +31,7 @@ Codex should use them directly through this runtime layer.
 - \`./.codex/scripts/cognee-sync-planning.sh\` - sync GSD planning artifacts into Cognee
 - \`./.codex/scripts/sync-planning-to-cognee.sh\` - user-facing planning sync entrypoint
 - \`./.codex/scripts/bootstrap-worktree.sh\` - seed local worktree state and link shared \`.env\` / \`.kamal\` secrets when present
+- \`./.opencode/worktree.jsonc\` - optional OpenCode worktree plugin config that reuses \`bootstrap-worktree.sh\` after worktree creation
 - \`.codex/workflows/autonomous-execution.md\` - backlog-driven autonomous execution policy shared across Codex and OpenCode
 - \`.codex/docker/Dockerfile.cognee\` - container build source for the Cognee deploy template
 - \`.codex/skills/harness/SKILL.md\` - reusable setup workflow for new and existing repositories
@@ -43,12 +44,13 @@ Codex should use them directly through this runtime layer.
 4. If Beads is available, start from \`bd ready --json\`, claim the active issue, and continue with \`/gsd-next\`.
 5. For existing repos, optionally run \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` before tailoring new scaffold files.
 6. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
-7. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-8. Use \`.codex/workflows/autonomous-execution.md\` for one-agent backlog-driven execution, or \`.codex/workflows/parallel-execution.md\` for multi-wave execution.
-9. Run \`pnpm typecheck\`, \`pnpm test\`, \`pnpm test:bdd\`, and \`pnpm test:smoke:dist\` before landing scaffold or runtime changes.
-10. Validate each wave before handing off or merging into the next.
-11. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
-12. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to \`dev\`.
+7. If you use OpenCode worktrees, install \`kdco/worktree\` with \`ocx add kdco/worktree --from https://registry.kdco.dev\`; the scaffolded \`.opencode/worktree.jsonc\` runs \`./.codex/scripts/bootstrap-worktree.sh --quiet\` after each worktree is created.
+8. On a fresh checkout or a manual git worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+9. Use \`.codex/workflows/autonomous-execution.md\` for one-agent backlog-driven execution, or \`.codex/workflows/parallel-execution.md\` for multi-wave execution.
+10. Run \`pnpm typecheck\`, \`pnpm test\`, \`pnpm test:bdd\`, and \`pnpm test:smoke:dist\` before landing scaffold or runtime changes.
+11. Validate each wave before handing off or merging into the next.
+12. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
+13. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to \`dev\`.
 
 ## Rules
 
@@ -111,7 +113,7 @@ Use the Codex compatibility docs and scripts under .codex/ as entrypoints, not a
 2. Inspect .planning/STATE.md and any active phase docs in .planning/.
 3. Use native \`bd\` for task tracking after the repository is initialized with \`bd init\`.
 4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
-5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+5. If you use OpenCode worktrees, prefer the scaffolded \`.opencode/worktree.jsonc\` with \`kdco/worktree\`; otherwise run ./.codex/scripts/bootstrap-worktree.sh on a fresh worktree.
 6. Use \`.rules/patterns/operator-workflow.md\` and \`/gsd-next\` as the default interactive work loop.
 7. Land the session with ./.codex/scripts/land.sh.
 
@@ -167,14 +169,15 @@ This project is scaffolded for the local AI workflow used across Codex, GSD, Bea
 1. Update .planning/PROJECT.md with the real product definition.
 2. Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.
 3. Copy .env.example to .env and fill in local values.
-4. If \`pre-commit\` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep \`scripts/hooks/post-checkout\` available for later hook installation.
-5. Run \`bd init\` once in the repository before using Beads.
-6. Use \`bd ready --json\`, \`bd update <id> --claim --json\`, and \`/gsd-next\` as the default work loop.
-7. Land from your feature branch with \`./.codex/scripts/land.sh\`; it pushes the branch and opens or updates the PR to \`dev\`.
-8. If you use OpenCode, rerun \`ai-harness install-skill --assistant opencode\` after harness updates to refresh the managed \`harness\` skill and the \`/gsd-autonomous\` entrypoint that follows the shared backlog-driven workflow.
-9. Use \`.codex/skills/harness/SKILL.md\` when adopting or bootstrapping another repository.
-10. If you are adopting a repo with legacy AI framework files, use \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\`.
-11. Create a feature branch before your first commit.
+4. If you use OpenCode worktrees, install \`kdco/worktree\` with \`ocx add kdco/worktree --from https://registry.kdco.dev\`; this scaffold includes \`.opencode/worktree.jsonc\` and reuses \`./.codex/scripts/bootstrap-worktree.sh\` as the post-create hook.
+5. If \`pre-commit\` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep \`scripts/hooks/post-checkout\` available for later hook installation.
+6. Run \`bd init\` once in the repository before using Beads.
+7. Use \`bd ready --json\`, \`bd update <id> --claim --json\`, and \`/gsd-next\` as the default work loop.
+8. Land from your feature branch with \`./.codex/scripts/land.sh\`; it pushes the branch and opens or updates the PR to \`dev\`.
+9. If you use OpenCode, rerun \`ai-harness install-skill --assistant opencode\` after harness updates to refresh the managed \`harness\` skill, \`~/.config/opencode/oh-my-opencode.json\`, \`~/.config/opencode/get-shit-done/workflows/autonomous.md\`, and \`~/.gsd/defaults.json\`.
+10. Use \`.codex/skills/harness/SKILL.md\` when adopting or bootstrapping another repository.
+11. If you are adopting a repo with legacy AI framework files, use \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\`.
+12. Create a feature branch before your first commit.
 ",
   "STICKYNOTE.example.md": "# Session Handoff
 
@@ -198,6 +201,7 @@ This file is the default handoff note for the scaffolded repository.
 - Note any validation still required before landing work.
 ",
   "files": [
+    ".beads/config.yaml",
     ".codex/README.md",
     ".codex/agents/gsd-cognee-advisor.md",
     ".codex/agents/implementer.md",
@@ -224,6 +228,7 @@ This file is the default handoff note for the scaffolded repository.
     ".gitignore",
     ".gitleaks.toml",
     ".kamal/secrets.example",
+    ".opencode/worktree.jsonc",
     ".planning/PROJECT.md",
     ".planning/REQUIREMENTS.md",
     ".planning/ROADMAP.md",
@@ -285,6 +290,7 @@ OpenCode should use them directly through this runtime layer.
 - \`./.codex/scripts/cognee-sync-planning.sh\` - sync GSD planning artifacts into Cognee
 - \`./.codex/scripts/sync-planning-to-cognee.sh\` - user-facing planning sync entrypoint
 - \`./.codex/scripts/bootstrap-worktree.sh\` - seed local worktree state and link shared \`.env\` / \`.kamal\` secrets when present
+- \`./.opencode/worktree.jsonc\` - optional OpenCode worktree plugin config that reuses \`bootstrap-worktree.sh\` after worktree creation
 - \`.codex/workflows/autonomous-execution.md\` - backlog-driven autonomous execution policy shared across Codex and OpenCode
 - \`.codex/docker/Dockerfile.cognee\` - container build source for the Cognee deploy template
 - \`.codex/skills/harness/SKILL.md\` - reusable setup workflow for new and existing repositories
@@ -297,12 +303,13 @@ OpenCode should use them directly through this runtime layer.
 4. If Beads is available, start from \`bd ready --json\`, claim the active issue, and continue with \`/gsd-next\`.
 5. For existing repos, optionally run \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` before tailoring new scaffold files.
 6. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
-7. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-8. Use \`.codex/workflows/autonomous-execution.md\` for one-agent backlog-driven execution, or \`.codex/workflows/parallel-execution.md\` for multi-wave execution.
-9. Run \`pnpm typecheck\`, \`pnpm test\`, \`pnpm test:bdd\`, and \`pnpm test:smoke:dist\` before landing scaffold or runtime changes.
-10. Validate each wave before handing off or merging into the next.
-11. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
-12. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to \`dev\`.
+7. If you use OpenCode worktrees, install \`kdco/worktree\` with \`ocx add kdco/worktree --from https://registry.kdco.dev\`; the scaffolded \`.opencode/worktree.jsonc\` runs \`./.codex/scripts/bootstrap-worktree.sh --quiet\` after each worktree is created.
+8. On a fresh checkout or a manual git worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+9. Use \`.codex/workflows/autonomous-execution.md\` for one-agent backlog-driven execution, or \`.codex/workflows/parallel-execution.md\` for multi-wave execution.
+10. Run \`pnpm typecheck\`, \`pnpm test\`, \`pnpm test:bdd\`, and \`pnpm test:smoke:dist\` before landing scaffold or runtime changes.
+11. Validate each wave before handing off or merging into the next.
+12. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
+13. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to \`dev\`.
 
 ## Rules
 
@@ -365,7 +372,7 @@ Use the OpenCode compatibility docs and scripts under .codex/ as entrypoints, no
 2. Inspect .planning/STATE.md and any active phase docs in .planning/.
 3. Use native \`bd\` for task tracking after the repository is initialized with \`bd init\`.
 4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
-5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+5. If you use OpenCode worktrees, prefer the scaffolded \`.opencode/worktree.jsonc\` with \`kdco/worktree\`; otherwise run ./.codex/scripts/bootstrap-worktree.sh on a fresh worktree.
 6. Use \`.rules/patterns/operator-workflow.md\` and \`/gsd-next\` as the default interactive work loop.
 7. Land the session with ./.codex/scripts/land.sh.
 
@@ -421,14 +428,15 @@ This project is scaffolded for the local AI workflow used across OpenCode, GSD, 
 1. Update .planning/PROJECT.md with the real product definition.
 2. Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.
 3. Copy .env.example to .env and fill in local values.
-4. If \`pre-commit\` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep \`scripts/hooks/post-checkout\` available for later hook installation.
-5. Run \`bd init\` once in the repository before using Beads.
-6. Use \`bd ready --json\`, \`bd update <id> --claim --json\`, and \`/gsd-next\` as the default work loop.
-7. Land from your feature branch with \`./.codex/scripts/land.sh\`; it pushes the branch and opens or updates the PR to \`dev\`.
-8. If you use OpenCode, rerun \`ai-harness install-skill --assistant opencode\` after harness updates to refresh the managed \`harness\` skill and the \`/gsd-autonomous\` entrypoint that follows the shared backlog-driven workflow.
-9. Use \`.codex/skills/harness/SKILL.md\` when adopting or bootstrapping another repository.
-10. If you are adopting a repo with legacy AI framework files, use \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\`.
-11. Create a feature branch before your first commit.
+4. If you use OpenCode worktrees, install \`kdco/worktree\` with \`ocx add kdco/worktree --from https://registry.kdco.dev\`; this scaffold includes \`.opencode/worktree.jsonc\` and reuses \`./.codex/scripts/bootstrap-worktree.sh\` as the post-create hook.
+5. If \`pre-commit\` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep \`scripts/hooks/post-checkout\` available for later hook installation.
+6. Run \`bd init\` once in the repository before using Beads.
+7. Use \`bd ready --json\`, \`bd update <id> --claim --json\`, and \`/gsd-next\` as the default work loop.
+8. Land from your feature branch with \`./.codex/scripts/land.sh\`; it pushes the branch and opens or updates the PR to \`dev\`.
+9. If you use OpenCode, rerun \`ai-harness install-skill --assistant opencode\` after harness updates to refresh the managed \`harness\` skill, \`~/.config/opencode/oh-my-opencode.json\`, \`~/.config/opencode/get-shit-done/workflows/autonomous.md\`, and \`~/.gsd/defaults.json\`.
+10. Use \`.codex/skills/harness/SKILL.md\` when adopting or bootstrapping another repository.
+11. If you are adopting a repo with legacy AI framework files, use \`ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json\`.
+12. Create a feature branch before your first commit.
 ",
   "STICKYNOTE.example.md": "# Session Handoff
 
@@ -452,6 +460,7 @@ This file is the default handoff note for the scaffolded repository.
 - Note any validation still required before landing work.
 ",
   "files": [
+    ".beads/config.yaml",
     ".codex/README.md",
     ".codex/agents/gsd-cognee-advisor.md",
     ".codex/agents/implementer.md",
@@ -478,6 +487,7 @@ This file is the default handoff note for the scaffolded repository.
     ".gitignore",
     ".gitleaks.toml",
     ".kamal/secrets.example",
+    ".opencode/worktree.jsonc",
     ".planning/PROJECT.md",
     ".planning/REQUIREMENTS.md",
     ".planning/ROADMAP.md",

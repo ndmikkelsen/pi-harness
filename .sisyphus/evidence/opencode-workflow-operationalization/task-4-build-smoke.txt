@@ -1,0 +1,144 @@
+
+> ai-harness@0.1.0 build /Users/naynay/Projects/personal/feat.workflow-orientation
+> tsc -p tsconfig.json && node scripts/copy-templates.mjs
+
+
+> ai-harness@0.1.0 test:smoke:dist /Users/naynay/Projects/personal/feat.workflow-orientation
+> pnpm build && node scripts/dist-smoke.mjs
+
+
+> ai-harness@0.1.0 build /Users/naynay/Projects/personal/feat.workflow-orientation
+> tsc -p tsconfig.json && node scripts/copy-templates.mjs
+
+Usage: ai-harness [options] [command] [project] [target]
+
+AI workflow scaffolder for local setup of new and existing projects.
+
+Arguments:
+  project                    project name or target path
+  target                     target directory
+
+Options:
+  --assistant <assistant>    assistant target: codex or opencode (default:
+                             "codex")
+  --mode <mode>              scaffold mode: auto, new, existing (default:
+                             "auto")
+  --init-json                emit machine-readable JSON output for scaffold runs
+                             (default: false)
+  --dry-run                  show planned changes without writing files
+                             (default: false)
+  --force                    overwrite managed files (default: false)
+  --merge-root-files         in existing-project mode, merge scaffold entries
+                             into .gitignore and .env.example (default: false)
+  --cleanup-manifest <id>    in existing-project mode, apply a curated cleanup
+                             manifest before scaffolding
+  --non-interactive          disable prompts and report prompt-required cleanup
+                             actions instead (default: false)
+  --skip-git                 skip git initialization (default: false)
+  --detect-ports             probe the compute host for available service ports
+                             (default: false)
+  --dolt-port <port>         explicit Dolt port
+  --cognee-db-port <port>    explicit Cognee database port
+  --compute-host <host>      compute host for generated configs (default:
+                             "10.10.20.138")
+  --compute-user <user>      SSH user for generated configs (default: "compute")
+  --ssh-key-path <path>      SSH private key path for generated configs
+                             (default: "~/.ssh/z3r0Layer-main")
+  -h, --help                 display help for command
+
+Commands:
+  doctor [options] [target]  Audit whether a repository is scaffolded correctly
+                             for Codex/OpenCode.
+  install-skill [options]    Install the global OpenCode skill bundle for
+                             ai-harness.
+Scaffolded smoke-codex (new, codex) in ../../../../../../var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-smoke-JGB43o/smoke-codex
+Created: 53
+Skipped: 0
+
+Created files:
+- .gitignore
+- .gitleaks.toml
+- .pre-commit-config.yaml
+- .env.example
+- .envrc
+- .opencode/worktree.jsonc
+- scripts/hooks/post-checkout
+- README.md
+- .planning/phases/README.md
+- .planning/quick/README.md
+- .planning/milestones/README.md
+- .planning/research/README.md
+- ...and 41 more
+
+Notes:
+- Using default service ports. Pass --detect-ports to probe the compute host before writing Kamal configs.
+- Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.
+Scaffolded smoke-opencode (new, opencode) in ../../../../../../var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-smoke-JGB43o/smoke-opencode
+Created: 53
+Skipped: 0
+
+Created files:
+- .gitignore
+- .gitleaks.toml
+- .pre-commit-config.yaml
+- .env.example
+- .envrc
+- .opencode/worktree.jsonc
+- scripts/hooks/post-checkout
+- README.md
+- .planning/phases/README.md
+- .planning/quick/README.md
+- .planning/milestones/README.md
+- .planning/research/README.md
+- ...and 41 more
+
+Notes:
+- Using default service ports. Pass --detect-ports to probe the compute host before writing Kamal configs.
+- Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.
+Scaffolded smoke-verified-codex (new, codex) in ../../../../../../var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-smoke-JGB43o/smoke-verified-codex
+Created: 53
+Skipped: 0
+
+Created files:
+- .gitignore
+- .gitleaks.toml
+- .pre-commit-config.yaml
+- .env.example
+- .envrc
+- .opencode/worktree.jsonc
+- scripts/hooks/post-checkout
+- README.md
+- .planning/phases/README.md
+- .planning/quick/README.md
+- .planning/milestones/README.md
+- .planning/research/README.md
+- ...and 41 more
+
+Notes:
+- Using default service ports. Pass --detect-ports to probe the compute host before writing Kamal configs.
+- Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.
+Installed harness (opencode) in /var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-smoke-JGB43o/opencode-skills/ai-harness
+Skill files written: 6
+Skill files unchanged: 0
+OpenCode config files written: 0
+OpenCode config files unchanged: 1
+Workflow files written: 0
+Workflow files unchanged: 1
+GSD defaults written: 0
+GSD defaults unchanged: 1
+
+Written skill files:
+- skills/harness/SKILL.md
+- skills/harness/references/ai-harness-command-matrix.md
+- skills/harness/references/existing-repo-context-checklist.md
+- skills/harness/references/scaffold-customization-map.md
+- skills/harness/references/manifest-discovery.md
+- skills/harness/assets/adoption-notes-template.md
+
+Notes:
+- Restart OpenCode after installing or updating global skills.
+- Make sure the `ai-harness` CLI is on your PATH before invoking the installed skill.
+- The installed skill expects `ai-harness` to be available locally on your machine, typically via a checkout plus `pnpm install:local`.
+- The install also refreshes the managed OpenCode defaults at /Users/naynay/.config/opencode/oh-my-opencode.json.
+- The install also refreshes the managed /gsd-autonomous workflow at /Users/naynay/.config/opencode/get-shit-done/workflows/autonomous.md.
+- The install also refreshes the managed GSD defaults at /Users/naynay/.gsd/defaults.json.

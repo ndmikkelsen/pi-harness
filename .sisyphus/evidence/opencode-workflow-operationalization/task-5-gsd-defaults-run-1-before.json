@@ -1,0 +1,10 @@
+{
+  "mode": "interactive",
+  "model_profile": "budget",
+  "resolve_model_ids": true,
+  "custom_flag": true,
+  "model_overrides": {
+    "gsd-planner": "wrong/model",
+    "gsd-custom-agent": "user/model"
+  }
+}

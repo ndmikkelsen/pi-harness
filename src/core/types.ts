@@ -139,21 +139,23 @@ export interface InitResult extends ApplyManagedEntriesResult {
   cleanup: CleanupResult;
 }
 
-export interface OpenCodeSkillEntry {
+export interface InstallSkillTemplateEntry {
   path: string;
   content: () => string;
+  merge?: (existingContent: string, generatedContent: string) => string | null;
 }
 
-export interface OpenCodeWorkflowEntry {
-  path: string;
-  content: () => string;
-}
+export type OpenCodeSkillEntry = InstallSkillTemplateEntry;
+export type OpenCodeWorkflowEntry = InstallSkillTemplateEntry;
+export type OpenCodeConfigEntry = InstallSkillTemplateEntry;
+export type GsdDefaultsEntry = InstallSkillTemplateEntry;
 
 export interface InstallSkillCommandOptions {
   cwd: string;
   assistant: AssistantTarget;
   targetRoot?: string;
   configRoot?: string;
+  gsdRoot?: string;
 }
 
 export interface InstallSkillResult {
@@ -161,13 +163,20 @@ export interface InstallSkillResult {
   skillName: string;
   targetRoot: string;
   configRoot: string;
+  gsdRoot: string;
   installDir: string;
   workflowDir: string;
   workflowFilePath: string;
+  openCodeDefaultsFilePath: string;
+  gsdDefaultsFilePath: string;
   writtenPaths: string[];
   unchangedPaths: string[];
+  writtenConfigPaths: string[];
+  unchangedConfigPaths: string[];
   writtenWorkflowPaths: string[];
   unchangedWorkflowPaths: string[];
+  writtenDefaultsPaths: string[];
+  unchangedDefaultsPaths: string[];
   notes: string[];
 }
 

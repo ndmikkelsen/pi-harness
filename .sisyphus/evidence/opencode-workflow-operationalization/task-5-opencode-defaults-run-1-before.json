@@ -1,0 +1,28 @@
+{
+  "provider": {
+    "custom": {
+      "apiBase": "https://example.test"
+    }
+  },
+  "plugin": [
+    "user-plugin@latest"
+  ],
+  "agents": {
+    "customAgent": {
+      "model": "user/model"
+    },
+    "sisyphus": {
+      "model": "wrong/model",
+      "variant": "low"
+    }
+  },
+  "categories": {
+    "customCategory": {
+      "model": "user/category-model"
+    },
+    "writing": {
+      "model": "wrong/model",
+      "variant": "low"
+    }
+  }
+}

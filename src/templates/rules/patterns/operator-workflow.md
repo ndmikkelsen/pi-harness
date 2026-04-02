@@ -6,7 +6,7 @@ The default experience is interactive-first: pick ready work in Beads, let GSD r
 
 ## Start Or Resume Work
 
-1. Run `./.codex/scripts/bootstrap-worktree.sh` in a fresh checkout or worktree so local `STICKYNOTE.md`, shared `.env*`, and `.kamal/secrets*` links are set up when available.
+1. In OpenCode, prefer `kdco/worktree` with the scaffolded `.opencode/worktree.jsonc`; it runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created. If the plugin is unavailable, run `./.codex/scripts/bootstrap-worktree.sh` manually in a fresh checkout or worktree so local `STICKYNOTE.md`, shared `.env*`, and `.kamal/secrets*` links are set up when available.
 2. If returning to an in-flight repo, run `/gsd-resume-work` for the current GSD state.
 3. If the repository uses Beads, run `bd ready --json` and claim the active issue with `bd update <id> --claim --json`.
 4. After claiming work, use `/gsd-next` as the default interactive entrypoint.

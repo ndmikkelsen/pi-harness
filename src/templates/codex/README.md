@@ -27,6 +27,7 @@ This repository already has working project systems for backlog tracking, planni
 - `./.codex/scripts/cognee-sync-planning.sh` - sync GSD planning artifacts into Cognee
 - `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
 - `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `./.opencode/worktree.jsonc` - optional OpenCode worktree plugin config that reuses `bootstrap-worktree.sh` after worktree creation
 - `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy shared across Codex and OpenCode
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
@@ -39,12 +40,13 @@ This repository already has working project systems for backlog tracking, planni
 4. If Beads is available, start from `bd ready --json`, claim the active issue, and continue with `/gsd-next`.
 5. For existing repos, optionally run `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json` before tailoring new scaffold files.
 6. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
-7. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
-8. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-9. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
-10. Validate each wave before handing off or merging into the next.
-11. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
-12. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
+7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
+8. On a fresh checkout or a manual git worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
+10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+11. Validate each wave before handing off or merging into the next.
+12. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
+13. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
 
 ## Rules
 

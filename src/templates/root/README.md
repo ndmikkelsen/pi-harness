@@ -31,11 +31,12 @@ This project is scaffolded for the local AI workflow used across {{ASSISTANT_LAB
 1. Update .planning/PROJECT.md with the real product definition.
 2. {{WORKFLOW_GUIDE_LINE}}
 3. Copy .env.example to .env and fill in local values.
-4. If `pre-commit` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
-5. Run `bd init` once in the repository before using Beads.
-6. Use `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next` as the default work loop.
-7. Land from your feature branch with `./.codex/scripts/land.sh`; it pushes the branch and opens or updates the PR to `dev`.
-8. If you use OpenCode, rerun `ai-harness install-skill --assistant opencode` after harness updates to refresh the managed `harness` skill and the `/gsd-autonomous` entrypoint that follows the shared backlog-driven workflow.
-9. Use `.codex/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
-10. If you are adopting a repo with legacy AI framework files, use `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
-11. Create a feature branch before your first commit.
+4. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; this scaffold includes `.opencode/worktree.jsonc` and reuses `./.codex/scripts/bootstrap-worktree.sh` as the post-create hook.
+5. If `pre-commit` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
+6. Run `bd init` once in the repository before using Beads.
+7. Use `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next` as the default work loop.
+8. Land from your feature branch with `./.codex/scripts/land.sh`; it pushes the branch and opens or updates the PR to `dev`.
+9. If you use OpenCode, rerun `ai-harness install-skill --assistant opencode` after harness updates to refresh the managed `harness` skill, `~/.config/opencode/oh-my-opencode.json`, `~/.config/opencode/get-shit-done/workflows/autonomous.md`, and `~/.gsd/defaults.json`.
+10. Use `.codex/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
+11. If you are adopting a repo with legacy AI framework files, use `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+12. Create a feature branch before your first commit.

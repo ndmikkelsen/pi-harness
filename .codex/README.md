@@ -28,6 +28,7 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 - `./.codex/scripts/cognee-sync-planning.sh` - sync GSD planning artifacts into Cognee
 - `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
 - `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `./.opencode/worktree.jsonc` - optional OpenCode worktree plugin config that reuses `bootstrap-worktree.sh` after worktree creation
 - `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy shared across Codex and OpenCode
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - source skill instructions mirrored by the globally installed OpenCode `harness` skill
@@ -40,11 +41,12 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 4. If Beads is available, use `bd ready --json`, claim the active issue, and start from `/gsd-next`.
 5. Use `ai-harness --mode existing . --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
 6. Use `ai-harness doctor . --assistant codex` to audit the current repo after runtime changes.
-7. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
-8. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-9. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
-10. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
-11. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
+7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
+8. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
+9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
+10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+11. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
+12. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
 
 ## Rules
 

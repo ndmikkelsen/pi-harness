@@ -22,7 +22,7 @@ Use the {{COMPAT_LABEL}} compatibility docs and scripts under .codex/ as entrypo
 2. Inspect .planning/STATE.md and any active phase docs in .planning/.
 3. Use native `bd` for task tracking after the repository is initialized with `bd init`.
 4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
-5. On a fresh worktree, run ./.codex/scripts/bootstrap-worktree.sh.
+5. If you use OpenCode worktrees, prefer the scaffolded `.opencode/worktree.jsonc` with `kdco/worktree`; otherwise run ./.codex/scripts/bootstrap-worktree.sh on a fresh worktree.
 6. Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.
 7. Land the session with ./.codex/scripts/land.sh.
 

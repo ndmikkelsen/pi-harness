@@ -6,7 +6,7 @@ The project is intentionally split into small layers:
 
 - `src/cli.ts` parses CLI arguments and prints reports
 - `src/commands/init.ts` coordinates resolution, generation, file application, and optional git setup
-- `src/commands/install-skill.ts` installs the global OpenCode `harness` skill bundle
+- `src/commands/install-skill.ts` installs the global OpenCode `harness` skill bundle plus the managed OpenCode and GSD default files it owns
 - `src/core/` holds reusable domain logic like project resolution, port selection, filesystem writes, and git detection
 - `src/generators/` defines scaffold content by concern instead of keeping one giant script
 - `src/templates/` is the canonical scaffold source; `dist/templates/` is the built copy used by the shipped CLI

@@ -30,6 +30,7 @@ describe('runInit', () => {
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.gitignore');
     expect(result.createdPaths).toContain('.planning/config.json');
+    expect(result.createdPaths).toContain('.opencode/worktree.jsonc');
     expect(result.createdPaths).toContain('.planning/REQUIREMENTS.md');
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
@@ -175,10 +176,13 @@ describe('runInit', () => {
       path.join(workspace, 'bootstrap-app', '.codex', 'scripts', 'bootstrap-worktree.sh'),
       'utf8'
     );
+    const worktreeConfig = await readFile(path.join(workspace, 'bootstrap-app', '.opencode', 'worktree.jsonc'), 'utf8');
 
     expect(bootstrapScript).toContain('.env');
     expect(bootstrapScript).toContain('.kamal/secrets');
     expect(bootstrapScript).toContain('direnv allow');
+    expect(worktreeConfig).toContain('https://registry.kdco.dev/schemas/worktree.json');
+    expect(worktreeConfig).toContain('./.codex/scripts/bootstrap-worktree.sh --quiet');
   });
 
   it('creates OpenCode-compatible files on the Codex scaffold when opencode is selected', async () => {
@@ -199,6 +203,7 @@ describe('runInit', () => {
 
     expect(result.assistant).toBe('opencode');
     expect(result.createdPaths).toContain('.codex/README.md');
+    expect(result.createdPaths).toContain('.opencode/worktree.jsonc');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
     expect(result.createdPaths).toContain('AGENTS.md');

@@ -1,0 +1,7 @@
+{
+  "$schema": "https://registry.kdco.dev/schemas/worktree.json",
+
+  "hooks": {
+    "postCreate": ["./.codex/scripts/bootstrap-worktree.sh --quiet"]
+  }
+}

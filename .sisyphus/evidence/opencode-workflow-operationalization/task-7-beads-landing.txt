@@ -1,0 +1,83 @@
+# Task 7: Beads State Reconciliation — Evidence
+# Captured: 2026-04-01
+# Updated: 2026-04-02 (fix: remove inline annotations from JSON, use raw output only)
+
+## bd ready --json
+```json
+[]
+```
+
+Result: no ready issues. All tracked issues are either in_progress or open/blocked.
+
+## bd list --json
+```json
+[
+  {
+    "id": "ai-harness-ddi",
+    "title": "Bootstrap repeatable oh-my-opencode defaults",
+    "description": "Extend the ai-harness OpenCode install path so first-time machines can reproduce the validated Codex Max + OpenCode Zen setup without manual hand-edits. The managed global install should cover the reusable oh-my-opencode agent/category defaults and the matching GSD default overrides for Codex/Zen routing, while staying idempotent and safe to rerun. Update the OpenCode install docs and tests so the behavior is explicit and repeatable.",
+    "status": "in_progress",
+    "priority": 1,
+    "issue_type": "feature",
+    "assignee": "ndmikkelsen",
+    "owner": "natem12@gmail.com",
+    "created_at": "2026-04-01T21:16:57Z",
+    "created_by": "ndmikkelsen",
+    "updated_at": "2026-04-01T21:17:03Z",
+    "dependency_count": 0,
+    "dependent_count": 0,
+    "comment_count": 0
+  },
+  {
+    "id": "ai-harness-r05",
+    "title": "Integrate opencode-worktree into ai-harness",
+    "description": "Add first-class ai-harness support for the external opencode-worktree plugin so scaffolded repositories can opt into a lower-friction OpenCode worktree flow. This should cover the necessary scaffold/runtime integration points, docs, and validation for the plugin install/config contract without regressing the current worktree bootstrap flow.",
+    "status": "in_progress",
+    "priority": 1,
+    "issue_type": "feature",
+    "assignee": "ndmikkelsen",
+    "owner": "natem12@gmail.com",
+    "created_at": "2026-04-01T14:12:21Z",
+    "created_by": "ndmikkelsen",
+    "updated_at": "2026-04-01T14:12:33Z",
+    "dependency_count": 0,
+    "dependent_count": 1,
+    "comment_count": 0
+  },
+  {
+    "id": "ai-harness-382",
+    "title": "Redesign worktree workflow around opencode-worktree",
+    "description": "After opencode-worktree support is implemented, review the current ai-harness worktree flow and define a lower-friction git worktree workflow that uses opencode-worktree as the preferred OpenCode path. Capture the resulting operator workflow and any migration guidance needed for downstream repos.",
+    "status": "open",
+    "priority": 1,
+    "issue_type": "task",
+    "owner": "natem12@gmail.com",
+    "created_at": "2026-04-01T14:12:22Z",
+    "created_by": "ndmikkelsen",
+    "updated_at": "2026-04-01T14:12:22Z",
+    "dependencies": [
+      {
+        "issue_id": "ai-harness-382",
+        "depends_on_id": "ai-harness-r05",
+        "type": "blocks",
+        "created_at": "2026-04-01T09:12:32Z",
+        "created_by": "ndmikkelsen",
+        "metadata": "{}"
+      }
+    ],
+    "dependency_count": 1,
+    "dependent_count": 0,
+    "comment_count": 0
+  }
+]
+```
+
+## Issue Status: NO CHANGES MADE
+Reason: No bd update or bd close operations performed.
+ai-harness-ddi (in_progress): remains open. Tasks 5, 6, 8, and Final Wave (F1-F4) are not yet complete.
+  Per plan dependency matrix: 5,6,7,8 block F1-F4. Closing now would be premature.
+ai-harness-r05 (in_progress): unrelated parallel work, no change warranted.
+ai-harness-382 (open): depends on ai-harness-r05 via type "blocks". No change warranted.
+
+## Conclusion
+Beads state is consistent with plan execution. Ready queue is empty because all issues are either in_progress or blocked by parallel work. No premature closure is warranted until Tasks 5, 6, 8 and Final Wave complete.

@@ -23,7 +23,18 @@ That gives you:
 
 - `ai-harness` on your `PATH`
 - the global OpenCode `harness` skill
+- the managed `oh-my-opencode.json` defaults at `~/.config/opencode/oh-my-opencode.json`
 - the managed OpenCode `/gsd-autonomous` workflow at `~/.config/opencode/get-shit-done/workflows/autonomous.md`
+- the managed GSD defaults at `~/.gsd/defaults.json`
+
+## Current-state runbook
+
+Use this as the authoritative sequence after install:
+
+1. Scaffold or adopt with `ai-harness ... --init-json`.
+2. Run `ai-harness doctor <target> --assistant opencode`.
+3. Optionally install the OpenCode worktree plugin with `ocx add kdco/worktree --from https://registry.kdco.dev`.
+4. Use the daily Beads + GSD loop from `.rules/patterns/operator-workflow.md`.
 
 ## Mental model
 
@@ -79,6 +90,7 @@ Generated repos also start with a scaffold baseline marker in `.planning/STATE.m
 4. Run `bd init` once before using Beads in that repo.
 5. Run `ai-harness doctor . --assistant opencode`.
 6. Start normal work with `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next`.
+7. If you want low-friction OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` reuses `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
 
 ## Existing repository walkthrough
 
@@ -159,6 +171,7 @@ ai-harness --mode existing . --assistant opencode --cleanup-manifest legacy-ai-f
 4. Run `ai-harness doctor . --assistant opencode`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
 6. Start the normal loop: `bd ready --json` -> claim issue -> `/gsd-next` -> verify -> close -> `./.codex/scripts/land.sh`.
+7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` reuses `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
 
 ## Refreshing an already scaffolded repo later
 
@@ -182,8 +195,12 @@ Once a repo is scaffolded, the intended default loop is:
 bd ready --json
 bd update <id> --claim --json
 /gsd-next
-/gsd-verify-work <phase>
-bd close <id> --reason "Verified"
+# if routed into phase work:
+/gsd-discuss-phase <n>
+/gsd-plan-phase <n>
+/gsd-execute-phase <n>
+/gsd-verify-work <n>
+bd close <id> --reason "Verified: <artifact or phase> passed" --json
 ./.codex/scripts/land.sh
 ```
 
