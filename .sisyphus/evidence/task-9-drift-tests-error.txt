@@ -1,0 +1,10 @@
+Task 9 negative-path verification
+
+Negative cases covered in `tests/integration/doctor.test.ts`:
+- missing canonical OMO contract reference in `AGENTS.md`
+- missing worktree bootstrap fallback in `.beads/hooks/post-checkout`
+
+Observed result:
+- doctor returns `fail` for both drift conditions with deterministic alignment reasons
+
+Result: PASS

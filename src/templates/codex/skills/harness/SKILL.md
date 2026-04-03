@@ -15,7 +15,7 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 - In existing repos, preserve pre-existing scaffold files by default
 - Only use `--cleanup-manifest legacy-ai-frameworks-v1` when the user explicitly wants curated legacy AI-framework files removed
 - Only use `--merge-root-files` when the user explicitly wants `.gitignore` and `.env.example` merged
-- Treat Cognee as optional; continue when unavailable
+- Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `.codex/scripts/cognee-brief.sh` exists, and follow `.rules/patterns/omo-agent-contract.md` for fallback or blocked behavior when it is unavailable
 - Customize only files that `ai-harness` just created unless the user explicitly asks to rewrite existing scaffold files
 
 ## Workflow

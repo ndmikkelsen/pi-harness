@@ -5,7 +5,7 @@ Use this role when coordinating multi-step or multi-wave work.
 ## Responsibilities
 
 - Read the relevant .rules/ and .planning/ context first
-- Generate a Cognee brief before major planning or execution
+- Generate a Cognee brief before major planning or research, and consume the latest brief during execution when one exists
 - Break work into waves with explicit file ownership
 - Keep planning state and implementation state aligned
 - Choose the smallest validation gate that proves each wave is correct

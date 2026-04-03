@@ -15,22 +15,24 @@ Codex works in this repository through a focused runtime layer. The canonical sy
 - .codex/scripts/ for working Cognee and planning sync backends
 
 Use the Codex compatibility docs and scripts under .codex/ as entrypoints, not as a separate source of truth.
+For OMO lane and tool policy, treat `.rules/patterns/omo-agent-contract.md` as the normative source and keep this file adapter-only.
 
 ### Codex Operating Sequence
 
 1. Read the relevant .rules/ documents before changing code or infrastructure.
 2. Inspect .planning/STATE.md and any active phase docs in .planning/.
 3. Use native `bd` for task tracking after the repository is initialized with `bd init`.
-4. Query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
+4. For planning, research, or autonomous startup work, query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
 5. If you use OpenCode worktrees, prefer the scaffolded `.opencode/worktree.jsonc` with `kdco/worktree`; otherwise run ./.codex/scripts/bootstrap-worktree.sh on a fresh worktree.
 6. Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.
-7. Land the session with ./.codex/scripts/land.sh.
+7. If you are in an execution/autonomous landing lane, land the session with ./.codex/scripts/land.sh.
 
 ### Codex Guardrails
 
 - Do not create duplicate planning systems or issue trackers under .codex/.
 - Do not mirror .planning/ into .codex-specific directories.
-- Keep Cognee integration non-blocking; if it is down, continue using local docs and planning artifacts.
+- Do not redefine OMO doctrine here; reference `.rules/patterns/omo-agent-contract.md` when policy decisions are needed.
+- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.
 - Treat .codex/agents/*.md as reusable role briefs and .codex/scripts/*.sh as the executable surface.
 - Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with ai-harness.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
@@ -142,7 +144,7 @@ For more details, see README.md, `docs/harness-usage.md`, and `.rules/patterns/o
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
+**When ending an execution/autonomous landing session**, you MUST complete ALL steps below. Planning, research, and review lanes must hand off instead of pushing or publishing. Work is NOT complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
 
 **MANDATORY WORKFLOW:**
 
@@ -160,6 +162,7 @@ For more details, see README.md, `docs/harness-usage.md`, and `.rules/patterns/o
 8. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
+- Only execution/autonomous landing lanes should run `./.codex/scripts/land.sh`; planning, research, and review lanes must hand off instead.
 - Work is NOT complete until the feature branch push succeeds and the PR to `dev` exists or is updated
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push

@@ -4,7 +4,8 @@ Drain ready Beads work and incomplete GSD phase work autonomously.
 
 Default behavior is backlog-driven:
 - claim ready Beads work first when Beads is available
-- route into discuss -> plan -> execute -> verify only when phase work is needed
+- route claimed ready work through `/gsd-next` before choosing quick or phase execution
+- use discuss -> plan -> execute -> verify only when `/gsd-next` or a no-backlog fallback routes into phase work
 - keep going until code, validation, verification, and acceptance criteria pass
 - close work only after verification passes
 - land the current feature branch before moving to the next work item
@@ -18,7 +19,7 @@ Stop only for:
 
 <required_reading>
 
-Always read `.rules/patterns/operator-workflow.md` and `.codex/workflows/autonomous-execution.md` before acting.
+Always read `.rules/patterns/operator-workflow.md`, `.rules/patterns/omo-agent-contract.md`, and `.codex/workflows/autonomous-execution.md` before acting.
 Treat those repo files as the source of truth for backlog priority, verification outcomes, issue closure, landing, and blocker handling.
 
 Read all files referenced by the invoking prompt's execution_context before starting.
@@ -58,6 +59,17 @@ if [[ "$BEADS_AVAILABLE" == "true" ]]; then
 fi
 ```
 
+Attempt a Cognee brief before broad planning:
+
+```bash
+COGNEE_AVAILABLE=$(./.codex/scripts/cognee-bridge.sh health >/dev/null 2>&1 && echo "true" || echo "false")
+if [[ "$COGNEE_AVAILABLE" == "true" ]]; then
+  COGNEE_BRIEF=$(./.codex/scripts/cognee-brief.sh "active milestone, ready work, and current repo state" 2>/dev/null || true)
+else
+  COGNEE_BRIEF=""
+fi
+```
+
 Display startup banner:
 
 ```
@@ -71,7 +83,7 @@ Display startup banner:
 
 If `FROM_PHASE` is set, display `Phase floor: {FROM_PHASE}`.
 
-The managed OpenCode workflow is the execution entrypoint only. Shared autonomous policy lives in `.rules/patterns/operator-workflow.md` and `.codex/workflows/autonomous-execution.md`.
+The managed OpenCode workflow is the execution entrypoint only. Shared autonomous policy lives in `.rules/patterns/operator-workflow.md`, `.rules/patterns/omo-agent-contract.md`, and `.codex/workflows/autonomous-execution.md`.
 
 </step>
 
@@ -123,18 +135,28 @@ bd update <id> --claim --json
 ```
 
 - Carry the issue ID through planning, execution, verification, and handoff.
+- If `COGNEE_AVAILABLE=false`, continue only when the task remains locally verifiable from `.rules/`, `.planning/`, and repo state; otherwise stop via `handle_blocker`.
 
-### 3b. Decide Quick Work vs Phase Work
+### 3b. Route Claimed Work
 
 Use this routing order:
 
-1. If `.planning/STATE.md` or roadmap state already points at an active incomplete phase, use that phase.
-2. Else if incomplete roadmap phases exist, use the first incomplete phase.
-3. Else treat the claimed issue as quick work.
+1. If a ready issue was claimed, route it through `/gsd-next` first.
+2. If there is no ready issue and `.planning/STATE.md` or roadmap state already points at an active incomplete phase, use that phase.
+3. Else if incomplete roadmap phases exist, use the first incomplete phase.
+4. Else treat the claimed issue as quick work.
+
+If a ready issue was claimed:
+
+```
+Skill(skill="gsd-next")
+```
+
+Let `/gsd-next` decide whether the issue is quick work or phase work. Do not skip a ready issue in favor of roadmap phase work.
 
 ### 3c. Execute Quick Work
 
-If the item is quick work:
+If `/gsd-next` routes the item to quick work:
 
 ```
 Skill(skill="gsd:quick", args="--full")
@@ -149,7 +171,7 @@ If verification is unclear, route to `handle_blocker` instead of guessing succes
 
 ### 3d. Execute Phase Work
 
-For phase work, always preserve this order:
+For phase work, whether selected by `/gsd-next` or by the no-ready-work phase fallback, always preserve this order:
 
 1. Discuss if context is missing
 2. Plan if plans are missing

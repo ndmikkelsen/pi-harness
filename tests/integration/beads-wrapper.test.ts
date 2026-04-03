@@ -34,9 +34,11 @@ describe('Beads integration', () => {
     expect(beadsGuide).toContain('`bd update <id> --claim --json`');
     expect(beadsGuide).toContain('`/gsd-next`');
     expect(codexReadme).toContain('Use native `bd` as the Beads task-tracking interface after `bd init`');
+    expect(codexReadme).toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('Close or update Beads issues only after verification passes');
     expect(codexReadme).toContain('.codex/scripts/cognee-bridge.sh');
     expect(agentsGuide).toContain('Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.');
+    expect(agentsGuide).toContain('.rules/patterns/omo-agent-contract.md');
     expect(agentsGuide).toContain('### Beads + GSD Loop');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
   });

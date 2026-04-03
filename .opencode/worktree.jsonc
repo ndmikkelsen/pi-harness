@@ -1,6 +1,9 @@
 {
   "$schema": "https://registry.kdco.dev/schemas/worktree.json",
 
+  // Preferred worktree bootstrap path when `kdco/worktree` is installed.
+  // Safe to coexist with git post-checkout hooks because bootstrap-worktree.sh
+  // is required to be idempotent.
   "hooks": {
     "postCreate": ["./.codex/scripts/bootstrap-worktree.sh --quiet"]
   }

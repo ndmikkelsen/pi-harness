@@ -1,0 +1,9 @@
+Task 13 negative check
+
+Review focus:
+- search workflow docs for contradictory optional/non-blocking Cognee policy wording in the aligned workflow surface
+
+Observed result:
+- no conflicting `optional` or `non-blocking` Cognee policy wording remains in `.rules/patterns/operator-workflow.md`, `.codex/workflows/autonomous-execution.md`, or `docs/harness-usage.md`
+
+Result: PASS

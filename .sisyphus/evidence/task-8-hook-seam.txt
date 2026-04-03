@@ -1,0 +1,22 @@
+Task 8 hook seam verification
+
+Updated files:
+- .beads/hooks/post-checkout
+- .opencode/worktree.jsonc
+- .codex/scripts/bootstrap-worktree.sh
+- scripts/hooks/post-checkout
+- src/templates/root/scripts/hooks/post-checkout
+- tests/integration/bootstrap-worktree.test.ts
+
+Verification command:
+- `pnpm test -- tests/integration/bootstrap-worktree.test.ts`
+
+Observed result:
+- Test Files: 1 passed
+- Tests: 2 passed
+
+Interpretation:
+- worktree bootstrap remains functional on initial creation
+- rerunning bootstrap after initial worktree creation stays idempotent
+
+Result: PASS

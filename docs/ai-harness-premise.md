@@ -37,7 +37,7 @@ The most important product promises are:
 
 The harness is intentionally opinionated.
 
-- foundation installed by default: Beads, GSD, Codex, and OpenCode, with Cognee as optional supporting plumbing
+- foundation installed by default: Beads, GSD, Codex, and OpenCode, with Cognee governed by lane-aware attempt/fallback policy
 - source of truth: `src/templates/**` for scaffold content, `src/generators/**` for mapping that content into repo outputs, and `dist/` as the built copy
 - preserve by default: existing repositories keep user-owned files unless the user explicitly opts into force or a narrow merge path
 - cleanup by curation only: known non-harness AI workflow droppings are removed only through explicit manifests, never broad heuristic deletion
@@ -118,7 +118,7 @@ Approved direction:
 - keep `.codex/scripts/cognee-bridge.sh`, `.codex/scripts/cognee-brief.sh`, `.codex/scripts/cognee-sync-planning.sh`, and `.codex/scripts/sync-planning-to-cognee.sh`
 - keep `.codex/docker/Dockerfile.cognee` and `config/deploy.cognee.yml`
 - remove `.codex/scripts/sync-to-cognee.sh`
-- keep Cognee non-blocking and focused on planning artifacts instead of broad repository sync
+- keep Cognee planning-focused, with lane-aware attempt/fallback behavior instead of broad repository sync
 - expand the Cognee guidance in `.rules/patterns/cognee-gsd-integration.md`
 
 ## Deploy template decision

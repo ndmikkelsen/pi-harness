@@ -11,3 +11,4 @@ Use GSD as the planning and verification layer for non-trivial work.
 - close phase-driving Beads issues only after `/gsd-verify-work <n>` passes
 - if verification finds gaps, create follow-up Beads issues instead of marking the phase complete prematurely
 - if Beads is unavailable, continue with GSD rather than blocking execution
+- execution and verification handoffs should include `source_lane`, `target_lane`, `scope_summary`, `changed_paths`, `verify_command`, `evidence_path`, `issue_ref`, `planning_ref`, `status`, and `open_risks`

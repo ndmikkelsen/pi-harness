@@ -1,0 +1,11 @@
+Task 12 negative-path verification
+
+Negative cases covered in `tests/integration/doctor.test.ts`:
+- missing canonical OMO contract reference in `AGENTS.md`
+- missing handoff schema field in `.rules/patterns/omo-agent-contract.md`
+- missing worktree bootstrap fallback in `.beads/hooks/post-checkout`
+
+Observed result:
+- doctor reports deterministic `fail` alignment findings for each misconfiguration
+
+Result: PASS

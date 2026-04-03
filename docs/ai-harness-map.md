@@ -7,7 +7,7 @@
 The kept systems are:
 - GSD for planning and execution context
 - Beads for task tracking through native `bd`
-- Cognee for optional knowledge briefs and planning sync
+- Cognee for lane-aware knowledge briefs and planning sync
 - `.codex/` for the assistant runtime surface shared by Codex and OpenCode
 
 ## Runtime Shape
@@ -104,5 +104,5 @@ The scaffold no longer generates:
 
 - `config/deploy.yml` is intentionally incomplete and should be treated as an app-specific starting point, not a production-ready manifest
 - `config/deploy.cognee.yml` is the stronger template because it includes proxy, env, accessory DB, and dockerfile wiring
-- Cognee is optional at runtime; the scaffold keeps the integration non-blocking when the service is unavailable
+- Cognee is lane-aware at runtime; the scaffold attempts it where required and falls back locally when the contract permits
 - deploy templates are scaffold outputs maintained here because `ai-harness` ships them to downstream repositories

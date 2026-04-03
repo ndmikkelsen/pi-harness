@@ -35,6 +35,7 @@ Use this as the authoritative sequence after install:
 2. Run `ai-harness doctor <target> --assistant opencode`.
 3. Optionally install the OpenCode worktree plugin with `ocx add kdco/worktree --from https://registry.kdco.dev`.
 4. Use the daily Beads + GSD loop from `.rules/patterns/operator-workflow.md`.
+5. Treat `.rules/patterns/omo-agent-contract.md` as the normative OMO lane and tool contract for planning, Cognee usage, and landing authority.
 
 ## Mental model
 
@@ -87,10 +88,12 @@ Generated repos also start with a scaffold baseline marker in `.planning/STATE.m
 1. Review and tailor `.planning/PROJECT.md`.
 2. Review `.planning/REQUIREMENTS.md`, `.planning/ROADMAP.md`, and `.planning/STATE.md`.
 3. Copy `.env.example` to `.env` and fill in local values.
-4. Run `bd init` once before using Beads in that repo.
-5. Run `ai-harness doctor . --assistant opencode`.
+4. Run `ai-harness doctor . --assistant opencode`.
+5. Run `bd init` once before using Beads in that repo.
 6. Start normal work with `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next`.
 7. If you want low-friction OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` reuses `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
+8. For planning, research, or autonomous startup, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration and follow the contract if Cognee is unavailable.
+9. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
 
 ## Existing repository walkthrough
 
@@ -170,8 +173,9 @@ ai-harness --mode existing . --assistant opencode --cleanup-manifest legacy-ai-f
 3. Review any cleanup results before continuing.
 4. Run `ai-harness doctor . --assistant opencode`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
-6. Start the normal loop: `bd ready --json` -> claim issue -> `/gsd-next` -> verify -> close -> `./.codex/scripts/land.sh`.
+6. Start the normal loop: `bd ready --json` -> claim issue -> `/gsd-next` -> verify -> close -> execution/autonomous landing lane runs `./.codex/scripts/land.sh`.
 7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` reuses `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
+8. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
 
 ## Refreshing an already scaffolded repo later
 
@@ -201,7 +205,8 @@ bd update <id> --claim --json
 /gsd-execute-phase <n>
 /gsd-verify-work <n>
 bd close <id> --reason "Verified: <artifact or phase> passed" --json
-./.codex/scripts/land.sh
+execution/autonomous landing lane runs `./.codex/scripts/land.sh`
 ```
 
 Use `/gsd-resume-work` to re-enter an active phase, and if `/gsd-next` routes you into phase work, continue with `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>`.
+For OMO-driven work, use `.rules/patterns/omo-agent-contract.md` to decide who may plan, who may land, and when Cognee fallback is allowed.

@@ -1,0 +1,13 @@
+Task 9 drift test verification
+
+Commands exercised:
+- `pnpm test -- tests/integration/doctor.test.ts`
+- `pnpm test -- tests/integration/beads-wrapper.test.ts`
+- `pnpm test -- --update tests/integration/scaffold-snapshots.test.ts`
+
+Observed result:
+- doctor drift checks passed after adding canonical contract and seam assertions
+- beads wrapper integration passed with contract reference assertions
+- scaffold snapshots updated to reflect the intentional adapter and policy changes
+
+Result: PASS

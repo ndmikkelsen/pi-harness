@@ -1,0 +1,10 @@
+Task 11 handoff schema verification
+
+Command exercised:
+- `pnpm test -- tests/integration/doctor.test.ts`
+
+Observed result:
+- doctor passes on fresh scaffolds with the required handoff schema present
+- gsd and autonomous workflow docs now include the required handoff fields
+
+Result: PASS

@@ -1,0 +1,15 @@
+Task 12 doctor alignment verification
+
+Command exercised:
+- `pnpm test -- tests/integration/doctor.test.ts`
+
+Observed result:
+- 1 test file passed
+- 10 tests passed
+
+Coverage summary:
+- canonical contract references validated in generated docs
+- worktree seam checks validated for `.opencode/worktree.jsonc`, `.beads/hooks/post-checkout`, and `scripts/hooks/post-checkout`
+- alignment findings represented in doctor issue types via `category` and `severity`
+
+Result: PASS

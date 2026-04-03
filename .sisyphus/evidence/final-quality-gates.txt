@@ -1,0 +1,16 @@
+Command: `pnpm typecheck && pnpm test && pnpm test:bdd && pnpm test:smoke:dist`
+
+Observed results:
+- `pnpm typecheck` passed
+- `pnpm test` passed: 18 files, 83 tests
+- `pnpm test:bdd` passed: 2 files, 37 tests
+- `pnpm test:smoke:dist` passed after rebuilding `dist/`
+
+Smoke highlights:
+- built CLI help rendered successfully
+- dry-run Codex scaffold succeeded
+- dry-run OpenCode scaffold succeeded
+- real built Codex scaffold succeeded
+- `install-skill --assistant opencode` succeeded from the built CLI using temp `opencode-config` and `.gsd` roots
+
+Result: PASS

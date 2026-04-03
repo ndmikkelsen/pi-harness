@@ -6,6 +6,7 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 ## Canonical Systems
 
 - .rules/ is the source of truth for architecture and workflow patterns
+- `.rules/patterns/omo-agent-contract.md` is the normative OMO lane and tool contract
 - .planning/ is the GSD execution and handoff workspace
 - .codex/scripts/ contains the live Cognee and planning sync plumbing
 - README.md plus docs/ai-harness-premise.md, docs/ai-harness-map.md, and docs/architecture.md describe the real product and architecture
@@ -42,16 +43,17 @@ Codex should use this runtime layer to maintain the harness, validate the genera
 5. Use `ai-harness --mode existing . --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
 6. Use `ai-harness doctor . --assistant codex` to audit the current repo after runtime changes.
 7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
-8. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
+8. For planning, research, or autonomous startup work, generate a knowledge brief with ./.codex/scripts/cognee-brief.sh when Cognee is available.
 9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
 10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
 11. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
-12. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
+12. If you are in an execution/autonomous landing lane, finish with ./.codex/scripts/land.sh to publish the feature branch and ensure a PR to `dev` exists.
 
 ## Rules
 
 - Do not create parallel planning systems under .codex/.
 - Treat .codex/ as the runtime surface for assistant-specific scripts and docs while keeping `.planning/` and `.rules/` canonical.
+- Keep OMO policy references pointed to `.rules/patterns/omo-agent-contract.md` instead of restating doctrine in adapter docs.
 - Keep source templates, generated docs, and built `dist/` artifacts in sync.
-- If Cognee is unavailable, continue with .rules/, .planning/, and repo search.
+- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.
 - Prefer `harness` as the user-facing skill name and `ai-harness` as the CLI/package name.

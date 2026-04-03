@@ -1,0 +1,14 @@
+Task 10 Cognee runtime verification
+
+Command exercised:
+- `pnpm test -- tests/integration/land-script.test.ts tests/integration/init.test.ts`
+
+Observed result:
+- 2 test files passed
+- 20 tests passed
+
+Coverage summary:
+- landing continues when sync-planning reports an unavailable-but-skipped Cognee path
+- fresh scaffolds include required-broadly Cognee policy language and autonomous fallback behavior
+
+Result: PASS

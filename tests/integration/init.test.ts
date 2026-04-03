@@ -5,6 +5,7 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { getCleanupManifest } from '../../src/core/cleanup-manifests.js';
+import { AI_HARNESS_VERSION } from '../../src/core/harness-release.js';
 import { runInit } from '../../src/commands/init.js';
 
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
@@ -35,6 +36,8 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-sync-planning.sh');
@@ -78,7 +81,7 @@ describe('runInit', () => {
     expect(requirements).toContain('## Traceability');
     expect(roadmap).toContain('## Phase Overview');
     expect(state).toContain('## Current Status');
-    expect(state).toContain('Scaffold baseline: `ai-harness` v0.1.0');
+    expect(state).toContain(`Scaffold baseline: \`ai-harness\` v${AI_HARNESS_VERSION}`);
     expect(phasesGuide).toContain('.planning/phases/<phase-slug>/');
     expect(quickGuide).toContain('.planning/quick/');
     expect(stickyExample).toContain('# Session Handoff');
@@ -118,6 +121,7 @@ describe('runInit', () => {
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('Codex Compatibility Layer');
+    expect(codexReadme).toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
     expect(codexReadme).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
@@ -210,9 +214,43 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('OpenCode Compatibility Layer');
+    expect(codexReadme).toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(agentsGuide).toContain('OpenCode Workflow');
     expect(agentsGuide).toContain('.codex/');
+  });
+
+  it('scaffolds Cognee lane policy and autonomous fallback behavior for OMO flows', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'cognee-policy-app',
+      assistant: 'opencode',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const projectDir = path.join(workspace, 'cognee-policy-app');
+    const cogneePolicy = await readFile(path.join(projectDir, '.rules', 'patterns', 'cognee-gsd-integration.md'), 'utf8');
+    const autonomousWorkflow = await readFile(
+      path.join(projectDir, '.codex', 'workflows', 'autonomous-execution.md'),
+      'utf8'
+    );
+    const managedAutonomousWorkflow = await readFile(
+      path.join(projectDir, '.codex', 'scripts', 'bootstrap-worktree.sh'),
+      'utf8'
+    );
+
+    expect(cogneePolicy).toContain('must attempt a Cognee brief before broad repository exploration');
+    expect(cogneePolicy).toContain('deterministic redirect or blocked outcome instead of a silent skip');
+    expect(autonomousWorkflow).toContain('COGNEE_AVAILABLE');
+    expect(autonomousWorkflow).toContain('continue only when the work remains locally verifiable');
+    expect(autonomousWorkflow).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(managedAutonomousWorkflow).toContain('quiet=false');
   });
 
   it('does not overwrite existing files in existing-project mode', async () => {

@@ -111,7 +111,7 @@ else
 fi
 
 if ! command -v gh >/dev/null 2>&1; then
-  fail "Landing requires GitHub CLI (gh) to open or update the PR to dev"
+  fail "Landing requires GitHub CLI (gh) to open or confirm the PR to dev"
 fi
 
 existing_pr_json="$(gh pr list --head "$branch" --json number,url,baseRefName,state)"

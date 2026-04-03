@@ -80,6 +80,7 @@ describe('scaffold snapshots', () => {
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
     expect(result['README.md']).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
     expect(result['.codex/README.md']).toContain('Use native `bd` as the Beads task-tracking interface after `bd init`');
+    expect(result['.codex/README.md']).toContain('.rules/patterns/omo-agent-contract.md');
     expect(result['.codex/README.md']).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');
     expect(result['.codex/README.md']).toContain('pnpm test:bdd');
@@ -87,6 +88,7 @@ describe('scaffold snapshots', () => {
     expect(beadsGuide).toContain('Run `bd init` once per repository');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
     expect(autonomousWorkflow).toContain('BEADS_AVAILABLE');
+    expect(autonomousWorkflow).toContain('.rules/patterns/omo-agent-contract.md');
     expect(autonomousWorkflow).toContain('bd ready --json');
     expect(autonomousWorkflow).toContain('/gsd-next');
     expect(autonomousWorkflow).toContain('gaps_found');

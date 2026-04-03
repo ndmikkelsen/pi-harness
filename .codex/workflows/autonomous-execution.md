@@ -6,7 +6,7 @@ The shared policy is backlog-driven: drain ready Beads work first, fall back to 
 
 ## Startup Checks
 
-1. Review `.rules/patterns/operator-workflow.md`, `.planning/STATE.md`, and the active planning context.
+1. Review `.rules/patterns/operator-workflow.md`, `.rules/patterns/omo-agent-contract.md`, `.planning/STATE.md`, and the active planning context.
 2. Detect Beads once at startup and degrade gracefully when it is unavailable.
 
 ```bash
@@ -15,9 +15,15 @@ BEADS_AVAILABLE=$(test -d .beads && command -v bd >/dev/null 2>&1 && echo "true"
 
 3. If `BEADS_AVAILABLE=true`, load ready work with `bd ready --json` before planning anything else.
 4. Inspect the current roadmap and active phase state so incomplete phase work can be resumed when the backlog is empty.
+5. Attempt a Cognee brief before broad planning or backlog interpretation.
+
+```bash
+COGNEE_AVAILABLE=$(./.codex/scripts/cognee-bridge.sh health >/dev/null 2>&1 && echo "true" || echo "false")
+```
 
 - if `BEADS_AVAILABLE` is `false`, continue with the GSD flow without blocking on issue tracking
 - if `BEADS_AVAILABLE` is `true`, carry the active issue ID through planning, execution, verification, landing, and handoff
+- if `COGNEE_AVAILABLE` is `false`, continue only when the work remains locally verifiable under `.rules/`, `.planning/`, and repo evidence; otherwise stop with a blocked handoff
 
 ## Work Selection Order
 
@@ -63,6 +69,9 @@ Never close work, defer gaps silently, or continue past manual validation as if 
 
 - record the active or closed Beads issue ID in handoff notes when work used Beads
 - mention whether verification passed, failed, or produced follow-up issues
+- include `source_lane`, `target_lane`, `scope_summary`, `changed_paths`, `verify_command`, `evidence_path`, `issue_ref`, `planning_ref`, `status`, and `open_risks` in autonomous handoff notes
+- only execution/autonomous landing lanes may run `./.codex/scripts/land.sh`
+- planning, research, or review lanes must stop with a handoff instead of publishing
 - if a repo uses `.codex/scripts/land.sh`, make sure issue state already reflects the latest verification result before landing
 - landing only publishes the feature branch and manages the PR to `dev`; it never promotes into `main`
 - stop autonomous mode only for true blockers, repeated verification gaps after one retry, human-only validation, or missing secrets/accounts/decisions

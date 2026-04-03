@@ -190,6 +190,8 @@ export interface DoctorCommandOptions {
 export interface DoctorIssue {
   path: string;
   reason: string;
+  category: 'runtime' | 'root-scaffold' | 'deprecated-artifact' | 'executable' | 'alignment';
+  severity: 'warn' | 'fail';
 }
 
 export interface DoctorGroupResult {

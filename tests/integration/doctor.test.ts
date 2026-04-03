@@ -1,4 +1,4 @@
-import { chmod, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { chmod, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -33,6 +33,9 @@ describe('runDoctor', () => {
     expect(result.status).toBe('pass');
     expect(result.assistant).toBe('codex');
     expect(formatDoctorReport(result)).toContain('Status: pass');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'pass' })])
+    );
   });
 
   it('auto-detects Codex and validates the shared backend', async () => {
@@ -86,7 +89,192 @@ describe('runDoctor', () => {
     expect(result.assistant).toBe('opencode');
     expect(result.status).toBe('pass');
     expect(result.groups).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'codex-runtime', status: 'pass' })])
+      expect.arrayContaining([
+        expect.objectContaining({ name: 'codex-runtime', status: 'pass' }),
+        expect.objectContaining({ name: 'omo-alignment', status: 'pass' })
+      ])
+    );
+  });
+
+  it('fails when the canonical OMO contract reference is removed from AGENTS.md', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-alignment',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-alignment');
+    await writeFile(path.join(targetDir, 'AGENTS.md'), '# AGENTS\n\nRuntime only.\n', 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: 'AGENTS.md', reason: 'missing canonical OMO contract reference' })
+      ])
+    );
+  });
+
+  it('fails when the OMO contract loses a required handoff schema field', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-handoff',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-handoff');
+    const contractPath = path.join(targetDir, '.rules', 'patterns', 'omo-agent-contract.md');
+    const contract = await readFile(contractPath, 'utf8');
+    await writeFile(contractPath, contract.replaceAll('verify_command', 'verify_cmd'), 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.rules/patterns/omo-agent-contract.md',
+          reason: 'missing handoff schema field verify_command'
+        })
+      ])
+    );
+  });
+
+  it('fails the OMO alignment group when the canonical contract file is deleted', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-missing-alignment',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-missing-alignment');
+    await rm(path.join(targetDir, '.rules', 'patterns', 'omo-agent-contract.md'));
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.rules/patterns/omo-agent-contract.md',
+          reason: 'missing required OMO alignment artifact'
+        })
+      ])
+    );
+  });
+
+  it('fails when the Beads post-checkout hook loses the worktree bootstrap fallback', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-hook-seam',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-hook-seam');
+    await writeFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), '#!/bin/sh\nexit 0\n', 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.beads/hooks/post-checkout',
+          reason: 'missing worktree bootstrap fallback reference'
+        })
+      ])
+    );
+  });
+
+  it('fails when workflow handoff docs lose required schema fields', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-workflow-handoff',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-workflow-handoff');
+    const workflowPath = path.join(targetDir, '.codex', 'workflows', 'autonomous-execution.md');
+    const workflow = await readFile(workflowPath, 'utf8');
+    await writeFile(workflowPath, workflow.replaceAll('open_risks', 'residual_risks'), 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.codex/workflows/autonomous-execution.md',
+          reason: 'missing handoff workflow field open_risks'
+        })
+      ])
     );
   });
 

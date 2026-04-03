@@ -22,7 +22,7 @@ Only if `bd` is available or `.beads/` exists.
 Only if `.codex/scripts/cognee-brief.sh` already exists.
 
 - run a short knowledge brief about the product, architecture, and current milestone
-- treat failure as non-blocking
+- if Cognee is unavailable, follow `.rules/patterns/omo-agent-contract.md` and continue only when local repo context is sufficient for the active lane
 
 ## 4. Project docs
 

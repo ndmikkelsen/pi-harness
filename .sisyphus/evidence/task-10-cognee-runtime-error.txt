@@ -1,0 +1,10 @@
+Task 10 negative-path verification
+
+Negative behavior covered:
+- unavailable Cognee in landing path does not silently block because sync script exits with a skipped path
+- autonomous workflow text requires a blocked or fallback outcome instead of a silent skip
+
+Observed result:
+- tests assert deterministic unavailable handling rather than optional/no-op language
+
+Result: PASS

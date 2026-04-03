@@ -10,6 +10,7 @@ Use this role before planning or resuming work when a quick repository knowledge
 
 ## Rules
 
-- Cognee is an enhancement, never a blocker
+- Planning and research lanes must attempt Cognee before broad repo exploration unless the task is already narrowly scoped and local
+- If Cognee is unavailable, return a deterministic fallback note or blocked recommendation based on the active lane policy
 - Do not create a second planning artifact
 - Prefer high-signal findings over exhaustive dumps

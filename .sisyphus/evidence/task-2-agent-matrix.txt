@@ -1,0 +1,21 @@
+Task 2 agent matrix verification
+
+Verified file:
+- src/templates/rules/patterns/omo-agent-contract.md
+
+Check: all OMO agent keys from src/templates/opencode/oh-my-opencode.json appear in the matrix.
+
+Matched rows:
+- 29: prometheus
+- 30: metis
+- 31: sisyphus
+- 32: hephaestus
+- 33: oracle
+- 34: momus
+- 35: atlas
+- 36: explore
+- 37: librarian
+- 38: multimodal-looker
+- 39: sisyphus-junior
+
+Result: PASS

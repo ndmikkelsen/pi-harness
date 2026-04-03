@@ -1,0 +1,12 @@
+Task 6 negative check
+
+Review focus:
+- avoid contradictory optional-vs-required language inside the files targeted by Task 6
+
+Observed result:
+- no remaining "enhancement, never a blocker" or "keep Cognee optional" wording in the Task 6 target files
+
+Interpretation:
+- the targeted policy surface is internally consistent after the rewrite
+
+Result: PASS

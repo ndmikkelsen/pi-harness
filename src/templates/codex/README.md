@@ -6,6 +6,7 @@ This repository already has working project systems for backlog tracking, planni
 ## Canonical Systems
 
 - .rules/ is the source of truth for architecture and workflow patterns
+- `.rules/patterns/omo-agent-contract.md` is the normative OMO lane and tool contract
 - .planning/ is the GSD execution and handoff workspace
 - .codex/scripts/ contains the live Cognee and planning sync plumbing
 - Use native `bd` as the Beads task-tracking interface after `bd init`
@@ -39,17 +40,18 @@ This repository already has working project systems for backlog tracking, planni
 3. Follow `.rules/patterns/operator-workflow.md` as the canonical operator runbook.
 4. If Beads is available, start from `bd ready --json`, claim the active issue, and continue with `/gsd-next`.
 5. For existing repos, optionally run `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json` before tailoring new scaffold files.
-6. Generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
+6. For planning, research, or autonomous startup work, generate a knowledge brief with ./.codex/scripts/cognee-brief.sh.
 7. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
 8. On a fresh checkout or a manual git worktree, run ./.codex/scripts/bootstrap-worktree.sh.
 9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
 10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
 11. Validate each wave before handing off or merging into the next.
 12. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
-13. Finish with ./.codex/scripts/land.sh to publish the feature branch and open or update the PR to `dev`.
+13. If you are in an execution/autonomous landing lane, finish with ./.codex/scripts/land.sh to publish the feature branch and ensure a PR to `dev` exists.
 
 ## Rules
 
 - Do not create parallel planning systems under .codex/.
 - Treat .codex/ as the runtime surface for assistant-specific scripts and docs while keeping `.planning/` and `.rules/` canonical.
-- If Cognee is unavailable, continue with .rules/, .planning/, and repo search.
+- Keep OMO policy references pointed to `.rules/patterns/omo-agent-contract.md` instead of restating doctrine in adapter docs.
+- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.

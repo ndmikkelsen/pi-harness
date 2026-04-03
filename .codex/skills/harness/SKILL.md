@@ -15,7 +15,7 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 - In existing repos, preserve pre-existing scaffold files by default
 - Only use `--cleanup-manifest legacy-ai-frameworks-v1` when the user explicitly wants curated legacy AI-framework files removed
 - Only use `--merge-root-files` when the user explicitly wants `.gitignore` and `.env.example` merged
-- Treat Cognee as optional; continue when unavailable
+- Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `.codex/scripts/cognee-brief.sh` exists, and follow `.rules/patterns/omo-agent-contract.md` for fallback or blocked behavior when it is unavailable
 - Customize only files that `ai-harness` just created unless the user explicitly asks to rewrite existing scaffold files
 
 ## Workflow
@@ -26,8 +26,9 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 4. When adopting the current repository, run `ai-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`
 5. In existing repos, customize only the files listed in `createdPaths`, guided by `references/scaffold-customization-map.md`
 6. Run `ai-harness doctor <target> --assistant <codex|opencode>` after setup
-7. If the user relies on OpenCode, remind them that `ai-harness install-skill --assistant opencode` refreshes both the global `harness` skill and the managed `/gsd-autonomous` workflow
-8. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
+7. If the user relies on OpenCode worktrees, point them at the scaffolded `.opencode/worktree.jsonc` and `ocx add kdco/worktree --from https://registry.kdco.dev`
+8. If the user relies on OpenCode, remind them that `ai-harness install-skill --assistant opencode` refreshes the global `harness` skill, the managed `~/.config/opencode/oh-my-opencode.json` defaults, the managed `/gsd-autonomous` entrypoint, and the managed `~/.gsd/defaults.json` routing defaults
+9. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
 
 ## Existing Repository Adaptation
 

@@ -1,0 +1,9 @@
+Task 7 negative check
+
+Review focus:
+- find wording that would allow planning or research lanes to publish landing work
+
+Observed result:
+- no such permission was found in AGENTS.md, `.rules/patterns/operator-workflow.md`, or `.codex/workflows/autonomous-execution.md`
+
+Result: PASS

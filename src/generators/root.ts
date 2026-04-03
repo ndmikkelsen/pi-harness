@@ -35,6 +35,10 @@ function beadsConfig(): string {
   return loadTemplate('root/beads-config.yaml');
 }
 
+function beadsPostCheckoutHook(): string {
+  return loadTemplate('root/beads-hooks/post-checkout');
+}
+
 function postCheckoutHook(): string {
   return loadTemplate('root/scripts/hooks/post-checkout');
 }
@@ -86,6 +90,7 @@ export function buildRootEntries(): ManagedEntry[] {
     { kind: 'directory', path: 'scripts' },
     { kind: 'directory', path: 'scripts/hooks' },
     { kind: 'directory', path: '.beads' },
+    { kind: 'directory', path: '.beads/hooks' },
     { kind: 'directory', path: '.opencode' },
     {
       kind: 'file',
@@ -97,6 +102,7 @@ export function buildRootEntries(): ManagedEntry[] {
     { kind: 'file', path: '.gitleaks.toml', content: (context) => gitleaks(context) },
     { kind: 'file', path: '.pre-commit-config.yaml', content: () => preCommit() },
     { kind: 'file', path: '.beads/config.yaml', content: () => beadsConfig() },
+    { kind: 'file', path: '.beads/hooks/post-checkout', content: () => beadsPostCheckoutHook(), executable: true },
       {
         kind: 'file',
         path: '.env.example',

@@ -1,0 +1,12 @@
+Task 4 negative check
+
+Command intent:
+- search seam inventory rows for an empty fallback column
+
+Observed result:
+- no matches
+
+Interpretation:
+- every current seam row has a populated fallback entry
+
+Result: PASS

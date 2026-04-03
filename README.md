@@ -99,7 +99,7 @@ New repositories receive the full scaffold. Existing repositories create the sam
 
 ## Foundation doctrine
 
-- `ai-harness` installs an opinionated Beads + GSD + Codex/OpenCode foundation; Cognee stays optional plumbing around that core
+- `ai-harness` installs an opinionated Beads + GSD + Codex/OpenCode foundation, with Cognee attempt/fallback behavior governed by `.rules/patterns/omo-agent-contract.md`
 - the canonical assistant runtime surface is `.codex/`, shared by both Codex and OpenCode
 - `src/templates/**` is the source of truth for scaffold content, this repository dogfoods those templates, and `dist/` is the built copy of that source
 - existing repositories preserve user-owned files by default and only merge select root files when explicitly requested
@@ -137,7 +137,7 @@ The default interactive path is:
 3. `/gsd-next`
 4. If GSD routes you into phase work, continue with `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>`
 5. `bd close <id> --reason "Verified" --json`
-6. `./.codex/scripts/land.sh`
+6. execution/autonomous landing lane runs `./.codex/scripts/land.sh`
 
 Use `/gsd-resume-work` to re-enter an active phase and `/gsd-autonomous` when you want a backlog-driven power mode that keeps going until work is verified or truly blocked.
 
@@ -265,7 +265,7 @@ bd update <id> --claim --json
 /gsd-execute-phase <n>
 /gsd-verify-work <n>
 bd close <id> --reason "Verified: <artifact or phase> passed" --json
-./.codex/scripts/land.sh
+execution/autonomous landing lane runs `./.codex/scripts/land.sh`
 ```
 
 Use `/gsd-resume-work` to re-enter active phase work.

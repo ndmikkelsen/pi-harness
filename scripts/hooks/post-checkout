@@ -1,6 +1,9 @@
 #!/bin/sh
 set -eu
 
+# Standalone bootstrap hook for repos not using the OpenCode plugin or the
+# Beads-managed post-checkout hook. Safe to coexist because
+# bootstrap-worktree.sh is required to be idempotent.
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 if [ -n "$repo_root" ] && [ -x "$repo_root/.codex/scripts/bootstrap-worktree.sh" ]; then
   exec "$repo_root/.codex/scripts/bootstrap-worktree.sh" --quiet

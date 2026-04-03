@@ -39,17 +39,29 @@ describe('runInstallSkill', () => {
     expect(result.writtenDefaultsPaths).toContain('defaults.json');
 
     const installedSkill = await readFile(path.join(result.installDir, 'skills', 'harness', 'SKILL.md'), 'utf8');
+    const installedCommandMatrix = await readFile(
+      path.join(result.installDir, 'skills', 'harness', 'references', 'ai-harness-command-matrix.md'),
+      'utf8'
+    );
     const installedOpenCodeDefaults = await readFile(path.join(configRoot, 'oh-my-opencode.json'), 'utf8');
     const installedWorkflow = await readFile(path.join(result.workflowDir, 'autonomous.md'), 'utf8');
     const installedGsdDefaults = await readFile(path.join(gsdRoot, 'defaults.json'), 'utf8');
     expect(installedSkill).toContain('# Harness');
     expect(installedSkill).toContain('ai-harness --mode existing . --init-json');
+    expect(installedSkill).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(installedSkill).toContain('~/.config/opencode/oh-my-opencode.json');
+    expect(installedSkill).toContain('~/.gsd/defaults.json');
+    expect(installedCommandMatrix).toContain('~/.config/opencode/oh-my-opencode.json');
+    expect(installedCommandMatrix).toContain('~/.gsd/defaults.json');
+    expect(installedCommandMatrix).toContain('Optional OpenCode worktree plugin');
     expect(installedOpenCodeDefaults).toContain('"sisyphus": {');
     expect(installedOpenCodeDefaults).toContain('"model": "openai/gpt-5.4"');
     expect(installedOpenCodeDefaults).toContain('"model": "openai/gpt-5.3-codex"');
     expect(installedOpenCodeDefaults).toContain('"model": "opencode/big-pickle"');
     expect(installedWorkflow).toContain('Drain ready Beads work and incomplete GSD phase work autonomously.');
     expect(installedWorkflow).toContain('.codex/workflows/autonomous-execution.md');
+    expect(installedWorkflow).toContain('/gsd-next');
+    expect(installedWorkflow).toContain('Do not skip a ready issue in favor of roadmap phase work.');
     expect(installedGsdDefaults).toContain('"model_profile": "inherit"');
     expect(installedGsdDefaults).toContain('"gsd-planner": "openai/gpt-5.3-codex"');
     expect(installedGsdDefaults).toContain('"gsd-executor": "openai/gpt-5.4"');
@@ -93,9 +105,12 @@ describe('runInstallSkill', () => {
     expect(result.writtenWorkflowPaths).toContain('get-shit-done/workflows/autonomous.md');
     expect(result.writtenDefaultsPaths).toContain('defaults.json');
     await expect(readFile(skillPath, 'utf8')).resolves.toContain('# Harness');
+    await expect(readFile(skillPath, 'utf8')).resolves.toContain('.rules/patterns/omo-agent-contract.md');
+    await expect(readFile(skillPath, 'utf8')).resolves.toContain('~/.config/opencode/oh-my-opencode.json');
     await expect(readFile(defaultsPath, 'utf8')).resolves.toContain('"sisyphus": {');
     await expect(readFile(workflowPath, 'utf8')).resolves.toContain('Drain ready Beads work and incomplete GSD phase work autonomously.');
     await expect(readFile(workflowPath, 'utf8')).resolves.toContain('.codex/workflows/autonomous-execution.md');
+    await expect(readFile(workflowPath, 'utf8')).resolves.toContain('/gsd-next');
     await expect(readFile(gsdDefaultsPath, 'utf8')).resolves.toContain('"gsd-executor": "openai/gpt-5.4"');
   });
 
