@@ -14,13 +14,13 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
 describe('CLI doctor', () => {
-  it('accepts auto assistant on the doctor subcommand for Codex-compatible scaffolds', async () => {
+  it('accepts auto assistant on the doctor subcommand for the codex baseline', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-doctor-'));
 
     await runInit({
       cwd: workspace,
-      projectArg: 'doctor-cli-opencode',
-      assistant: 'opencode',
+      projectArg: 'doctor-cli-codex',
+      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -28,7 +28,7 @@ describe('CLI doctor', () => {
       detectPorts: false
     });
 
-    const targetDir = path.join(workspace, 'doctor-cli-opencode');
+    const targetDir = path.join(workspace, 'doctor-cli-codex');
     const result = await execFile(
       process.execPath,
       [tsxCli, 'src/cli.ts', 'doctor', '--assistant', 'auto', '--json', targetDir],
@@ -40,7 +40,7 @@ describe('CLI doctor', () => {
 
     const payload = JSON.parse(result.stdout) as { assistant: string; status: string };
 
-    expect(payload.assistant).toBe('opencode');
+    expect(payload.assistant).toBe('codex');
     expect(payload.status).toBe('pass');
   });
 

@@ -1,6 +1,6 @@
 import type { ProjectMode } from './policy.js';
 
-export type AssistantTarget = 'codex' | 'opencode';
+export type AssistantTarget = 'codex';
 export type AssistantSelection = AssistantTarget | 'auto';
 
 export interface ResolveProjectInputOptions {
@@ -139,43 +139,6 @@ export interface InitResult extends ApplyManagedEntriesResult {
   cleanup: CleanupResult;
 }
 
-export interface InstallSkillTemplateEntry {
-  path: string;
-  content: () => string;
-  merge?: (existingContent: string, generatedContent: string) => string | null;
-}
-
-export type OpenCodeSkillEntry = InstallSkillTemplateEntry;
-export type OpenCodeWorkflowEntry = InstallSkillTemplateEntry;
-export type OpenCodeConfigEntry = InstallSkillTemplateEntry;
-export type GsdDefaultsEntry = InstallSkillTemplateEntry;
-
-export interface InstallSkillCommandOptions {
-  cwd: string;
-  assistant: AssistantTarget;
-  targetRoot?: string;
-  configRoot?: string;
-}
-
-export interface InstallSkillResult {
-  assistant: AssistantTarget;
-  skillName: string;
-  targetRoot: string;
-  configRoot: string;
-  installDir: string;
-  workflowDir: string;
-  workflowFilePath: string;
-  openCodeDefaultsFilePath: string;
-  openCodeRuntimeConfigFilePath: string;
-  supermemoryConfigFilePath: string;
-  writtenPaths: string[];
-  unchangedPaths: string[];
-  writtenConfigPaths: string[];
-  unchangedConfigPaths: string[];
-  writtenWorkflowPaths: string[];
-  unchangedWorkflowPaths: string[];
-  notes: string[];
-}
 
 export interface DoctorCommandOptions {
   cwd: string;

@@ -22,13 +22,13 @@ Only if `bd` is available or `.beads/` exists.
 Only if `.codex/scripts/cognee-brief.sh` already exists.
 
 - run a short knowledge brief about the product, architecture, and current milestone
-- if Cognee is unavailable, follow `.rules/patterns/omo-agent-contract.md` and continue only when local repo context is sufficient for the active lane
+- if Cognee is unavailable, continue only when local repo context is sufficient for the active task
 
 ## 4. Project docs
 
 - `README*`
 - `docs/**/*.md`
-- repo-local plan or handoff docs when present
+- repo-local handoff or notes when present
 - `.rules/**/*`
 - `AGENTS.md`
 - `STICKYNOTE*`

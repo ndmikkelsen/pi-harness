@@ -11,8 +11,8 @@ fi
 
 # --- BEGIN AI HARNESS WORKTREE HOOK ---
 # Beads runs first. The AI Harness bootstrap runs after the Beads hook and is
-# safe to invoke even when `.opencode/worktree.jsonc` already triggered the same
-# bootstrap path during worktree creation.
+# safe to invoke even when worktree bootstrap already ran earlier in checkout
+# or worktree creation.
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
 if [ -n "$repo_root" ] && [ -x "$repo_root/.codex/scripts/bootstrap-worktree.sh" ]; then
   "$repo_root/.codex/scripts/bootstrap-worktree.sh" --quiet || true

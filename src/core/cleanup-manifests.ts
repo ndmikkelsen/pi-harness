@@ -13,72 +13,86 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       path: LEGACY_RUNTIME_DIR,
       kind: 'directory',
       disposition: 'prompt-before-delete',
-      reason: 'legacy assistant runtime directory replaced by the .codex runtime surface'
+      reason: 'legacy assistant runtime directory replaced by the .codex runtime surface',
     },
     {
       id: 'legacy-role-briefs-dir',
       path: '.agents',
       kind: 'directory',
       disposition: 'prompt-before-delete',
-      reason: 'legacy role-brief directory replaced by .codex/agents'
+      reason: 'legacy role-brief directory replaced by .codex/agents',
     },
     {
       id: 'legacy-runtime-guide',
       path: LEGACY_RUNTIME_GUIDE,
       kind: 'file',
       disposition: 'prompt-before-delete',
-      reason: 'legacy assistant root guide replaced by AGENTS.md and .codex/README.md'
+      reason: 'legacy assistant root guide replaced by AGENTS.md and .codex/README.md',
     },
     {
       id: 'legacy-governance-constitution',
       path: 'CONSTITUTION.md',
       kind: 'file',
       disposition: 'prompt-before-delete',
-      reason: 'legacy governance placeholder replaced by `.rules/`, repo-local workflow docs, and AGENTS.md'
+      reason: 'legacy governance placeholder replaced by `.rules/`, repo-local workflow docs, and AGENTS.md',
     },
     {
       id: 'legacy-governance-vision',
       path: 'VISION.md',
       kind: 'file',
       disposition: 'prompt-before-delete',
-      reason: 'legacy vision placeholder replaced by README.md, AGENTS.md, and repo-local handoff or planning docs'
+      reason: 'legacy vision placeholder replaced by README.md, AGENTS.md, and repo-local handoff or planning docs',
     },
     {
       id: 'legacy-gsd-planning-workspace',
       path: '.planning',
       kind: 'directory',
       disposition: 'prompt-before-delete',
-      reason: 'legacy GSD planning workspace no longer scaffolds by default and should be removed only when you explicitly migrate away from it'
+      reason: 'legacy GSD planning workspace no longer scaffolds by default and should be removed only when you explicitly migrate away from it',
     },
     {
       id: 'legacy-gsd-workflow-rule',
       path: '.rules/patterns/gsd-workflow.md',
       kind: 'file',
       disposition: 'prompt-before-delete',
-      reason: 'legacy GSD workflow rule replaced by OMO + Beads + Cognee operator guidance'
+      reason: 'legacy GSD workflow rule replaced by the direct Beads + Cognee operator guidance',
     },
     {
       id: 'legacy-gsd-cognee-rule',
       path: '.rules/patterns/cognee-gsd-integration.md',
       kind: 'file',
       disposition: 'prompt-before-delete',
-      reason: 'legacy GSD-era Cognee rule replaced by the OMO contract and operator workflow docs'
+      reason: 'legacy GSD-era Cognee rule replaced by the current operator workflow and runtime scripts',
+    },
+    {
+      id: 'legacy-omo-contract',
+      path: '.rules/patterns/omo-agent-contract.md',
+      kind: 'file',
+      disposition: 'prompt-before-delete',
+      reason: 'deprecated OMO contract replaced by direct operator and autonomous workflow docs',
+    },
+    {
+      id: 'legacy-opencode-runtime-dir',
+      path: '.opencode',
+      kind: 'directory',
+      disposition: 'prompt-before-delete',
+      reason: 'deprecated OpenCode plugin/config directory removed from the codex-only baseline',
     },
     {
       id: 'legacy-broad-cognee-sync',
       path: '.codex/scripts/sync-to-cognee.sh',
       kind: 'file',
       disposition: 'safe-delete',
-      reason: 'replaced by the planning-focused sync-planning-to-cognee.sh flow'
+      reason: 'replaced by the planning-focused sync-planning-to-cognee.sh flow',
     },
     {
       id: 'legacy-session-handoff-template',
       path: '.codex/templates/session-handoff.md',
       kind: 'file',
       disposition: 'safe-delete',
-      reason: 'removed from the current .codex runtime surface'
-    }
-  ]
+      reason: 'removed from the current .codex runtime surface',
+    },
+  ],
 };
 
 const BUILTIN_MANIFESTS = new Map<string, CleanupManifest>([[LEGACY_AI_FRAMEWORKS_V1.id, LEGACY_AI_FRAMEWORKS_V1]]);

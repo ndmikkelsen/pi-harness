@@ -1,42 +1,74 @@
 # Architecture
 
-## Shape
+## Overall shape
 
-The project is intentionally split into small layers:
+`ai-harness` is a layered scaffold-generator CLI with a dogfooded runtime surface.
 
-- `src/cli.ts` parses CLI arguments and prints reports
-- `src/commands/init.ts` coordinates resolution, generation, file application, and optional git setup
-- `src/commands/install-skill.ts` installs the global OpenCode `harness` skill bundle plus the managed OpenCode defaults and autonomous workflow it owns
-- `src/core/` holds reusable domain logic like project resolution, port selection, filesystem writes, and git detection
-- `src/generators/` defines scaffold content by concern instead of keeping one giant script
-- `src/templates/` is the canonical scaffold source; `dist/templates/` is the built copy used by the shipped CLI
-- `src/generators/codex.ts` seeds the Codex/OpenCode runtime layer, including scripts, agents, templates, and deploy assets
-- `src/generators/planning.ts` is a compatibility seam that intentionally emits no default planning scaffold
-- `src/local-launcher.ts` and `scripts/install-local-launcher.ts` install the local `ai-harness` wrapper in `~/.local/bin/`
-- `tests/` covers unit and integration behavior
-- `apps/cli/features/` captures BDD scenarios for the expected user-facing workflow
+- `src/cli.ts` is the command-line entrypoint
+- `src/commands/*.ts` orchestrate command behavior
+- `src/core/*.ts` provides reusable filesystem, cleanup, git, policy, and helper logic
+- `src/generators/*.ts` map scaffold concerns to output paths
+- `src/templates/**` stores the canonical scaffold content
+- the repository root, `.codex/**`, `.rules/**`, and `config/**` are the scaffold applied back onto this repo
 
-## Flow
+## Layers
 
-1. Resolve project mode and target directory.
-2. Resolve safe service ports.
-3. Build a scaffold context from policy defaults plus user input, including the assistant target.
-4. Generate managed files and directories, then add the selected assistant runtime surface.
-5. Apply the plan with strict preserve-by-default rules for existing files, plus optional root-file merges.
-6. Initialize git only when requested and only when no repo already exists.
+### CLI entry layer
 
-## Design choices
+- file: `src/cli.ts`
+- responsibility: parse user input, dispatch commands, and format command output
+- current commands: scaffold init path and `doctor`
 
-- TypeScript over Bash for testability and maintainability
-- generator modules grouped by domain (`root`, `planning`, `codex`, `config`, `rules`, `project-docs`)
-- Codex/OpenCode runtime assets now live directly under `.codex/` as the single assistant runtime surface.
-- preserve-by-default adoption for existing repos, with explicit opt-in merging for `.gitignore` and `.env.example`
-- optional remote port detection instead of mandatory network coupling
-- Codex/OpenCode support shares one runtime surface so the scaffold stays focused on the supported assistants and avoids deprecated parallel artifacts
+### Command orchestration layer
 
-## Deferred work
+- files: `src/commands/init.ts`, `src/commands/doctor.ts`
+- responsibility: turn parsed options into coordinated workflows
+- command code stays thin by delegating reusable behavior to `src/core/**` and `src/generators/**`
 
-- deeper YAML-aware merging for files like `.pre-commit-config.yaml`
-- better local refresh ergonomics beyond the current checkout + `pnpm install:local` flow
-- richer upgrade assistance for older `scaiff`-era repos without weakening explicit review
-- fuller parity for deploy/runtime automation that still depends on machine-specific tools
+### Core domain services layer
+
+- files: `src/core/filesystem.ts`, `src/core/template-loader.ts`, `src/core/git.ts`, `src/core/project-input.ts`, `src/core/cleanup-manifests.ts`, `src/core/policy.ts`
+- responsibility: shared primitives for applying managed files, loading templates, resolving project input, cleanup handling, and git/bootstrap integration
+
+### Scaffold composition layer
+
+- files: `src/generators/index.ts`, `src/generators/root.ts`, `src/generators/codex.ts`, `src/generators/rules.ts`, `src/generators/config.ts`, `src/generators/project-docs.ts`, `src/generators/planning.ts`
+- responsibility: define what gets scaffolded, by concern, without baking every output into one monolithic command
+
+### Template source layer
+
+- files: `src/templates/**`
+- responsibility: canonical scaffold text and scripts
+- source-of-truth rule: edit here first, not in `dist/templates/**`
+
+### Dogfooded runtime and policy layer
+
+- files: `AGENTS.md`, `.codex/**`, `.rules/**`, `config/**`, `.kamal/secrets.example`, `STICKYNOTE.example.md`
+- responsibility: prove that the scaffold works against the repository that builds it
+
+### Verification layer
+
+- files: `tests/**`, `apps/cli/features/**`
+- responsibility: guard the CLI contract, scaffold outputs, docs alignment, smoke behavior, and BDD expectations
+
+## Data flow
+
+1. `src/cli.ts` parses options and dispatches to `runInit(...)` or `runDoctor(...)`.
+2. `src/commands/init.ts` resolves project identity, policy defaults, and cleanup choices.
+3. `src/generators/index.ts` expands a `ScaffoldContext` into `ManagedEntry[]`.
+4. `src/core/filesystem.ts` applies those entries to the target directory with preserve-by-default behavior.
+5. `src/core/git.ts` wires git initialization plus bootstrap hooks when requested.
+6. `src/commands/doctor.ts` rebuilds the expected managed file set and validates that a target repo still matches the supported baseline.
+
+## Source-of-truth rules
+
+- edit `src/templates/**` before touching dogfooded `.codex/**`, `.rules/**`, or root scaffold outputs
+- rebuild `dist/` after source or template changes
+- keep tests and dogfooded outputs aligned in the same change
+
+## Current baseline assumptions
+
+- Codex is the only supported scaffold target
+- Beads is the only backlog system intentionally scaffolded
+- Cognee is optional but first-class through `.codex/scripts/*`
+- Pi is the operating environment for the workflow, not a separate scaffold mode

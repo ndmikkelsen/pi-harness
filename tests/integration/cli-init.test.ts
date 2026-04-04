@@ -33,6 +33,20 @@ describe('CLI init', () => {
     expect(result.stdout).toContain('Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
   });
 
+  it('rejects the legacy OpenCode assistant target', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'legacy-opencode');
+
+    await expect(
+      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'opencode', '--skip-git', targetDir], {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      })
+    ).rejects.toMatchObject({
+      stderr: expect.stringMatching(/OpenCode|opencode/)
+    });
+  });
+
   it('installs post-checkout hook support when pre-commit is available', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
     const targetDir = path.join(workspace, 'hooked-app');

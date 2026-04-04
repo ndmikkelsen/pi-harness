@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-COGNEE_URL="${COGNEE_URL:-https://ai-harness-cognee.apps.compute.lan}"
+COGNEE_URL="${COGNEE_URL:-https://pi-harness-cognee.apps.compute.lan}"
 COGNEE_API="${COGNEE_URL}/api/v1"
 T_HEALTH=5
 T_SEARCH=30
@@ -50,7 +50,7 @@ case "$command" in
     if [[ -n "$datasets" ]]; then
       IFS=',' read -r -a dataset_list <<< "$datasets"
     else
-      dataset_list=("ai-harness-knowledge" "ai-harness-patterns")
+      dataset_list=("pi-harness-knowledge" "pi-harness-patterns")
     fi
     echo "## Knowledge Brief: $query"
     for dataset in "${dataset_list[@]}"; do

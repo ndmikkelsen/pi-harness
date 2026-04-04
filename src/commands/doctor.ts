@@ -1,5 +1,4 @@
 import { access, readFile, stat } from 'node:fs/promises';
-import fs from 'node:fs';
 import path from 'node:path';
 import { constants as fsConstants } from 'node:fs';
 
@@ -10,7 +9,7 @@ import type {
   DoctorIssue,
   DoctorResult,
   ManagedFile,
-  ScaffoldContext
+  ScaffoldContext,
 } from '../core/types.js';
 import { getCleanupManifest } from '../core/cleanup-manifests.js';
 import { DEFAULT_POLICY } from '../core/policy.js';
@@ -31,24 +30,17 @@ function createDoctorContext(targetDir: string, assistant: AssistantTarget): Sca
     computeUser: DEFAULT_POLICY.computeUser,
     sshKeyPath: DEFAULT_POLICY.sshKeyPath,
     registryHost: DEFAULT_POLICY.registryHost,
-    generatedOn: '1970-01-01'
+    generatedOn: '1970-01-01',
   };
 }
 
 function fileEntriesForAssistant(targetDir: string, assistant: AssistantTarget): ManagedFile[] {
   return buildManagedEntries(createDoctorContext(targetDir, assistant)).filter(
-    (entry): entry is ManagedFile => entry.kind === 'file'
+    (entry): entry is ManagedFile => entry.kind === 'file',
   );
 }
 
-function inferAssistant(targetDir: string): AssistantTarget {
-  if (fs.existsSync(path.join(targetDir, 'AGENTS.md'))) {
-    const agentsGuide = fs.readFileSync(path.join(targetDir, 'AGENTS.md'), 'utf8');
-    if (agentsGuide.includes('OpenCode Workflow')) {
-      return 'opencode';
-    }
-  }
-
+function inferAssistant(_targetDir: string): AssistantTarget {
   return 'codex';
 }
 
@@ -106,19 +98,19 @@ function buildRecommendations(
     executableWarnings: DoctorIssue[];
     alignmentWarnings: DoctorIssue[];
     alignmentInvalid: DoctorIssue[];
-  }
+  },
 ): string[] {
   const recommendations: string[] = [];
 
   if (warnings.rootWarnings.length > 0) {
     recommendations.push(
-      `Preserved root files are missing scaffold hints. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`
+      `Preserved root files are missing scaffold hints. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`,
     );
   }
 
   if (warnings.deprecatedWarnings.length > 0) {
     recommendations.push(
-      `Deprecated curated artifacts are still present. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`
+      `Deprecated curated artifacts are still present. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`,
     );
   }
 
@@ -129,7 +121,7 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh OMO alignment wiring in ${targetLabel}: restore canonical references to \`.rules/patterns/omo-agent-contract.md\`, keep worktree/bootstrap seams intact, and rerun \`ai-harness doctor ${targetLabel} --assistant ${assistant}\`.`
+      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale OpenCode/OMO/GSD artifacts, and rerun \`ai-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
     );
   }
 
@@ -152,51 +144,43 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const alignmentInvalid: DoctorIssue[] = [];
   const alignmentWarnings: DoctorIssue[] = [];
 
-  const omoContractPath = '.rules/patterns/omo-agent-contract.md';
-  const requiredContractSections = [
-    '## Source of Truth',
-    '## OMO Agent Matrix',
-    '## Handoff Schema',
-    '## Integration Seam Inventory',
-    '## Landing Authority'
+  const staleArtifactReasons = new Map<string, string>([
+    ['.rules/patterns/gsd-workflow.md', 'stale GSD alignment artifact present'],
+    ['.rules/patterns/cognee-gsd-integration.md', 'stale GSD alignment artifact present'],
+    ['.rules/patterns/omo-agent-contract.md', 'stale OMO artifact present'],
+    ['.opencode/worktree.jsonc', 'stale OpenCode artifact present'],
+  ]);
+  const staleWorkflowMarkers = [
+    '/gsd-',
+    '~/.gsd/defaults.json',
+    '.rules/patterns/omo-agent-contract.md',
+    '.opencode/worktree.jsonc',
+    'install-skill --assistant opencode',
+    'oh-my-opencode',
+    '.planning/STATE.md',
   ];
-  const requiredHandoffFields = [
-    'source_lane',
-    'target_lane',
-    'scope_summary',
-    'changed_paths',
-    'verify_command',
-    'evidence_path',
-    'issue_ref',
-    'planning_ref',
-    'status',
-    'open_risks'
-  ];
-  const staleGsdArtifactPaths = ['.rules/patterns/gsd-workflow.md', '.rules/patterns/cognee-gsd-integration.md'];
-  const staleGsdMarkers = ['/gsd-', '~/.gsd/defaults.json', 'gsd-workflow.md', 'cognee-gsd-integration.md'];
-  const staleGsdScanPaths = [
+  const staleWorkflowScanPaths = [
     'AGENTS.md',
     'README.md',
     '.codex/README.md',
     '.codex/skills/harness/SKILL.md',
     '.codex/skills/harness/references/ai-harness-command-matrix.md',
     '.codex/skills/harness/references/scaffold-customization-map.md',
+    '.codex/skills/harness/references/existing-repo-context-checklist.md',
     '.codex/scripts/bootstrap-worktree.sh',
     '.codex/workflows/autonomous-execution.md',
     '.rules/index.md',
     '.rules/patterns/beads-integration.md',
+    '.rules/patterns/git-workflow.md',
     '.rules/patterns/operator-workflow.md',
-    '.rules/patterns/omo-agent-contract.md'
   ];
   const alignmentManagedPaths = new Set([
     'AGENTS.md',
     '.codex/README.md',
     '.codex/workflows/autonomous-execution.md',
-    '.rules/patterns/omo-agent-contract.md',
     '.rules/patterns/operator-workflow.md',
-    '.opencode/worktree.jsonc',
     '.beads/hooks/post-checkout',
-    'scripts/hooks/post-checkout'
+    'scripts/hooks/post-checkout',
   ]);
 
   for (const entry of selectedEntries) {
@@ -205,9 +189,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       if (alignmentManagedPaths.has(entry.path)) {
         alignmentInvalid.push({
           path: entry.path,
-          reason: 'missing required OMO alignment artifact',
+          reason: 'missing required workflow artifact',
           category: 'alignment',
-          severity: 'fail'
+          severity: 'fail',
         });
       }
     }
@@ -238,14 +222,12 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       continue;
     }
 
-    const mismatchSuffix =
-      presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
-
+    const mismatchSuffix = presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
     deprecatedWarnings.push({
       path: entry.path,
       reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ai-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`,
       category: 'deprecated-artifact',
-      severity: 'warn'
+      severity: 'warn',
     });
   }
 
@@ -263,12 +245,12 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (codexReadme !== null && !codexReadme.includes('.codex/scripts/cognee-bridge.sh')) {
     invalid.push({ path: '.codex/README.md', reason: 'missing runtime backend guidance', category: 'runtime', severity: 'fail' });
   }
-  if (codexReadme !== null && !codexReadme.includes(omoContractPath)) {
+  if (codexReadme !== null && !codexReadme.includes('.rules/patterns/operator-workflow.md')) {
     alignmentInvalid.push({
       path: '.codex/README.md',
-      reason: 'missing canonical OMO contract reference',
+      reason: 'missing canonical operator workflow reference',
       category: 'alignment',
-      severity: 'fail'
+      severity: 'fail',
     });
   }
 
@@ -276,97 +258,86 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (agentsGuide !== null && !agentsGuide.includes('.codex/scripts/')) {
     invalid.push({ path: 'AGENTS.md', reason: 'missing runtime backend guidance', category: 'runtime', severity: 'fail' });
   }
-  if (agentsGuide !== null && !agentsGuide.includes(omoContractPath)) {
+  if (agentsGuide !== null && !agentsGuide.includes('.rules/patterns/operator-workflow.md')) {
     alignmentInvalid.push({
       path: 'AGENTS.md',
-      reason: 'missing canonical OMO contract reference',
+      reason: 'missing canonical operator workflow reference',
       category: 'alignment',
-      severity: 'fail'
+      severity: 'fail',
     });
-  }
-
-  const omoContract = await readFileIfPresent(targetDir, omoContractPath);
-  if (omoContract !== null) {
-    for (const section of requiredContractSections) {
-      if (!omoContract.includes(section)) {
-        alignmentInvalid.push({
-          path: omoContractPath,
-          reason: `missing contract section ${section}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
-      }
-    }
-
-    for (const field of requiredHandoffFields) {
-      if (!omoContract.includes(field)) {
-        alignmentInvalid.push({
-          path: omoContractPath,
-          reason: `missing handoff schema field ${field}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
-      }
-    }
   }
 
   const operatorWorkflow = await readFileIfPresent(targetDir, '.rules/patterns/operator-workflow.md');
-  if (operatorWorkflow !== null && !operatorWorkflow.includes(omoContractPath)) {
+  if (operatorWorkflow !== null && !operatorWorkflow.includes('bd ready --json')) {
     alignmentInvalid.push({
       path: '.rules/patterns/operator-workflow.md',
-      reason: 'missing canonical OMO contract reference',
+      reason: 'missing Beads claim-first guidance',
       category: 'alignment',
-      severity: 'fail'
+      severity: 'fail',
+    });
+  }
+  if (operatorWorkflow !== null && !operatorWorkflow.includes('./.codex/scripts/cognee-brief.sh')) {
+    alignmentInvalid.push({
+      path: '.rules/patterns/operator-workflow.md',
+      reason: 'missing Cognee brief guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (operatorWorkflow !== null && !operatorWorkflow.includes('./.codex/scripts/land.sh')) {
+    alignmentInvalid.push({
+      path: '.rules/patterns/operator-workflow.md',
+      reason: 'missing landing script guidance',
+      category: 'alignment',
+      severity: 'fail',
     });
   }
 
-  for (const artifactPath of staleGsdArtifactPaths) {
+  const autonomousWorkflow = await readFileIfPresent(targetDir, '.codex/workflows/autonomous-execution.md');
+  if (autonomousWorkflow !== null && !autonomousWorkflow.includes('bd ready --json')) {
+    alignmentInvalid.push({
+      path: '.codex/workflows/autonomous-execution.md',
+      reason: 'missing Beads work selection guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (autonomousWorkflow !== null && !autonomousWorkflow.includes('COGNEE_AVAILABLE')) {
+    alignmentInvalid.push({
+      path: '.codex/workflows/autonomous-execution.md',
+      reason: 'missing Cognee availability fallback guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
+  for (const [artifactPath, reason] of staleArtifactReasons) {
     if (await fileExists(targetDir, artifactPath)) {
       alignmentInvalid.push({
         path: artifactPath,
-        reason: 'stale GSD alignment artifact present',
+        reason,
         category: 'alignment',
-        severity: 'fail'
+        severity: 'fail',
       });
     }
   }
 
-  for (const scanPath of staleGsdScanPaths) {
+  for (const scanPath of staleWorkflowScanPaths) {
     const content = await readFileIfPresent(targetDir, scanPath);
     if (content === null) {
       continue;
     }
 
-    const marker = staleGsdMarkers.find((candidate) => content.includes(candidate));
+    const marker = staleWorkflowMarkers.find((candidate) => content.includes(candidate));
     if (!marker) {
       continue;
     }
 
     alignmentInvalid.push({
       path: scanPath,
-      reason: `contains stale GSD workflow reference: ${marker}`,
+      reason: `contains stale workflow reference: ${marker}`,
       category: 'alignment',
-      severity: 'fail'
-    });
-  }
-
-  const autonomousWorkflow = await readFileIfPresent(targetDir, '.codex/workflows/autonomous-execution.md');
-  if (autonomousWorkflow !== null && !autonomousWorkflow.includes(omoContractPath)) {
-    alignmentInvalid.push({
-      path: '.codex/workflows/autonomous-execution.md',
-      reason: 'missing canonical OMO contract reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
-  }
-
-  const worktreeConfig = await readFileIfPresent(targetDir, '.opencode/worktree.jsonc');
-  if (worktreeConfig !== null && !worktreeConfig.includes('bootstrap-worktree.sh --quiet')) {
-    alignmentInvalid.push({
-      path: '.opencode/worktree.jsonc',
-      reason: 'missing worktree bootstrap hook reference',
-      category: 'alignment',
-      severity: 'fail'
+      severity: 'fail',
     });
   }
 
@@ -376,7 +347,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       path: '.beads/hooks/post-checkout',
       reason: 'missing worktree bootstrap fallback reference',
       category: 'alignment',
-      severity: 'fail'
+      severity: 'fail',
     });
   }
 
@@ -386,32 +357,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       path: 'scripts/hooks/post-checkout',
       reason: 'missing worktree bootstrap fallback reference',
       category: 'alignment',
-      severity: 'warn'
+      severity: 'warn',
     });
-  }
-
-  const handoffWorkflowDocs = [
-    {
-      path: '.codex/workflows/autonomous-execution.md',
-      content: await readFileIfPresent(targetDir, '.codex/workflows/autonomous-execution.md')
-    }
-  ];
-
-  for (const doc of handoffWorkflowDocs) {
-    if (doc.content === null) {
-      continue;
-    }
-
-    for (const field of requiredHandoffFields) {
-      if (!doc.content.includes(field)) {
-        alignmentInvalid.push({
-          path: doc.path,
-          reason: `missing handoff workflow field ${field}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
-      }
-    }
   }
 
   for (const entry of selectedEntries.filter((candidate) => candidate.executable)) {
@@ -425,20 +372,19 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   invalid.push(...alignmentInvalid);
 
   const warnings = [...rootWarnings, ...deprecatedWarnings, ...executableWarnings, ...alignmentWarnings];
-
   const alignmentMissingCount = missing.filter((issuePath) => alignmentManagedPaths.has(issuePath)).length;
   const runtimeMissingCount = missing.length - alignmentMissingCount;
   const invalidCodexCount = invalid.filter(
-    (issue) => issue.category === 'runtime' && (issue.path.startsWith('.codex/') || issue.path === 'AGENTS.md')
+    (issue) => issue.category === 'runtime' && (issue.path.startsWith('.codex/') || issue.path === 'AGENTS.md'),
   ).length;
   const invalidAlignmentCount = invalid.filter((issue) => issue.category === 'alignment').length;
 
   const groups: DoctorGroupResult[] = [
     buildGroupStatus('codex-runtime', { missing: runtimeMissingCount, invalid: invalidCodexCount }),
-    buildGroupStatus('omo-alignment', { missing: alignmentMissingCount, invalid: invalidAlignmentCount, warnings: alignmentWarnings.length }),
+    buildGroupStatus('workflow-alignment', { missing: alignmentMissingCount, invalid: invalidAlignmentCount, warnings: alignmentWarnings.length }),
     buildGroupStatus('root-scaffold-hints', { warnings: rootWarnings.length }),
     buildGroupStatus('deprecated-artifacts', { warnings: deprecatedWarnings.length }),
-    buildGroupStatus('executables', { warnings: executableWarnings.length })
+    buildGroupStatus('executables', { warnings: executableWarnings.length }),
   ];
 
   const status = missing.length > 0 || invalid.length > 0 ? 'fail' : warnings.length > 0 ? 'warn' : 'pass';
@@ -447,7 +393,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     deprecatedWarnings,
     executableWarnings,
     alignmentWarnings,
-    alignmentInvalid
+    alignmentInvalid,
   });
 
   return {
@@ -458,13 +404,13 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       passed: groups.filter((group) => group.status === 'pass').length,
       warnings: warnings.length,
       missing: missing.length,
-      invalid: invalid.length
+      invalid: invalid.length,
     },
     groups,
     missing,
     invalid,
     warnings,
-    recommendations
+    recommendations,
   };
 }
 
@@ -475,7 +421,7 @@ export function formatDoctorReport(result: DoctorResult): string {
     `Target: ${targetLabel}`,
     `Status: ${result.status}`,
     '',
-    'Checks:'
+    'Checks:',
   ];
 
   for (const group of result.groups) {
@@ -513,7 +459,7 @@ export function formatDoctorReport(result: DoctorResult): string {
   lines.push(
     '',
     'Guidance:',
-    '- `ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.'
+    '- `ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.',
   );
 
   return `${lines.join('\n')}\n`;

@@ -1,6 +1,6 @@
 ---
 name: harness
-description: Use the ai-harness CLI to scaffold new and existing repositories for Codex/OpenCode with Beads, Cognee, and the shared `.codex/` runtime surface. For existing repositories, gather project context first and then customize only newly created scaffold files.
+description: Use the ai-harness CLI to scaffold new and existing repositories for Codex with Beads, Cognee, and the shared `.codex/` runtime surface. For existing repositories, gather project context first and then customize only newly created scaffold files.
 ---
 
 # Harness
@@ -15,7 +15,7 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 - In existing repos, preserve pre-existing scaffold files by default
 - Only use `--cleanup-manifest legacy-ai-frameworks-v1` when the user explicitly wants curated legacy AI-framework files removed
 - Only use `--merge-root-files` when the user explicitly wants `.gitignore` and `.env.example` merged
-- Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `.codex/scripts/cognee-brief.sh` exists, and follow `.rules/patterns/omo-agent-contract.md` for fallback or blocked behavior when it is unavailable
+- Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `.codex/scripts/cognee-brief.sh` exists, and continue only when local repo evidence remains sufficient if Cognee is unavailable
 - Customize only files that `ai-harness` just created unless the user explicitly asks to rewrite existing scaffold files
 
 ## Workflow
@@ -23,12 +23,10 @@ Use this skill when the user wants to bootstrap a repository with `ai-harness`, 
 1. Determine repository mode using `references/ai-harness-command-matrix.md`
 2. If the repository is existing, gather context using `references/existing-repo-context-checklist.md`
 3. If the repo contains curated legacy AI-framework files and the user wants them cleaned up, run `ai-harness --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --init-json` first
-4. When adopting the current repository, run `ai-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`
+4. When adopting the current repository, run `ai-harness --mode existing . --assistant codex --init-json` so you can distinguish `createdPaths` from `skippedPaths`
 5. In existing repos, customize only the files listed in `createdPaths`, guided by `references/scaffold-customization-map.md`
-6. Run `ai-harness doctor <target> --assistant <codex|opencode>` after setup
-7. If the user relies on OpenCode worktrees, point them at the scaffolded `.opencode/worktree.jsonc` and `ocx add kdco/worktree --from https://registry.kdco.dev`
-8. If the user relies on OpenCode, remind them that `ai-harness install-skill --assistant opencode` refreshes the global `harness` skill, the managed `~/.config/opencode/oh-my-opencode.json` defaults, and the managed autonomous workflow under `~/.config/opencode/get-shit-done/workflows/autonomous.md`
-9. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
+6. Run `ai-harness doctor <target> --assistant codex` after setup
+7. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
 
 ## Existing Repository Adaptation
 
@@ -37,7 +35,7 @@ Before editing scaffold files in an existing project, gather:
 - git status, branch, remotes, and recent commits
 - Beads state if `bd` or `.beads/` is available
 - Cognee brief if `.codex/scripts/cognee-brief.sh` already exists
-- project docs like `README*`, `docs/**/*.md`, repo-local plan or handoff docs when present, `.rules/**/*`, and `AGENTS.md`
+- project docs like `README*`, `docs/**/*.md`, repo-local handoff docs when present, `.rules/**/*`, and `AGENTS.md`
 - manifest files using `references/manifest-discovery.md`
 
 Use `assets/adoption-notes-template.md` as a scratch document if the repo is large or the context is noisy.
@@ -49,7 +47,6 @@ Prefer to tailor newly created files in this order:
 1. `.codex/README.md`
 2. `AGENTS.md`
 3. `.rules/patterns/operator-workflow.md`
-4. `.rules/patterns/omo-agent-contract.md`
-5. `STICKYNOTE.example.md`
+4. `STICKYNOTE.example.md`
 
 Do not add secrets to `.env.example`; keep placeholder values only.

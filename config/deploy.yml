@@ -1,6 +1,6 @@
 # Starter manifest only. Replace service/image details and add app-specific env before deploying.
-service: "ai-harness"
-image: "ai-harness/base"
+service: "pi-harness"
+image: "pi-harness/base"
 
 servers:
   - "10.10.20.138"

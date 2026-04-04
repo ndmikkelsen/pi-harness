@@ -70,10 +70,16 @@ export async function thenTheCliCreatesCodexCompatibilityFiles(world: CliFeature
   expect(codexReadme).toContain('Compatibility Layer');
 }
 
-export async function thenTheCodexOpencodeRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
+export async function thenTheCodexRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
   const agentsGuide = await readTargetFile(world, 'AGENTS.md');
   const autonomousWorkflow = await readTargetFile(world, '.codex/workflows/autonomous-execution.md');
 
   expect(agentsGuide).toContain('.rules/patterns/operator-workflow.md');
   expect(autonomousWorkflow).toContain('bd ready --json');
+  expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
+}
+
+export async function thenNoOpenCodeCompatibilityFilesAreCreated(world: CliFeatureWorld): Promise<void> {
+  await expect(access(path.join(requireTargetDir(world), '.opencode', 'worktree.jsonc'))).rejects.toThrow();
+  await expect(access(path.join(requireTargetDir(world), '.rules', 'patterns', 'omo-agent-contract.md'))).rejects.toThrow();
 }

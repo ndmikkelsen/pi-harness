@@ -5,7 +5,6 @@ import { Command, InvalidArgumentError } from 'commander';
 import { DEFAULT_POLICY, type ProjectMode } from './core/policy.js';
 import type { AssistantSelection, AssistantTarget } from './core/types.js';
 import { formatDoctorReport, runDoctor } from './commands/doctor.js';
-import { formatInstallSkillReport, runInstallSkill } from './commands/install-skill.js';
 import { formatInitReport, runInit } from './commands/init.js';
 
 function parseMode(value: string): ProjectMode {
@@ -16,20 +15,20 @@ function parseMode(value: string): ProjectMode {
   throw new InvalidArgumentError('Mode must be one of: auto, new, existing.');
 }
 
-function parseAssistant(value: string): AssistantSelection {
-  if (value === 'auto' || value === 'codex' || value === 'opencode') {
-    return value;
+function parseAssistant(value: string): AssistantTarget {
+  if (value === 'auto' || value === 'codex') {
+    return 'codex';
   }
 
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex, opencode.');
+  throw new InvalidArgumentError('Assistant must be one of: auto, codex. The OpenCode target has been retired from this baseline.');
 }
 
 function parseDoctorAssistant(value: string): AssistantSelection {
-  if (value === 'auto' || value === 'codex' || value === 'opencode') {
+  if (value === 'auto' || value === 'codex') {
     return value;
   }
 
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex, opencode.');
+  throw new InvalidArgumentError('Assistant must be one of: auto, codex. The OpenCode target has been retired from this baseline.');
 }
 
 const program = new Command();
@@ -39,7 +38,7 @@ program
   .description('AI workflow scaffolder for local setup of new and existing projects.')
   .argument('[project]', 'project name or target path')
   .argument('[target]', 'target directory')
-  .option('--assistant <assistant>', 'assistant target: codex or opencode', parseAssistant, 'codex')
+  .option('--assistant <assistant>', 'assistant target: codex', parseAssistant, 'codex')
   .option('--mode <mode>', 'scaffold mode: auto, new, existing', parseMode, 'auto')
   .option('--init-json', 'emit machine-readable JSON output for scaffold runs', false)
   .option('--dry-run', 'show planned changes without writing files', false)
@@ -59,7 +58,7 @@ program
       cwd: process.cwd(),
       projectArg,
       targetArg,
-      assistant: options.assistant === 'auto' ? 'codex' : (options.assistant as AssistantTarget),
+      assistant: options.assistant as AssistantTarget,
       mode: options.mode,
       dryRun: options.dryRun,
       force: options.force,
@@ -72,7 +71,7 @@ program
       cogneeDbPort: options.cogneeDbPort,
       computeHost: options.computeHost,
       computeUser: options.computeUser,
-      sshKeyPath: options.sshKeyPath
+      sshKeyPath: options.sshKeyPath,
     });
 
     if (options.initJson) {
@@ -91,16 +90,16 @@ program
 
 program
   .command('doctor')
-  .description('Audit whether a repository is scaffolded correctly for Codex/OpenCode.')
+  .description('Audit whether a repository matches the Codex + Beads + Cognee scaffold baseline.')
   .argument('[target]', 'target directory', '.')
-  .option('--assistant <assistant>', 'assistant target: auto, codex, or opencode', parseDoctorAssistant, 'auto')
+  .option('--assistant <assistant>', 'assistant target: auto or codex', parseDoctorAssistant, 'auto')
   .option('--json', 'emit machine-readable JSON output', false)
   .action(async (targetArg: string, options) => {
     const result = await runDoctor({
       cwd: process.cwd(),
       targetArg,
       assistant: options.assistant,
-      json: options.json
+      json: options.json,
     });
 
     if (options.json) {
@@ -115,29 +114,6 @@ program
     if (result.status === 'fail') {
       process.exitCode = 1;
     }
-  });
-
-program
-  .command('install-skill')
-  .description('Install the global OpenCode skill bundle for ai-harness.')
-  .option('--assistant <assistant>', 'assistant target: opencode', parseAssistant, 'opencode')
-  .option('--target-root <path>', 'override the OpenCode skills root directory')
-  .option('--config-root <path>', 'override the OpenCode config root directory')
-  .option('--json', 'emit machine-readable JSON output', false)
-  .action(async (options) => {
-    const result = await runInstallSkill({
-      cwd: process.cwd(),
-      assistant: options.assistant as AssistantTarget,
-      targetRoot: options.targetRoot,
-      configRoot: options.configRoot
-    });
-
-    if (options.json) {
-      process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
-      return;
-    }
-
-    process.stdout.write(formatInstallSkillReport(result));
   });
 
 program.parseAsync(process.argv).catch((error: unknown) => {

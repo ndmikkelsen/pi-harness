@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 BRIDGE="$SCRIPT_DIR/cognee-bridge.sh"
-DATASET="ai-harness-planning"
+DATASET="pi-harness-planning"
 PHASE_DIR=""
 
 while [[ $# -gt 0 ]]; do

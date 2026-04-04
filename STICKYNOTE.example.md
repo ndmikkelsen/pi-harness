@@ -1,6 +1,6 @@
 # Session Handoff
 
-**Project:** AI Harness
+**Project:** Pi Harness
 
 This file is the default handoff note for the scaffolded repository.
 
