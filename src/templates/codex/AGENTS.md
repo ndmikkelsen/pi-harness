@@ -20,11 +20,11 @@ Use the {{COMPAT_LABEL}} compatibility docs and scripts under `.codex/` as entry
 ### {{COMPAT_LABEL}} Operating Sequence
 
 1. Read the relevant `.rules/` documents before changing code or infrastructure.
-2. If Beads is available, start from `bd ready --json` and claim one issue with `bd update <id> --claim --json`.
-3. For planning, research, or autonomous startup work, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repo exploration.
-4. Follow `.rules/patterns/operator-workflow.md` plus `.codex/workflows/autonomous-execution.md` as the default execution loop.
+2. Use `.rules/patterns/operator-workflow.md` as the canonical day-to-day runbook for Beads claim-first work, verification, and landing-lane decisions.
+3. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only when the lane is explicitly autonomous or multi-wave.
+4. Use `.codex/README.md` for runtime-surface maps, self-adoption commands, and scaffold maintenance notes.
 5. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
-6. Close Beads work only after verification passes.
+6. Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 7. If you are in an execution/autonomous landing lane, land the session with `./.codex/scripts/land.sh`.
 
 ### {{COMPAT_LABEL}} Guardrails
@@ -42,11 +42,8 @@ Use the {{COMPAT_LABEL}} compatibility docs and scripts under `.codex/` as entry
 
 ### Beads + Cognee Loop
 
-- When Beads is available, use `bd ready --json` and `bd update <id> --claim --json` before implementation work.
-- Use `.codex/workflows/autonomous-execution.md` for one-agent execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-- Carry the active Beads issue ID through notes, execution context, and handoff docs.
-- Attempt a Cognee brief with `./.codex/scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide research.
-- Close Beads issues only after verification passes.
+- `.rules/patterns/operator-workflow.md` owns the daily Beads + Cognee loop, including claim-first work selection, Cognee brief timing, verification, and closeout.
+- `.codex/workflows/autonomous-execution.md` owns the one-agent autonomous variant, and `.codex/workflows/parallel-execution.md` owns the multi-wave variant.
+- Carry the active Beads issue ID through notes, execution context, and handoff docs when Beads is available.
 - If verification finds gaps, create follow-up Beads bug issues instead of closing the parent work early.
-- If Cognee is unavailable, continue only when the task remains locally verifiable from `.rules/`, handoff notes, and repo evidence.
-- If `.beads/` or `bd` is unavailable, continue with `.rules/patterns/operator-workflow.md` and local verification steps without blocking on issue tracking.
+- If Cognee or Beads is unavailable, follow the fallback rules documented in `.rules/patterns/operator-workflow.md` and the relevant autonomous workflow doc instead of inventing a parallel process.

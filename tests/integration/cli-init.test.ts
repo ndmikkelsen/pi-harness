@@ -33,17 +33,27 @@ describe('CLI init', () => {
     expect(result.stdout).toContain('Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
   });
 
-  it('rejects retired legacy assistant targets', async () => {
+  it('rejects unsupported assistant targets', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
-    const targetDir = path.join(workspace, 'legacy-opencode');
+    const legacyTargetDir = path.join(workspace, 'legacy-opencode');
+    const autoTargetDir = path.join(workspace, 'legacy-auto');
 
     await expect(
-      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'opencode', '--skip-git', targetDir], {
+      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'opencode', '--skip-git', legacyTargetDir], {
         cwd: repoRoot,
         encoding: 'utf8'
       })
     ).rejects.toMatchObject({
-      stderr: expect.stringContaining('Assistant must be one of: auto, codex.')
+      stderr: expect.stringContaining('Assistant must be one of: codex.')
+    });
+
+    await expect(
+      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'auto', '--skip-git', autoTargetDir], {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      })
+    ).rejects.toMatchObject({
+      stderr: expect.stringContaining('Assistant must be one of: codex.')
     });
   });
 

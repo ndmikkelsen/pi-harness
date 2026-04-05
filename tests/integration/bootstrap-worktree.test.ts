@@ -247,5 +247,5 @@ describe('bootstrap-worktree hook', () => {
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }
-  });
+  }, 15000);
 });

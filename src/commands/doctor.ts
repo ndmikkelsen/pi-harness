@@ -40,9 +40,6 @@ function fileEntriesForAssistant(targetDir: string, assistant: AssistantTarget):
   );
 }
 
-function inferAssistant(_targetDir: string): AssistantTarget {
-  return 'codex';
-}
 
 async function fileExists(targetDir: string, relativePath: string): Promise<boolean> {
   try {
@@ -94,6 +91,7 @@ function buildRecommendations(
   assistant: AssistantTarget,
   warnings: {
     rootWarnings: DoctorIssue[];
+    deprecatedInvalid: DoctorIssue[];
     deprecatedWarnings: DoctorIssue[];
     executableWarnings: DoctorIssue[];
     alignmentWarnings: DoctorIssue[];
@@ -108,7 +106,7 @@ function buildRecommendations(
     );
   }
 
-  if (warnings.deprecatedWarnings.length > 0) {
+  if (warnings.deprecatedInvalid.length > 0 || warnings.deprecatedWarnings.length > 0) {
     recommendations.push(
       `Deprecated curated artifacts are still present. Rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`,
     );
@@ -128,9 +126,10 @@ function buildRecommendations(
   return recommendations;
 }
 
+
 export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorResult> {
   const targetDir = path.resolve(options.cwd, options.targetArg ?? '.');
-  const assistant = options.assistant === 'auto' ? inferAssistant(targetDir) : options.assistant;
+  const assistant = options.assistant;
   const targetLabel = path.relative(options.cwd, targetDir) || '.';
 
   const selectedEntries = fileEntriesForAssistant(targetDir, assistant);
@@ -139,6 +138,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const missing: string[] = [];
   const invalid: DoctorIssue[] = [];
   const rootWarnings: DoctorIssue[] = [];
+  const deprecatedInvalid: DoctorIssue[] = [];
   const deprecatedWarnings: DoctorIssue[] = [];
   const executableWarnings: DoctorIssue[] = [];
   const alignmentInvalid: DoctorIssue[] = [];
@@ -149,6 +149,12 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     ['.rules/patterns/cognee-gsd-integration.md', 'stale GSD alignment artifact present'],
     ['.rules/patterns/omo-agent-contract.md', 'stale OMO artifact present'],
     ['.opencode/worktree.jsonc', 'stale OpenCode artifact present'],
+  ]);
+  const failFastDeprecatedPaths = new Map<string, string>([
+    ['.planning', 'legacy planning workspace present'],
+    ['.codex/scripts/cognee-sync-planning.sh', 'legacy planning sync script present'],
+    ['.codex/scripts/sync-planning-to-cognee.sh', 'legacy planning sync script present'],
+    ['.codex/templates/session-handoff.md', 'legacy planning handoff template present'],
   ]);
   const staleWorkflowMarkers = [
     '/gsd-',
@@ -225,9 +231,22 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
 
     const mismatchSuffix = presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
+    const cleanupCommand = `pi-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`;
+    const failFastReason = failFastDeprecatedPaths.get(entry.path);
+
+    if (failFastReason) {
+      deprecatedInvalid.push({
+        path: entry.path,
+        reason: `${failFastReason}; ${entry.reason}${mismatchSuffix}; remove with ${cleanupCommand}`,
+        category: 'deprecated-artifact',
+        severity: 'fail',
+      });
+      continue;
+    }
+
     deprecatedWarnings.push({
       path: entry.path,
-      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with pi-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`,
+      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ${cleanupCommand}`,
       category: 'deprecated-artifact',
       severity: 'warn',
     });
@@ -266,6 +285,14 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   }
 
   const operatorWorkflow = await readFileIfPresent(targetDir, '.rules/patterns/operator-workflow.md');
+  if (operatorWorkflow !== null && !operatorWorkflow.includes('repositories scaffolded with `pi-harness`')) {
+    alignmentInvalid.push({
+      path: '.rules/patterns/operator-workflow.md',
+      reason: 'missing pi-harness scaffold reference',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
   if (operatorWorkflow !== null && !operatorWorkflow.includes('bd ready --json')) {
     alignmentInvalid.push({
       path: '.rules/patterns/operator-workflow.md',
@@ -367,6 +394,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
+  invalid.push(...deprecatedInvalid);
   invalid.push(...alignmentInvalid);
 
   const warnings = [...rootWarnings, ...deprecatedWarnings, ...executableWarnings, ...alignmentWarnings];
@@ -376,18 +404,20 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     (issue) => issue.category === 'runtime' && (issue.path.startsWith('.codex/') || issue.path === 'AGENTS.md'),
   ).length;
   const invalidAlignmentCount = invalid.filter((issue) => issue.category === 'alignment').length;
+  const invalidDeprecatedCount = invalid.filter((issue) => issue.category === 'deprecated-artifact').length;
 
   const groups: DoctorGroupResult[] = [
     buildGroupStatus('codex-runtime', { missing: runtimeMissingCount, invalid: invalidCodexCount }),
     buildGroupStatus('workflow-alignment', { missing: alignmentMissingCount, invalid: invalidAlignmentCount, warnings: alignmentWarnings.length }),
     buildGroupStatus('root-scaffold-hints', { warnings: rootWarnings.length }),
-    buildGroupStatus('deprecated-artifacts', { warnings: deprecatedWarnings.length }),
+    buildGroupStatus('deprecated-artifacts', { invalid: invalidDeprecatedCount, warnings: deprecatedWarnings.length }),
     buildGroupStatus('executables', { warnings: executableWarnings.length }),
   ];
 
   const status = missing.length > 0 || invalid.length > 0 ? 'fail' : warnings.length > 0 ? 'warn' : 'pass';
   const recommendations = buildRecommendations(targetLabel, assistant, {
     rootWarnings,
+    deprecatedInvalid,
     deprecatedWarnings,
     executableWarnings,
     alignmentWarnings,

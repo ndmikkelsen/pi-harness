@@ -3,6 +3,8 @@
 This repository already has working project systems for backlog tracking, runtime automation, and knowledge capture.
 Codex should use them directly from Pi through this runtime layer.
 
+This README is a runtime surface map and maintenance guide; `.rules/patterns/operator-workflow.md` and `.codex/workflows/*.md` remain the workflow authorities.
+
 ## Canonical Systems
 
 - `.rules/` is the source of truth for architecture and workflow patterns
@@ -36,16 +38,37 @@ Codex should use them directly from Pi through this runtime layer.
 
 1. Read `README.md`, repo docs, and the active handoff or plan context before editing scaffold behavior.
 2. For scaffold changes, update `src/templates/**` and relevant generators before rebuilding `dist/`.
-3. Follow `.rules/patterns/operator-workflow.md` as the canonical operator runbook.
-4. If Beads is available, use `bd ready --json`, claim the active issue, and work from repo-local context plus verification evidence.
-5. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
-6. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
-7. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
-8. For planning, research, or autonomous startup work, generate a knowledge brief with `./.codex/scripts/cognee-brief.sh` when Cognee is available.
-9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
-11. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
-12. If you are in an execution/autonomous landing lane, finish with `./.codex/scripts/land.sh` to publish the feature branch and ensure a PR to `dev` exists.
+3. Use `.rules/patterns/operator-workflow.md` as the canonical day-to-day operator runbook.
+4. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only for autonomous or multi-wave lanes.
+5. Use the runtime scripts in `.codex/scripts/` when those runbooks call for Cognee briefs, worktree bootstrap, or landing.
+6. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
+7. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
+8. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+
+## Cognee Dataset Seeding
+
+Use this when `./.codex/scripts/cognee-brief.sh` reports missing datasets or when you want to refresh the knowledge garden after major doc and workflow changes.
+
+- Keep the default split: `<app>-knowledge` for README/docs/rules/handoff context, `<app>-patterns` for reusable agents, skills, feature files, and workflow examples.
+- Use `sync-dir` for directories containing `.md` or `.feature` files, and `upload` for standalone files such as `README.md` or `STICKYNOTE.md`.
+- If a repo keeps handoff or evidence notes outside the defaults, sync those directories into the same datasets instead of creating one-off names.
+
+```bash
+APP_SLUG=<app-slug>
+
+./.codex/scripts/cognee-bridge.sh sync-dir docs --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh sync-dir .rules --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh upload README.md --dataset "$APP_SLUG-knowledge"
+
+./.codex/scripts/cognee-bridge.sh sync-dir .codex/agents --dataset "$APP_SLUG-patterns"
+./.codex/scripts/cognee-bridge.sh sync-dir .codex/skills --dataset "$APP_SLUG-patterns"
+
+./.codex/scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-patterns"
+```
+
+- Validate the refresh with `./.codex/scripts/cognee-bridge.sh health` and a follow-up `./.codex/scripts/cognee-brief.sh "<query>"`.
+
 
 ## Rules
 

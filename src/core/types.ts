@@ -1,7 +1,6 @@
 import type { ProjectMode } from './policy.js';
 
 export type AssistantTarget = 'codex';
-export type AssistantSelection = AssistantTarget | 'auto';
 
 export interface ResolveProjectInputOptions {
   cwd: string;
@@ -143,7 +142,7 @@ export interface InitResult extends ApplyManagedEntriesResult {
 export interface DoctorCommandOptions {
   cwd: string;
   targetArg?: string;
-  assistant: AssistantSelection;
+  assistant: AssistantTarget;
   json: boolean;
 }
 
