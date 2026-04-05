@@ -33,17 +33,9 @@ async function createLandFixture() {
     path.join(process.cwd(), '.codex', 'scripts', 'land.sh'),
     'utf8'
   );
-  const sourceSync = `#!/usr/bin/env bash
-set -euo pipefail
-printf 'sync-ok\n' >> "${syncLog}"
-exit 0
-`;
-
   await mkdir(path.join(repoDir, '.codex', 'scripts'), { recursive: true });
   await writeFile(path.join(repoDir, '.codex', 'scripts', 'land.sh'), sourceLand, 'utf8');
-  await writeFile(path.join(repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'), sourceSync, 'utf8');
   await chmod(path.join(repoDir, '.codex', 'scripts', 'land.sh'), 0o755);
-  await chmod(path.join(repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 0o755);
 
   await writeFile(
     path.join(repoDir, 'package.json'),
@@ -169,7 +161,7 @@ describe('land.sh', () => {
     }
   });
 
-  it('continues landing when Cognee sync reports an unavailable-but-skipped path', async () => {
+  it('does not invoke deprecated planning-sync scripts during landing', async () => {
     const fixture = await createLandFixture();
 
     try {
@@ -177,15 +169,30 @@ describe('land.sh', () => {
         path.join(fixture.repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'),
         `#!/usr/bin/env bash
 set -euo pipefail
-printf 'sync-skipped\n' >> "${fixture.syncLog}"
-printf 'Cognee unavailable - skipping sync\n'
-exit 0
+printf 'legacy-wrapper-invoked\n' >> "${fixture.syncLog}"
+exit 42
+`,
+        'utf8'
+      );
+      await writeFile(
+        path.join(fixture.repoDir, '.codex', 'scripts', 'cognee-sync-planning.sh'),
+        `#!/usr/bin/env bash
+set -euo pipefail
+printf 'legacy-backend-invoked\n' >> "${fixture.syncLog}"
+exit 43
 `,
         'utf8'
       );
       await chmod(path.join(fixture.repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 0o755);
-      await execFile('git', ['add', '.codex/scripts/sync-planning-to-cognee.sh'], { cwd: fixture.repoDir });
-      await execFile('git', ['commit', '-m', 'test: allow skipped cognee sync'], { cwd: fixture.repoDir });
+      await chmod(path.join(fixture.repoDir, '.codex', 'scripts', 'cognee-sync-planning.sh'), 0o755);
+      await execFile(
+        'git',
+        ['add', '.codex/scripts/sync-planning-to-cognee.sh', '.codex/scripts/cognee-sync-planning.sh'],
+        { cwd: fixture.repoDir }
+      );
+      await execFile('git', ['commit', '-m', 'test: seed deprecated planning sync scripts'], {
+        cwd: fixture.repoDir
+      });
 
       const result = await execFile(path.join(fixture.repoDir, '.codex', 'scripts', 'land.sh'), [], {
         cwd: fixture.repoDir,
@@ -196,10 +203,8 @@ exit 0
         encoding: 'utf8'
       });
 
-      const syncLog = await readFile(fixture.syncLog, 'utf8');
-
-      expect(syncLog).toContain('sync-skipped');
       expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      await expect(readFile(fixture.syncLog, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' });
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }

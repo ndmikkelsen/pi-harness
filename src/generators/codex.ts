@@ -140,20 +140,8 @@ export function buildCodexEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.codex/scripts/cognee-sync-planning.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-sync-planning.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
       path: '.codex/scripts/cognee-brief.sh',
       content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-brief.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
-      path: '.codex/scripts/sync-planning-to-cognee.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/sync-planning-to-cognee.sh'),
       executable: true
     },
     {

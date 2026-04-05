@@ -48,7 +48,14 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       path: '.planning',
       kind: 'directory',
       disposition: 'prompt-before-delete',
-      reason: 'legacy GSD planning workspace no longer scaffolds by default and should be removed only when you explicitly migrate away from it',
+      reason: 'legacy repo-local planning workspace removed from the greenfield codex baseline and only worth keeping when a repository intentionally owns that convention',
+    },
+    {
+      id: 'legacy-sisyphus-archive',
+      path: '.sisyphus',
+      kind: 'directory',
+      disposition: 'prompt-before-delete',
+      reason: 'historical planning and evidence archive removed from the greenfield codex baseline',
     },
     {
       id: 'legacy-gsd-workflow-rule',
@@ -83,7 +90,21 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       path: '.codex/scripts/sync-to-cognee.sh',
       kind: 'file',
       disposition: 'safe-delete',
-      reason: 'replaced by the planning-focused sync-planning-to-cognee.sh flow',
+      reason: 'removed from the current .codex runtime surface',
+    },
+    {
+      id: 'legacy-planning-sync-backend',
+      path: '.codex/scripts/cognee-sync-planning.sh',
+      kind: 'file',
+      disposition: 'safe-delete',
+      reason: 'removed with the legacy .planning-based Cognee sync path',
+    },
+    {
+      id: 'legacy-planning-sync-wrapper',
+      path: '.codex/scripts/sync-planning-to-cognee.sh',
+      kind: 'file',
+      disposition: 'safe-delete',
+      reason: 'removed with the legacy .planning-based Cognee sync path',
     },
     {
       id: 'legacy-session-handoff-template',
@@ -91,7 +112,7 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       kind: 'file',
       disposition: 'safe-delete',
       reason: 'removed from the current .codex runtime surface',
-    },
+    }
   ],
 };
 

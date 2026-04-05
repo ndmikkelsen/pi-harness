@@ -23,7 +23,7 @@ The repo owns one scaffold and dogfoods it in place:
 
 - a second assistant runtime surface beside Codex
 - a global OpenCode skill installer or managed OpenCode defaults
-- a default `.planning/` workspace scaffold
+- a repo-scaffolded `.planning/` or `.sisyphus/` workspace
 - a separate OMO policy contract layered on top of the operator workflow
 
 ## Current scaffold surface
@@ -42,7 +42,7 @@ The repo owns one scaffold and dogfoods it in place:
 1. Keep one canonical runtime surface.
 2. Prefer direct workflow docs over overlapping contracts.
 3. Preserve existing user files by default in adoption mode.
-4. Use curated cleanup manifests for known legacy artifacts instead of broad heuristics.
+4. Use curated cleanup manifests for known legacy artifacts such as `.planning/`, `.sisyphus/`, and retired planning-sync scripts instead of broad heuristics.
 5. Keep source templates, dogfooded outputs, and `dist/` aligned in the same change.
 
 ## Local-use distribution model

@@ -424,7 +424,7 @@ describe('runDoctor', () => {
     );
   });
 
-  it('warns when deprecated curated workflow artifacts are still present', async () => {
+  it('warns when deprecated planning-era artifacts are still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
 
     await runInit({
@@ -440,8 +440,12 @@ describe('runDoctor', () => {
 
     const targetDir = path.join(workspace, 'doctor-deprecated');
     await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await mkdir(path.join(targetDir, '.sisyphus', 'runs'), { recursive: true });
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
     await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
-    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.sisyphus', 'runs', '2024-01-01.log'), 'archived\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'cognee-sync-planning.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
 
     const result = await runDoctor({
       cwd: workspace,
@@ -461,7 +465,15 @@ describe('runDoctor', () => {
           reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
         }),
         expect.objectContaining({
-          path: '.codex/scripts/sync-to-cognee.sh',
+          path: '.sisyphus',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/cognee-sync-planning.sh',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/sync-planning-to-cognee.sh',
           reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
         })
       ])

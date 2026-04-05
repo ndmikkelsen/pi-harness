@@ -18,16 +18,17 @@ Codex should use them directly from Pi through this runtime layer.
 | Agent role briefs | `.codex/agents/*.md` |
 | Repo setup skill | `.codex/skills/harness/SKILL.md` |
 | Cognee advisor | `./.codex/scripts/cognee-brief.sh` |
-| Planning sync | `./.codex/scripts/sync-planning-to-cognee.sh` |
+| Worktree bootstrap | `./.codex/scripts/bootstrap-worktree.sh` |
 | Landing protocol | `./.codex/scripts/land.sh` |
 
 ## Runtime Surface
 
-- `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
-- `./.codex/scripts/cognee-sync-planning.sh` - sync repo planning artifacts into Cognee when a repo already keeps them
-- `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
 - `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
+- `./.codex/scripts/cognee-brief.sh` - operator-facing Cognee brief entrypoint
+- `./.codex/scripts/land.sh` - landing protocol for execution/autonomous lanes on feature branches
 - `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy for the Codex baseline
+- `.codex/workflows/parallel-execution.md` - multi-wave execution policy for the Codex baseline
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
 
@@ -48,7 +49,7 @@ Codex should use them directly from Pi through this runtime layer.
 
 ## Rules
 
-- Do not create parallel planning systems under `.codex/`.
+- Do not create parallel planning systems under `.codex/`; legacy `.planning/`, `.sisyphus/`, and planning-sync surfaces stay cleanup-only.
 - Treat `.codex/` as the runtime surface for Codex-specific scripts and docs while keeping Beads and `.rules/` canonical.
 - Keep source templates, generated docs, and built `dist/` artifacts in sync.
 - Prefer `harness` as the reusable setup reference and `ai-harness` as the CLI/package name.

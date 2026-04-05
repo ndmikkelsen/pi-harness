@@ -108,24 +108,29 @@ bd close bd-42 --reason "Completed" --json
 - `4` - Backlog (future ideas)
 
 ### Workflow for AI Agents
-
-1. **Check ready work**: `bd ready` shows unblocked issues
-2. **Claim your task atomically**: `bd update <id> --claim`
-3. **Work on it**: Implement, test, document
-4. **Discover new work?** Create linked issue:
+1. **Check ready work**: `bd ready --json` shows unblocked issues
+2. **Claim your task atomically**: `bd update <id> --claim --json`
+3. **Attempt a Cognee brief**: `./.codex/scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide research
+4. **Work on it**: Implement, test, and verify against repo-local requirements
+5. **Discover new work?** Create linked issue:
    - `bd create "Found bug" --description="Details about what was found" -p 1 --deps discovered-from:<parent-id>`
-5. **Complete**: `bd close <id> --reason "Done"`
+6. **Complete only after verification passes**: `bd close <id> --reason "Verified"`
 
-### Auto-Sync
+### Beads + OMO Harmonization
+- Prefer the loop `bd ready -> claim -> cognee brief -> implement -> verify -> bd close`
+- Use `.codex/workflows/autonomous-execution.md` for one-agent phase execution, or `.codex/workflows/parallel-execution.md` for multi-wave work
+- Reference active Beads issue IDs in phase context and handoff notes when the work maps to a phase
+- If verification finds gaps, create bug or follow-up issues instead of closing the parent issue early
+- If `.beads/` or `bd` is unavailable, continue using `.rules/patterns/operator-workflow.md` and local verification steps rather than blocking execution
 
-bd automatically syncs via Dolt:
+### Project-Local Beads State
 
-- Each write auto-commits to Dolt history
-- Use `bd dolt push`/`bd dolt pull` for remote sync
-- No manual export/import needed!
+Beads is project-local in this repository:
+- Each write updates local Beads state under `.beads/`
+- No separate Beads Dolt remote sync is required for normal usage
+- Keep issue status current in the repo before landing or handing off work
 
 ### Important Rules
-
 - ✅ Use bd for ALL task tracking
 - ✅ Always use `--json` flag for programmatic use
 - ✅ Link discovered work with `discovered-from` dependencies
@@ -134,32 +139,32 @@ bd automatically syncs via Dolt:
 - ❌ Do NOT use external issue trackers
 - ❌ Do NOT duplicate tracking systems
 
-For more details, see README.md and docs/QUICKSTART.md.
+For more details, see README.md, `docs/harness-usage.md`, and `.rules/patterns/operator-workflow.md`.
 
 <!-- END BEADS INTEGRATION -->
 
 ## Landing the Plane (Session Completion)
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+**When ending an execution/autonomous landing session**, you MUST complete ALL steps below. Planning, research, and review lanes must hand off instead of pushing or publishing. Work is NOT complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
 
 **MANDATORY WORKFLOW:**
-
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
+4. **PUSH THE FEATURE BRANCH** - This is MANDATORY:
    ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
+   git push -u origin <feature-branch>
+   git status  # MUST show the current branch is clean and tracking origin/<feature-branch>
    ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+5. **OPEN OR UPDATE THE PR** - Create or refresh the PR from `<feature-branch>` to `dev`
+6. **Clean up** - Clear stashes, prune remote branches when safe
+7. **Verify** - All changes committed, pushed, and attached to the `dev` PR
+8. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
+- Only execution/autonomous landing lanes should run `./.codex/scripts/land.sh`; planning, research, and review lanes must hand off instead.
+- Work is NOT complete until the feature branch push succeeds and the PR to `dev` exists or is updated
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+- NEVER use landing to merge into or push directly to `main`
+- If push or PR creation fails, resolve and retry until it succeeds

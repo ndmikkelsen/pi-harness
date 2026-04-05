@@ -18,16 +18,16 @@ This repository already has working project systems for backlog tracking, runtim
 | Agent role briefs | `.codex/agents/*.md` |
 | Repo setup skill | `.codex/skills/harness/SKILL.md` |
 | Cognee advisor | `./.codex/scripts/cognee-brief.sh` |
-| Planning sync | `./.codex/scripts/sync-planning-to-cognee.sh` |
+| Operator runbook | `.rules/patterns/operator-workflow.md` |
 | Landing protocol | `./.codex/scripts/land.sh` |
 
 ## Runtime Surface
 
 - `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
-- `./.codex/scripts/cognee-sync-planning.sh` - sync repo planning artifacts into Cognee when a repo already keeps them
-- `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
 - `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `./.codex/scripts/land.sh` - feature-branch closeout that publishes the current branch and ensures a PR to `dev` exists
 - `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy for the Codex baseline
+- `.codex/workflows/parallel-execution.md` - multi-wave execution policy for parallel backlog work
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
 

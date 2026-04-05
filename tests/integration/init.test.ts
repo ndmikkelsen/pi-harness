@@ -38,8 +38,8 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(result.createdPaths).toContain('.codex/scripts/cognee-sync-planning.sh');
-    expect(result.createdPaths).toContain('.codex/scripts/sync-planning-to-cognee.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(result.createdPaths).not.toContain('.planning/TRACEABILITY.md');
@@ -98,7 +98,6 @@ describe('runInit', () => {
     const codexReadme = await readFile(path.join(workspace, 'codex-app', '.codex', 'README.md'), 'utf8');
     const agentsGuide = await readFile(path.join(workspace, 'codex-app', 'AGENTS.md'), 'utf8');
     const codexBridgeWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-brief.sh'), 'utf8');
-    const planningSyncWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8');
 
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.codex/README.md');
@@ -107,20 +106,23 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('AGENTS.md');
     expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
+    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('Codex Compatibility Layer');
     expect(codexReadme).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
-    expect(codexReadme).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
+    expect(codexReadme).toContain('./.codex/scripts/cognee-brief.sh');
     expect(codexReadme).toContain('.codex/skills/harness/SKILL.md');
     expect(codexReadme).not.toContain('./.codex/scripts/sync-to-cognee.sh');
     expect(agentsGuide).toContain('Codex Workflow');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
     expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexBridgeWrapper).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(planningSyncWrapper).toContain('.codex/scripts/cognee-sync-planning.sh');
+    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-sync-planning.sh'), 'utf8')).rejects.toThrow();
+    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8')).rejects.toThrow();
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {

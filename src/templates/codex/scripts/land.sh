@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SYNC_PLANNING="$REPO_ROOT/.codex/scripts/sync-planning-to-cognee.sh"
 
 DRY_RUN=false
 COMMIT_MESSAGE=""
@@ -81,10 +80,6 @@ fi
 
 if [[ -f STICKYNOTE.example.md && ! -f STICKYNOTE.md ]]; then
   printf 'STICKYNOTE.md is missing; seed it from STICKYNOTE.example.md if you want a local handoff note.\n'
-fi
-
-if [[ -x "$SYNC_PLANNING" ]]; then
-  run_cmd "$SYNC_PLANNING" --summaries-only
 fi
 
 if [[ -n "$(git status --porcelain)" ]]; then

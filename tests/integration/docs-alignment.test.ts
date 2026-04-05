@@ -9,6 +9,7 @@ describe('workflow docs alignment', () => {
     const harnessUsage = await readFile(path.join(process.cwd(), 'docs', 'harness-usage.md'), 'utf8');
     const operatorWorkflow = await readFile(path.join(process.cwd(), '.rules', 'patterns', 'operator-workflow.md'), 'utf8');
     const agentsGuide = await readFile(path.join(process.cwd(), 'AGENTS.md'), 'utf8');
+    const codexReadme = await readFile(path.join(process.cwd(), '.codex', 'README.md'), 'utf8');
     const autonomousWorkflow = await readFile(
       path.join(process.cwd(), '.codex', 'workflows', 'autonomous-execution.md'),
       'utf8',
@@ -30,6 +31,7 @@ describe('workflow docs alignment', () => {
       rootReadme,
       harnessUsage,
       agentsGuide,
+      codexReadme,
       templateAgentsGuide,
       templateCodexReadme,
       templateRootReadme,
@@ -49,6 +51,8 @@ describe('workflow docs alignment', () => {
       expect(doc).not.toContain('.rules/patterns/omo-agent-contract.md');
       expect(doc).not.toContain('.opencode/worktree.jsonc');
       expect(doc).not.toContain('install-skill --assistant opencode');
+      expect(doc).not.toContain('./.codex/scripts/cognee-sync-planning.sh');
+      expect(doc).not.toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     }
 
     expect(rootReadme).toContain('Pi-operated Codex workflow with Beads and Cognee');
@@ -57,10 +61,19 @@ describe('workflow docs alignment', () => {
     expect(harnessUsage).toContain('Use the daily Beads + Cognee loop from `.rules/patterns/operator-workflow.md`.');
     expect(agentsGuide).toContain('### Beads + Cognee Loop');
     expect(agentsGuide).toContain('Planning, research, and review lanes must hand off instead of publishing.');
+    expect(codexReadme).toContain('should use them directly from Pi');
+    expect(codexReadme).not.toContain('| Planning sync |');
+    if (codexReadme.includes('.planning/')) {
+      expect(codexReadme).toContain('planning-sync surfaces stay cleanup-only');
+    }
     expect(operatorWorkflow).toContain('if you are in an execution/autonomous landing lane, finish the branch with `./.codex/scripts/land.sh`');
     expect(autonomousWorkflow).toContain('planning, research, or review lanes must stop with a handoff instead of publishing');
     expect(templateAgentsGuide).toContain('inside Pi');
     expect(templateCodexReadme).toContain('should use them directly from Pi');
+    expect(templateCodexReadme).not.toContain('| Planning sync |');
+    if (templateCodexReadme.includes('.planning/')) {
+      expect(templateCodexReadme).toContain('planning-sync surfaces stay cleanup-only');
+    }
     expect(templateRootReadme).toContain('Pi-operated {{ASSISTANT_LABEL}} workflow with Beads and Cognee');
     expect(templateAutonomousWorkflow).toContain('continue only when the work remains locally verifiable');
     expect(orchestratorGuide).toContain('Generate a Cognee brief before major planning or research, and consume the latest brief during execution when one exists');

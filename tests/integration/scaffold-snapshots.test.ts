@@ -70,7 +70,10 @@ describe('scaffold snapshots', () => {
     expect(envrc).not.toContain('metadata.json');
     expect(envrc).not.toContain('$_DOLT_');
     expect(result.files).toContain('.beads/config.yaml');
+    expect(result.files).not.toContain('.codex/scripts/cognee-sync-planning.sh');
+    expect(result.files).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.files).not.toContain('.codex/scripts/sync-to-cognee.sh');
+    expect(result.files).not.toContain('.planning/TRACEABILITY.md');
     expect(result.files).not.toContain('CONSTITUTION.md');
     expect(result.files).not.toContain('VISION.md');
     expect(result.files).not.toContain('STICKYNOTE.md');
@@ -80,7 +83,7 @@ describe('scaffold snapshots', () => {
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
     expect(result['README.md']).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
     expect(result['.codex/README.md']).toContain('Use `ai-harness --mode existing . --assistant codex --init-json`');
-    expect(result['.codex/README.md']).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
+    expect(result['.codex/README.md']).toContain('./.codex/scripts/cognee-brief.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');
     expect(result['.codex/README.md']).toContain('pnpm test:bdd');
     expect(result['.codex/README.md']).not.toContain('.rules/patterns/omo-agent-contract.md');
@@ -92,7 +95,7 @@ describe('scaffold snapshots', () => {
     expect(autonomousWorkflow).toContain('bd ready --json');
     expect(autonomousWorkflow).toContain('repo-local context');
     expect(autonomousWorkflow).toContain('gaps_found');
-    expect(result).toMatchSnapshot();
+    expect(result.files).toMatchSnapshot();
   });
 
 });

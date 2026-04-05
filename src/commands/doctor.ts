@@ -158,6 +158,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'install-skill --assistant opencode',
     'oh-my-opencode',
     '.planning/STATE.md',
+    '.codex/scripts/cognee-sync-planning.sh',
+    '.codex/scripts/sync-planning-to-cognee.sh',
   ];
   const staleWorkflowScanPaths = [
     'AGENTS.md',
@@ -236,10 +238,6 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     invalid.push({ path: '.codex/scripts/cognee-brief.sh', reason: 'missing runtime backend reference', category: 'runtime', severity: 'fail' });
   }
 
-  const codexSync = await readFileIfPresent(targetDir, '.codex/scripts/sync-planning-to-cognee.sh');
-  if (codexSync !== null && !codexSync.includes('.codex/scripts/cognee-sync-planning.sh')) {
-    invalid.push({ path: '.codex/scripts/sync-planning-to-cognee.sh', reason: 'missing runtime backend reference', category: 'runtime', severity: 'fail' });
-  }
 
   const codexReadme = await readFileIfPresent(targetDir, '.codex/README.md');
   if (codexReadme !== null && !codexReadme.includes('.codex/scripts/cognee-bridge.sh')) {

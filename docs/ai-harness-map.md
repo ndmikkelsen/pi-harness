@@ -32,11 +32,11 @@ ai-harness doctor . --assistant codex
 - scaffolds a new project directory
 - adopts an existing repository without clobbering user files by default
 - emits `.codex/`, `.rules/`, Beads, deployment, and handoff files from one template source
-- validates that a repository still matches the supported Codex + Beads + Cognee baseline
+- validates that a repository still matches the supported Codex + Beads + Cognee clean-slate baseline
 
 ## Guardrails
 
 - no registry-published distribution path is assumed
-- no default `.planning/` tree is scaffolded
+- no `.planning/` or `.sisyphus/` workspace is part of the supported scaffold surface
 - no OpenCode or OMO compatibility layer is scaffolded in the current baseline
-- legacy workflow leftovers are removed only through curated cleanup manifests
+- legacy workflow leftovers such as planning workspaces and retired planning-sync scripts are removed only through curated cleanup manifests

@@ -83,7 +83,7 @@ The new repo gets the standard AI workflow foundation:
 2. Run `ai-harness doctor . --assistant codex`.
 3. Run `bd init` once before using Beads in that repo.
 4. Start normal work with `bd ready --json` and `bd update <id> --claim --json`.
-5. For planning, research, or autonomous startup, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
+5. For planning, research, or autonomous startup work, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
 6. Execute and verify from `.rules/patterns/operator-workflow.md` and `.codex/workflows/autonomous-execution.md`.
 7. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
 
@@ -143,6 +143,8 @@ Curated legacy cleanup:
 ```bash
 ai-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --init-json
 ```
+
+Use this only for deprecated workflow leftovers, including legacy `.planning/`, `.sisyphus/`, and planning-sync artifacts when they are present.
 
 Root-file merge for `.gitignore` and `.env.example`:
 

@@ -32,8 +32,8 @@
 
 ### Scaffold composition layer
 
-- files: `src/generators/index.ts`, `src/generators/root.ts`, `src/generators/codex.ts`, `src/generators/rules.ts`, `src/generators/config.ts`, `src/generators/project-docs.ts`, `src/generators/planning.ts`
-- responsibility: define what gets scaffolded, by concern, without baking every output into one monolithic command
+- files: `src/generators/index.ts`, `src/generators/root.ts`, `src/generators/codex.ts`, `src/generators/rules.ts`, `src/generators/config.ts`, `src/generators/project-docs.ts`
+- responsibility: define the live scaffolded surfaces, by concern, without baking every output into one monolithic command
 
 ### Template source layer
 
@@ -72,3 +72,4 @@
 - Beads is the only backlog system intentionally scaffolded
 - Cognee is optional but first-class through `.codex/scripts/*`
 - Pi is the operating environment for the workflow, not a separate scaffold mode
+- legacy `.planning/`, `.sisyphus/`, and planning-sync scripts are cleanup targets rather than scaffolded runtime surfaces
