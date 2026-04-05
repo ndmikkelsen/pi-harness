@@ -310,6 +310,61 @@ exit 0
     expect(activeHook).toContain('.codex/scripts/bootstrap-worktree.sh');
   });
 
+  it('normalizes legacy ai-harness post-checkout blocks during existing-repo adoption', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'legacy-existing-hooks');
+
+    await mkdir(path.join(targetDir, '.beads', 'hooks'), { recursive: true });
+    await execFile('git', ['init', '--initial-branch=main'], { cwd: targetDir });
+    await execFile('git', ['config', 'core.hooksPath', '.beads/hooks'], { cwd: targetDir });
+    await writeFile(
+      path.join(targetDir, '.beads', 'hooks', 'post-checkout'),
+      `#!/usr/bin/env sh
+# --- BEGIN BEADS INTEGRATION v0.57.0 ---
+# This section is managed by beads. Do not remove these markers.
+_bd_exit=0
+if command -v bd >/dev/null 2>&1; then
+  export BD_GIT_HOOK=1
+  bd hooks run post-checkout "$@"
+  _bd_exit=$?
+fi
+# --- END BEADS INTEGRATION ---
+
+# --- BEGIN AI HARNESS WORKTREE HOOK ---
+# Beads runs first. The AI Harness bootstrap runs after the Beads hook and is
+# safe to invoke even when worktree bootstrap already ran earlier in checkout
+# or worktree creation.
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -n "$repo_root" ] && [ -x "$repo_root/.codex/scripts/bootstrap-worktree.sh" ]; then
+  "$repo_root/.codex/scripts/bootstrap-worktree.sh" --quiet || true
+fi
+if [ "$_bd_exit" -ne 0 ]; then
+  exit "$_bd_exit"
+fi
+# --- END AI HARNESS WORKTREE HOOK ---
+`,
+      'utf8'
+    );
+    await chmod(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 0o755);
+
+    await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--init-json', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const activeHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
+
+    expect(activeHook).toContain('BEGIN PI HARNESS WORKTREE HOOK');
+    expect(activeHook).not.toContain('AI HARNESS WORKTREE HOOK');
+    expect(activeHook.match(/BEGIN PI HARNESS WORKTREE HOOK/g)?.length ?? 0).toBe(1);
+    expect(activeHook).toContain('The Pi Harness bootstrap runs after the Beads hook');
+  });
+
+
   it('falls back to a direct post-checkout hook when an existing pre-commit config lacks bootstrap wiring', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-default-hooks');
