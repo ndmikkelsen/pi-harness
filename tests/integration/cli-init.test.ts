@@ -17,7 +17,7 @@ const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-r
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'human-output-app');
 
     const result = await execFile(
@@ -30,11 +30,25 @@ describe('CLI init', () => {
     );
 
     expect(result.stdout).toContain('Scaffolded human-output-app (new, codex)');
-    expect(result.stdout).toContain('Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
+    expect(result.stdout).toContain('Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
+  });
+
+  it('rejects retired legacy assistant targets', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'legacy-opencode');
+
+    await expect(
+      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'opencode', '--skip-git', targetDir], {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      })
+    ).rejects.toMatchObject({
+      stderr: expect.stringContaining('Assistant must be one of: auto, codex.')
+    });
   });
 
   it('installs post-checkout hook support when pre-commit is available', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'hooked-app');
     const binDir = path.join(workspace, 'bin');
     const preCommitLog = path.join(workspace, 'pre-commit.log');
@@ -75,7 +89,7 @@ exit 0
   });
 
   it('preserves existing scaffold files by default in existing mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-preserve');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -104,7 +118,7 @@ exit 0
   });
 
   it('merges root files only when merge-root-files is set', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -135,7 +149,7 @@ exit 0
   });
 
   it('reports curated cleanup removals in init-json output', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-cleanup');
 
     await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
@@ -171,7 +185,7 @@ exit 0
   });
 
   it('returns prompt-required cleanup actions in non-interactive mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-ambiguous');
 
     await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
@@ -221,7 +235,7 @@ exit 0
   });
 
   it('reports mixed adoption outcomes for created skipped and removed files in init-json output', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-mixed');
 
     await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
@@ -262,7 +276,7 @@ exit 0
   });
 
   it('wires the active custom post-checkout hook during existing-repo adoption', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-hooks');
 
     await mkdir(path.join(targetDir, '.beads', 'hooks'), { recursive: true });
@@ -282,12 +296,12 @@ exit 0
 
     const activeHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
-    expect(activeHook).toContain('BEGIN AI HARNESS WORKTREE HOOK');
+    expect(activeHook).toContain('BEGIN PI HARNESS WORKTREE HOOK');
     expect(activeHook).toContain('.codex/scripts/bootstrap-worktree.sh');
   });
 
   it('falls back to a direct post-checkout hook when an existing pre-commit config lacks bootstrap wiring', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-init-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-default-hooks');
     const binDir = path.join(workspace, 'bin');
     const preCommitLog = path.join(workspace, 'pre-commit.log');
@@ -329,6 +343,6 @@ exit 0
 
     expect(preCommitCalls).toBe('');
     expect(result.stdout).toContain('fell back to a direct post-checkout hook');
-    expect(directHook).toContain('BEGIN AI HARNESS WORKTREE HOOK');
+    expect(directHook).toContain('BEGIN PI HARNESS WORKTREE HOOK');
   });
 });

@@ -10,7 +10,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
 describe('CLI help', () => {
-  it('describes ai-harness as a local-use tool', async () => {
+  it('describes pi-harness as a local-use tool', async () => {
     const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--help'], {
       cwd: repoRoot,
       encoding: 'utf8'

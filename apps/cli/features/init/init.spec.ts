@@ -71,7 +71,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
-  Scenario('Prepare a new project for Codex', ({ Given, When, Then, And }) => {
+  Scenario('Prepare a new project for the Pi + Codex baseline', ({ Given, When, Then, And }) => {
     let world: CliFeatureWorld;
 
     Given('an empty target directory', async () => {
@@ -90,32 +90,12 @@ describeFeature(feature, ({ Scenario }) => {
       await initSteps.thenTheCliCreatesCodexCompatibilityFiles(world);
     });
 
-    And('the Codex/OpenCode runtime files are available', async () => {
-      await initSteps.thenTheCodexOpencodeRuntimeFilesAreAvailable(world);
-    });
-  });
-
-  Scenario('Prepare a new project for OpenCode', ({ Given, When, Then, And }) => {
-    let world: CliFeatureWorld;
-
-    Given('an empty target directory', async () => {
-      world = await createWorld('ai-harness-bdd-init-');
-      await initSteps.givenEmptyTargetDirectory(world);
+    And('the Codex runtime files are available', async () => {
+      await initSteps.thenTheCodexRuntimeFilesAreAvailable(world);
     });
 
-    When('I initialize a new project named "opencode-app" for the "opencode" assistant', async () => {
-      await initSteps.whenIInitializeNewProject(world, {
-        projectName: 'opencode-app',
-        assistant: 'opencode'
-      });
-    });
-
-    Then('the CLI creates assistant compatibility files', async () => {
-      await initSteps.thenTheCliCreatesCodexCompatibilityFiles(world);
-    });
-
-    And('the Codex/OpenCode runtime files are available', async () => {
-      await initSteps.thenTheCodexOpencodeRuntimeFilesAreAvailable(world);
+    And('no OpenCode compatibility files are created', async () => {
+      await initSteps.thenNoOpenCodeCompatibilityFilesAreCreated(world);
     });
   });
 });

@@ -11,5 +11,5 @@ Use safe branch-based collaboration by default.
 
 ## Worktrees
 
-- for OpenCode-first workflows, prefer `kdco/worktree` plus the scaffolded `.opencode/worktree.jsonc` so worktree creation also runs `./.codex/scripts/bootstrap-worktree.sh --quiet`
-- keep `git worktree` plus `scripts/hooks/post-checkout` as the fallback path when the plugin is unavailable or you want manual control
+- prefer repo-local `git worktree` usage plus `./.codex/scripts/bootstrap-worktree.sh` so each fresh worktree seeds the same local runtime state
+- keep `scripts/hooks/post-checkout` and `.beads/hooks/post-checkout` available as the fallback bootstrap path when the primary worktree flow is unavailable or you want manual control

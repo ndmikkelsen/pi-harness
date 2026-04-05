@@ -2,11 +2,11 @@
 
 Use this workflow when one agent is driving ready backlog work end to end instead of splitting work across parallel waves.
 
-The shared policy is backlog-driven: drain ready Beads work first, fall back to in-flight repo-local plan context when no ready issues remain, verify every path, and land each verified pass before moving on.
+The shared policy is backlog-driven: drain ready Beads work first, fall back to in-flight repo-local context when no ready issues remain, verify every path, and land each verified pass before moving on.
 
 ## Startup Checks
 
-1. Review `.rules/patterns/operator-workflow.md`, `.rules/patterns/omo-agent-contract.md`, and the active repo-local plan or handoff context.
+1. Review `.rules/patterns/operator-workflow.md` and the active repo-local handoff or plan context.
 2. Detect Beads once at startup and degrade gracefully when it is unavailable.
 
 ```bash
@@ -14,7 +14,7 @@ BEADS_AVAILABLE=$(test -d .beads && command -v bd >/dev/null 2>&1 && echo "true"
 ```
 
 3. If `BEADS_AVAILABLE=true`, load ready work with `bd ready --json` before planning anything else.
-4. Inspect current repo-local plan context so in-flight work can be resumed when the backlog is empty.
+4. Inspect current repo-local context so in-flight work can be resumed when the backlog is empty.
 5. Attempt a Cognee brief before broad planning or backlog interpretation.
 
 ```bash
@@ -22,8 +22,8 @@ COGNEE_AVAILABLE=$(./.codex/scripts/cognee-bridge.sh health >/dev/null 2>&1 && e
 ```
 
 - if `BEADS_AVAILABLE` is `false`, continue with repo-local workflow guidance without blocking on issue tracking
-- if `BEADS_AVAILABLE` is `true`, carry the active issue ID through planning, execution, verification, landing, and handoff
-- if `COGNEE_AVAILABLE` is `false`, continue only when the work remains locally verifiable under `.rules/`, local plan context, and repo evidence; otherwise stop with a blocked handoff
+- if `BEADS_AVAILABLE` is `true`, carry the active issue ID through execution, verification, landing, and handoff
+- if `COGNEE_AVAILABLE` is `false`, continue only when the work remains locally verifiable under `.rules/`, repo-local context, and repository evidence; otherwise stop with a blocked handoff
 
 ## Work Selection Order
 
@@ -38,9 +38,9 @@ Do not skip ready backlog work just because repo-local plan items still exist.
 ## Execution Loop
 
 1. If `BEADS_AVAILABLE=true` and ready work exists, claim the selected issue with `bd update <id> --claim --json`.
-2. Refresh the repo-local plan context, acceptance criteria, and verification target before broad edits.
+2. Refresh the repo-local acceptance criteria and verification target before broad edits.
 3. Execute the smallest coherent slice of work and keep evidence current as you go.
-4. After each verified pass, run the repo landing flow before moving to the next issue or queued plan item.
+4. After each verified pass, run the repo landing flow before moving to the next issue or queued task.
 
 ## Verification Outcomes
 

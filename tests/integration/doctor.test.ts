@@ -9,7 +9,7 @@ import { runInit } from '../../src/commands/init.js';
 
 describe('runDoctor', () => {
   it('passes for a fresh Codex scaffold', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -34,12 +34,12 @@ describe('runDoctor', () => {
     expect(result.assistant).toBe('codex');
     expect(formatDoctorReport(result)).toContain('Status: pass');
     expect(result.groups).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'pass' })])
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'pass' })])
     );
   });
 
   it('auto-detects Codex and validates the shared backend', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -64,40 +64,8 @@ describe('runDoctor', () => {
     expect(result.status).toBe('pass');
   });
 
-  it('validates OpenCode against the Codex-compatible scaffold layout', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
-
-    await runInit({
-      cwd: workspace,
-      projectArg: 'doctor-opencode',
-      assistant: 'opencode',
-      mode: 'auto',
-      dryRun: false,
-      force: false,
-      skipGit: true,
-      detectPorts: false
-    });
-
-    const targetDir = path.join(workspace, 'doctor-opencode');
-    const result = await runDoctor({
-      cwd: workspace,
-      targetArg: targetDir,
-      assistant: 'opencode',
-      json: false
-    });
-
-    expect(result.assistant).toBe('opencode');
-    expect(result.status).toBe('pass');
-    expect(result.groups).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ name: 'codex-runtime', status: 'pass' }),
-        expect.objectContaining({ name: 'omo-alignment', status: 'pass' })
-      ])
-    );
-  });
-
-  it('fails when the canonical OMO contract reference is removed from AGENTS.md', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+  it('fails when the canonical operator workflow reference is removed from AGENTS.md', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -122,21 +90,21 @@ describe('runDoctor', () => {
 
     expect(result.status).toBe('fail');
     expect(result.groups).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'fail' })])
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
     );
     expect(result.invalid).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: 'AGENTS.md', reason: 'missing canonical OMO contract reference' })
+        expect.objectContaining({ path: 'AGENTS.md', reason: 'missing canonical operator workflow reference' })
       ])
     );
   });
 
-  it('fails when the OMO contract loses a required handoff schema field', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+  it('fails when a stale OMO contract file is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
-      projectArg: 'doctor-handoff',
+      projectArg: 'doctor-stale-omo',
       assistant: 'codex',
       mode: 'auto',
       dryRun: false,
@@ -145,10 +113,9 @@ describe('runDoctor', () => {
       detectPorts: false
     });
 
-    const targetDir = path.join(workspace, 'doctor-handoff');
-    const contractPath = path.join(targetDir, '.rules', 'patterns', 'omo-agent-contract.md');
-    const contract = await readFile(contractPath, 'utf8');
-    await writeFile(contractPath, contract.replaceAll('verify_command', 'verify_cmd'), 'utf8');
+    const targetDir = path.join(workspace, 'doctor-stale-omo');
+    await mkdir(path.join(targetDir, '.rules', 'patterns'), { recursive: true });
+    await writeFile(path.join(targetDir, '.rules', 'patterns', 'omo-agent-contract.md'), '# stale omo\n', 'utf8');
 
     const result = await runDoctor({
       cwd: workspace,
@@ -162,52 +129,14 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.rules/patterns/omo-agent-contract.md',
-          reason: 'missing handoff schema field verify_command'
-        })
-      ])
-    );
-  });
-
-  it('fails the OMO alignment group when the canonical contract file is deleted', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
-
-    await runInit({
-      cwd: workspace,
-      projectArg: 'doctor-missing-alignment',
-      assistant: 'codex',
-      mode: 'auto',
-      dryRun: false,
-      force: false,
-      skipGit: true,
-      detectPorts: false
-    });
-
-    const targetDir = path.join(workspace, 'doctor-missing-alignment');
-    await rm(path.join(targetDir, '.rules', 'patterns', 'omo-agent-contract.md'));
-
-    const result = await runDoctor({
-      cwd: workspace,
-      targetArg: targetDir,
-      assistant: 'codex',
-      json: false
-    });
-
-    expect(result.status).toBe('fail');
-    expect(result.groups).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'omo-alignment', status: 'fail' })])
-    );
-    expect(result.invalid).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          path: '.rules/patterns/omo-agent-contract.md',
-          reason: 'missing required OMO alignment artifact'
+          reason: 'stale OMO artifact present'
         })
       ])
     );
   });
 
   it('fails when the Beads post-checkout hook loses the worktree bootstrap fallback', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -241,8 +170,8 @@ describe('runDoctor', () => {
     );
   });
 
-  it('fails when workflow handoff docs lose required schema fields', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+  it('fails when autonomous workflow loses Beads work selection guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -258,7 +187,7 @@ describe('runDoctor', () => {
     const targetDir = path.join(workspace, 'doctor-workflow-handoff');
     const workflowPath = path.join(targetDir, '.codex', 'workflows', 'autonomous-execution.md');
     const workflow = await readFile(workflowPath, 'utf8');
-    await writeFile(workflowPath, workflow.replaceAll('open_risks', 'residual_risks'), 'utf8');
+    await writeFile(workflowPath, workflow.replaceAll('bd ready --json', 'bd-ready-json'), 'utf8');
 
     const result = await runDoctor({
       cwd: workspace,
@@ -272,14 +201,14 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.codex/workflows/autonomous-execution.md',
-          reason: 'missing handoff workflow field open_risks'
+          reason: 'missing Beads work selection guidance'
         })
       ])
     );
   });
 
   it('fails when a stale GSD alignment artifact is still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -314,8 +243,44 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when a stale OpenCode worktree config is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-stale-opencode',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-stale-opencode');
+    await mkdir(path.join(targetDir, '.opencode'), { recursive: true });
+    await writeFile(path.join(targetDir, '.opencode', 'worktree.jsonc'), '{"$schema":"https://registry.kdco.dev/schemas/worktree.json"}\n', 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.opencode/worktree.jsonc',
+          reason: 'stale OpenCode artifact present'
+        })
+      ])
+    );
+  });
+
   it('fails when a managed workflow doc regresses to GSD command guidance', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -345,14 +310,14 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.rules/patterns/operator-workflow.md',
-          reason: 'contains stale GSD workflow reference: /gsd-'
+          reason: 'contains stale workflow reference: /gsd-'
         })
       ])
     );
   });
 
   it('fails when a Codex repo is missing a shared backend file', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -380,7 +345,7 @@ describe('runDoctor', () => {
   });
 
   it('warns when an expected executable loses its execute bit', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -412,7 +377,7 @@ describe('runDoctor', () => {
   });
 
   it('does not fail adopted existing repos when preserved root files lack scaffold values', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -459,8 +424,8 @@ describe('runDoctor', () => {
     );
   });
 
-  it('warns when deprecated curated workflow artifacts are still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+  it('warns when deprecated planning-era artifacts are still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -475,8 +440,12 @@ describe('runDoctor', () => {
 
     const targetDir = path.join(workspace, 'doctor-deprecated');
     await mkdir(path.join(targetDir, '.planning'), { recursive: true });
+    await mkdir(path.join(targetDir, '.sisyphus', 'runs'), { recursive: true });
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
     await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
-    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.sisyphus', 'runs', '2024-01-01.log'), 'archived\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'cognee-sync-planning.sh'), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
 
     const result = await runDoctor({
       cwd: workspace,
@@ -496,7 +465,15 @@ describe('runDoctor', () => {
           reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
         }),
         expect.objectContaining({
-          path: '.codex/scripts/sync-to-cognee.sh',
+          path: '.sisyphus',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/cognee-sync-planning.sh',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/sync-planning-to-cognee.sh',
           reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
         })
       ])

@@ -2,13 +2,11 @@
 
 Add or update behavior-first coverage when a change affects user-visible workflows.
 
-- this repo keeps behavior contracts under `apps/cli/features/`
-- feature work starts with a `.feature` file and, when the work is non-trivial, a colocated `.plan.md`
-- executable BDD specs live next to the feature contract as `.spec.ts`
-- keep shared step helpers or support utilities under `apps/cli/features/steps/` or `apps/cli/features/support/`
-- keep feature coverage aligned with executable regression tests in `tests/`
-- prefer updating existing feature structure over creating parallel roots
-- for TypeScript and Vitest repos, run the dedicated BDD lane with `pnpm test:bdd`
-- RED means a failing BDD or unit test run that fails for the right reason before production code changes
-- GREEN means the smallest implementation needed to satisfy the scenario or test
-- REFACTOR keeps both the BDD lane and the regression lane green
+- prefer the repository's existing `.feature` layout instead of inventing a new parallel structure
+- in app-based repos, favor app-local feature directories such as `apps/<app>/features/`
+- start user-visible feature work with a `.feature` file and, when needed, a colocated `.plan.md`
+- colocate executable BDD specs as `.spec.ts` beside the feature contract
+- keep step helpers and support code close to shared test infrastructure instead of ad hoc `.features/` roots
+- pair feature coverage with executable regression tests where practical
+- for TypeScript and Vitest repos, provide a dedicated BDD lane such as `pnpm test:bdd`
+- observe RED before production changes, keep GREEN minimal, and keep REFACTOR inside the tested behavior envelope

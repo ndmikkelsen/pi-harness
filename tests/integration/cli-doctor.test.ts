@@ -14,13 +14,13 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
 describe('CLI doctor', () => {
-  it('accepts auto assistant on the doctor subcommand for Codex-compatible scaffolds', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-doctor-'));
+  it('accepts auto assistant on the doctor subcommand for the codex baseline', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
 
     await runInit({
       cwd: workspace,
-      projectArg: 'doctor-cli-opencode',
-      assistant: 'opencode',
+      projectArg: 'doctor-cli-codex',
+      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -28,7 +28,7 @@ describe('CLI doctor', () => {
       detectPorts: false
     });
 
-    const targetDir = path.join(workspace, 'doctor-cli-opencode');
+    const targetDir = path.join(workspace, 'doctor-cli-codex');
     const result = await execFile(
       process.execPath,
       [tsxCli, 'src/cli.ts', 'doctor', '--assistant', 'auto', '--json', targetDir],
@@ -40,12 +40,12 @@ describe('CLI doctor', () => {
 
     const payload = JSON.parse(result.stdout) as { assistant: string; status: string };
 
-    expect(payload.assistant).toBe('opencode');
+    expect(payload.assistant).toBe('codex');
     expect(payload.status).toBe('pass');
   });
 
   it('prints local-use guidance in the human-readable doctor report', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -66,11 +66,11 @@ describe('CLI doctor', () => {
 
     expect(result.stdout).toContain('Status: pass');
     expect(result.stdout).toContain('Guidance:');
-    expect(result.stdout).toContain('`ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.');
+    expect(result.stdout).toContain('`pi-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.');
   });
 
   it('prints actionable remediation guidance for preserved root-file warnings', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cli-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
 
     await runInit({
       cwd: workspace,

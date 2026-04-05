@@ -1,4 +1,4 @@
-title = "ai-harness gitleaks config"
+title = "pi-harness gitleaks config"
 
 [extend]
 useDefault = true
@@ -9,8 +9,7 @@ paths = [
   '''\\.env\\.example$''',
   '''\\.kamal/secrets\\.example$''',
   '''node_modules/''',
-  '''\\.beads/''',
-  '''\\.planning/'''
+  '''\\.beads/'''
 ]
 
 regexes = [

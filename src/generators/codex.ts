@@ -34,8 +34,8 @@ function harnessSkill(): string {
   return loadTemplate('codex/skills/harness/SKILL.md');
 }
 
-function aiHarnessCommandMatrix(): string {
-  return loadTemplate('codex/skills/harness/references/ai-harness-command-matrix.md');
+function piHarnessCommandMatrix(): string {
+  return loadTemplate('codex/skills/harness/references/pi-harness-command-matrix.md');
 }
 
 function existingRepoContextChecklist(): string {
@@ -104,8 +104,8 @@ export function buildCodexEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/ai-harness-command-matrix.md',
-      content: () => aiHarnessCommandMatrix()
+      path: '.codex/skills/harness/references/pi-harness-command-matrix.md',
+      content: () => piHarnessCommandMatrix()
     },
     {
       kind: 'file',
@@ -140,20 +140,8 @@ export function buildCodexEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.codex/scripts/cognee-sync-planning.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-sync-planning.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
       path: '.codex/scripts/cognee-brief.sh',
       content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-brief.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
-      path: '.codex/scripts/sync-planning-to-cognee.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/sync-planning-to-cognee.sh'),
       executable: true
     },
     {

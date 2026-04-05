@@ -13,7 +13,7 @@ const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-r
 
 describe('runInit', () => {
   it('creates the scaffold for a new project', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'sample-app',
@@ -30,16 +30,16 @@ describe('runInit', () => {
     expect(result.mode).toBe('new');
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.gitignore');
-    expect(result.createdPaths).toContain('.opencode/worktree.jsonc');
+    expect(result.createdPaths).not.toContain('.opencode/worktree.jsonc');
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
-    expect(result.createdPaths).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(result.createdPaths).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(result.createdPaths).toContain('.codex/scripts/cognee-sync-planning.sh');
-    expect(result.createdPaths).toContain('.codex/scripts/sync-planning-to-cognee.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(result.createdPaths).not.toContain('.planning/TRACEABILITY.md');
@@ -54,12 +54,12 @@ describe('runInit', () => {
   });
 
   it('does not scaffold planning artifacts by default', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
       projectArg: 'planning-app',
-      assistant: 'opencode',
+      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -83,7 +83,7 @@ describe('runInit', () => {
   });
 
   it('creates Codex compatibility files when codex is selected', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'codex-app',
@@ -98,7 +98,6 @@ describe('runInit', () => {
     const codexReadme = await readFile(path.join(workspace, 'codex-app', '.codex', 'README.md'), 'utf8');
     const agentsGuide = await readFile(path.join(workspace, 'codex-app', 'AGENTS.md'), 'utf8');
     const codexBridgeWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-brief.sh'), 'utf8');
-    const planningSyncWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8');
 
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.codex/README.md');
@@ -107,23 +106,27 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('AGENTS.md');
     expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
+    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
+    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
     expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
     expect(codexReadme).toContain('Codex Compatibility Layer');
-    expect(codexReadme).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(codexReadme).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
     expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
-    expect(codexReadme).toContain('./.codex/scripts/sync-planning-to-cognee.sh');
+    expect(codexReadme).toContain('./.codex/scripts/cognee-brief.sh');
     expect(codexReadme).toContain('.codex/skills/harness/SKILL.md');
     expect(codexReadme).not.toContain('./.codex/scripts/sync-to-cognee.sh');
     expect(agentsGuide).toContain('Codex Workflow');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
+    expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexBridgeWrapper).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(planningSyncWrapper).toContain('.codex/scripts/cognee-sync-planning.sh');
+    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-sync-planning.sh'), 'utf8')).rejects.toThrow();
+    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8')).rejects.toThrow();
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -152,7 +155,7 @@ describe('runInit', () => {
   });
 
   it('creates a worktree bootstrap script that links shared local env files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -169,53 +172,22 @@ describe('runInit', () => {
       path.join(workspace, 'bootstrap-app', '.codex', 'scripts', 'bootstrap-worktree.sh'),
       'utf8'
     );
-    const worktreeConfig = await readFile(path.join(workspace, 'bootstrap-app', '.opencode', 'worktree.jsonc'), 'utf8');
+    await expect(readFile(path.join(workspace, 'bootstrap-app', '.opencode', 'worktree.jsonc'), 'utf8')).rejects.toThrow();
 
     expect(bootstrapScript).toContain('.env');
     expect(bootstrapScript).toContain('.kamal/secrets');
     expect(bootstrapScript).toContain('direnv allow');
-    expect(worktreeConfig).toContain('https://registry.kdco.dev/schemas/worktree.json');
-    expect(worktreeConfig).toContain('./.codex/scripts/bootstrap-worktree.sh --quiet');
+    expect(bootstrapScript).toContain('.rules/patterns/operator-workflow.md');
+    expect(bootstrapScript).not.toContain('.rules/patterns/omo-agent-contract.md');
   });
 
-  it('creates OpenCode-compatible files on the Codex scaffold when opencode is selected', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
-    const result = await runInit({
-      cwd: workspace,
-      projectArg: 'opencode-app',
-      assistant: 'opencode',
-      mode: 'auto',
-      dryRun: false,
-      force: false,
-      skipGit: true,
-      detectPorts: false
-    });
-
-    const codexReadme = await readFile(path.join(workspace, 'opencode-app', '.codex', 'README.md'), 'utf8');
-    const agentsGuide = await readFile(path.join(workspace, 'opencode-app', 'AGENTS.md'), 'utf8');
-
-    expect(result.assistant).toBe('opencode');
-    expect(result.createdPaths).toContain('.codex/README.md');
-    expect(result.createdPaths).toContain('.opencode/worktree.jsonc');
-    expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
-    expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
-    expect(result.createdPaths).toContain('AGENTS.md');
-    expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
-    expect(codexReadme).toContain('OpenCode Compatibility Layer');
-    expect(codexReadme).toContain('.rules/patterns/omo-agent-contract.md');
-    expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
-    expect(agentsGuide).toContain('OpenCode Workflow');
-    expect(agentsGuide).toContain('.codex/');
-  });
-
-  it('scaffolds Cognee lane policy and autonomous fallback behavior for OMO flows', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+  it('scaffolds Cognee fallback behavior for the codex-only baseline', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
       projectArg: 'cognee-policy-app',
-      assistant: 'opencode',
+      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -224,7 +196,6 @@ describe('runInit', () => {
     });
 
     const projectDir = path.join(workspace, 'cognee-policy-app');
-    const omoContract = await readFile(path.join(projectDir, '.rules', 'patterns', 'omo-agent-contract.md'), 'utf8');
     const autonomousWorkflow = await readFile(
       path.join(projectDir, '.codex', 'workflows', 'autonomous-execution.md'),
       'utf8'
@@ -234,16 +205,14 @@ describe('runInit', () => {
       'utf8'
     );
 
-    expect(omoContract).toContain('planning` and `research` lanes require a Cognee attempt before broader repo exploration');
-    expect(omoContract).toContain('must produce a deterministic `blocked` or redirect outcome rather than a silent skip');
     expect(autonomousWorkflow).toContain('COGNEE_AVAILABLE');
     expect(autonomousWorkflow).toContain('continue only when the work remains locally verifiable');
-    expect(autonomousWorkflow).toContain('.rules/patterns/omo-agent-contract.md');
+    expect(autonomousWorkflow).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(managedAutonomousWorkflow).toContain('quiet=false');
   });
 
   it('does not overwrite existing files in existing-project mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-project');
     const readmePath = path.join(targetDir, 'README.md');
     const gitignorePath = path.join(targetDir, '.gitignore');
@@ -288,7 +257,7 @@ describe('runInit', () => {
   });
 
   it('merges root files in existing-project mode only when explicitly requested', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-project-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -344,7 +313,7 @@ describe('runInit', () => {
   });
 
   it('applies safe curated cleanup entries before scaffolding existing repos', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-cleanup');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -382,7 +351,7 @@ describe('runInit', () => {
   });
 
   it('blocks ambiguous curated cleanup entries without deleting them in non-interactive mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-ambiguous-cleanup');
 
     await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
@@ -414,7 +383,7 @@ describe('runInit', () => {
   });
 
   it('deletes prompt-before-delete entries when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-cleanup');
 
     await mkdir(path.join(targetDir, '.agents'), { recursive: true });
@@ -439,7 +408,7 @@ describe('runInit', () => {
   });
 
   it('removes legacy Claude workflow artifacts only when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-claude-cleanup');
 
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
@@ -466,7 +435,7 @@ describe('runInit', () => {
   });
 
   it('removes the legacy planning workspace only when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-planning-cleanup');
 
     await mkdir(path.join(targetDir, '.planning'), { recursive: true });
@@ -493,7 +462,7 @@ describe('runInit', () => {
   });
 
   it('preserves mixed custom AI files while removing curated leftovers and creating missing harness files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-mixed-adoption');
 
     await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
@@ -525,7 +494,7 @@ describe('runInit', () => {
   });
 
   it('reports prompt-required in mixed repos while still removing safe curated leftovers', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-mixed-blocked-adoption');
 
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
@@ -559,7 +528,7 @@ describe('runInit', () => {
   });
 
   it('supports dry-run mode without writing files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'dry-run-app',

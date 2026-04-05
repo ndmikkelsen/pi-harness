@@ -3,7 +3,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
-SYNC_PLANNING="$REPO_ROOT/.codex/scripts/sync-planning-to-cognee.sh"
 
 DRY_RUN=false
 COMMIT_MESSAGE=""
@@ -83,10 +82,6 @@ if [[ -f STICKYNOTE.example.md && ! -f STICKYNOTE.md ]]; then
   printf 'STICKYNOTE.md is missing; seed it from STICKYNOTE.example.md if you want a local handoff note.\n'
 fi
 
-if [[ -x "$SYNC_PLANNING" ]]; then
-  run_cmd "$SYNC_PLANNING" --summaries-only
-fi
-
 if [[ -n "$(git status --porcelain)" ]]; then
   if [[ -z "$COMMIT_MESSAGE" ]]; then
     fail "Working tree has uncommitted changes. Commit them before landing or pass --commit-message."
@@ -111,7 +106,7 @@ else
 fi
 
 if ! command -v gh >/dev/null 2>&1; then
-  fail "Landing requires GitHub CLI (gh) to open or update the PR to dev"
+  fail "Landing requires GitHub CLI (gh) to open or confirm the PR to dev"
 fi
 
 existing_pr_json="$(gh pr list --head "$branch" --json number,url,baseRefName,state)"

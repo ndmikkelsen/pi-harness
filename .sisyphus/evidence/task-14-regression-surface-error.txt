@@ -1,9 +1,0 @@
-Task 14 negative-path verification
-
-Negative diagnostics are exercised inside the targeted suites:
-- doctor fails on missing canonical contract references
-- doctor fails on missing handoff schema fields
-- doctor fails on missing worktree bootstrap fallback
-- land-script test covers unavailable-but-skipped Cognee sync behavior without silent breakage
-
-Result: PASS

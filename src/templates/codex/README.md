@@ -1,56 +1,54 @@
 # {{COMPAT_LABEL}} Compatibility Layer
 
-This repository already has working project systems for backlog tracking, planning, and knowledge capture.
-{{COMPAT_LABEL}} should use them directly through this runtime layer.
+This repository already has working project systems for backlog tracking, runtime automation, and knowledge capture.
+{{COMPAT_LABEL}} should use them directly from Pi through this runtime layer.
 
 ## Canonical Systems
 
-- .rules/ is the source of truth for architecture and workflow patterns
-- `.rules/patterns/omo-agent-contract.md` is the normative OMO lane and tool contract
+- `.rules/` is the source of truth for architecture and workflow patterns
 - native `bd` is the backlog interface for Beads tracking
-- .codex/scripts/ contains the live Cognee and runtime automation plumbing
-- Use native `bd` as the Beads task-tracking interface after `bd init`
+- `.codex/scripts/` contains the live Cognee and runtime automation plumbing
+- `README.md` plus repo docs describe the real product and architecture
 
 ## {{COMPAT_LABEL}} Mapping
 
 | Existing project surface | {{COMPAT_LABEL}} entrypoint |
 | --- | --- |
-| Runtime scripts | .codex/scripts/*.sh |
-| Agent role briefs | .codex/agents/*.md |
-| Repo setup skill | .codex/skills/harness/SKILL.md |
-| Cognee advisor | ./.codex/scripts/cognee-brief.sh |
-| Planning sync | ./.codex/scripts/sync-planning-to-cognee.sh |
-| Landing protocol | ./.codex/scripts/land.sh |
+| Runtime scripts | `.codex/scripts/*.sh` |
+| Agent role briefs | `.codex/agents/*.md` |
+| Repo setup skill | `.codex/skills/harness/SKILL.md` |
+| Cognee advisor | `./.codex/scripts/cognee-brief.sh` |
+| Operator runbook | `.rules/patterns/operator-workflow.md` |
+| Landing protocol | `./.codex/scripts/land.sh` |
 
 ## Runtime Surface
 
 - `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
-- `./.codex/scripts/cognee-sync-planning.sh` - sync repo planning artifacts into Cognee
-- `./.codex/scripts/sync-planning-to-cognee.sh` - user-facing planning sync entrypoint
 - `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
-- `./.opencode/worktree.jsonc` - optional OpenCode worktree plugin config that reuses `bootstrap-worktree.sh` after worktree creation
-- `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy shared across Codex and OpenCode
+- `./.codex/scripts/land.sh` - feature-branch closeout that publishes the current branch and ensures a PR to `dev` exists
+- `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy for the Codex baseline
+- `.codex/workflows/parallel-execution.md` - multi-wave execution policy for parallel backlog work
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
 
 ## Default Workflow
 
-1. Read relevant `.rules/patterns/operator-workflow.md` and `.rules/patterns/omo-agent-contract.md` before starting implementation.
-2. If Beads is available, start from `bd ready --json` and claim the active issue.
+1. Read `README.md`, repo docs, and the active handoff or plan context before editing scaffold behavior.
+2. For scaffold changes, update `src/templates/**` and relevant generators before rebuilding `dist/`.
 3. Follow `.rules/patterns/operator-workflow.md` as the canonical operator runbook.
-4. For planning, research, or autonomous startup work, generate a knowledge brief with `./.codex/scripts/cognee-brief.sh` before broad repo exploration.
-5. For existing repos, optionally run `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json` before tailoring new scaffold files.
-6. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; the scaffolded `.opencode/worktree.jsonc` runs `./.codex/scripts/bootstrap-worktree.sh --quiet` after each worktree is created.
-7. On a fresh checkout or a manual git worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
-8. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
-9. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
-10. Validate each wave before handing off or merging into the next.
-11. Close or update Beads issues only after verification passes; create bug issues for verification gaps when needed.
+4. If Beads is available, use `bd ready --json`, claim the active issue, and work from repo-local context plus verification evidence.
+5. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
+6. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
+7. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
+8. For planning, research, or autonomous startup work, generate a knowledge brief with `./.codex/scripts/cognee-brief.sh` when Cognee is available.
+9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
+10. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+11. Close or update Beads issues only after verification passes; create bug issues if verification reveals gaps.
 12. If you are in an execution/autonomous landing lane, finish with `./.codex/scripts/land.sh` to publish the feature branch and ensure a PR to `dev` exists.
 
 ## Rules
 
-- Do not create parallel planning systems under .codex/.
-- Treat .codex/ as the runtime surface for assistant-specific scripts and docs while keeping Beads and `.rules/` canonical.
-- Keep OMO policy references pointed to `.rules/patterns/omo-agent-contract.md` instead of restating doctrine in adapter docs.
-- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.
+- Do not create parallel planning systems under `.codex/`.
+- Treat `.codex/` as the runtime surface for Codex-specific scripts and docs while keeping Beads and `.rules/` canonical.
+- Keep source templates, generated docs, and built `dist/` artifacts in sync.
+- Prefer `harness` as the reusable setup reference and `pi-harness` as the CLI/package name.

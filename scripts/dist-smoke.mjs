@@ -16,25 +16,22 @@ if (!existsSync(compiledTemplates)) {
   throw new Error(`Templates missing from build: ${compiledTemplates}`);
 }
 
-const workspace = mkdtempSync(path.join(os.tmpdir(), 'ai-harness-smoke-'));
+const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-smoke-'));
 
 try {
   const cli = path.join(buildDir, 'src', 'cli.js');
-  const skillRoot = path.join(workspace, 'opencode-skills');
-  const configRoot = path.join(workspace, 'opencode-config');
 
   const runCli = (args) => {
     execFileSync(process.execPath, [cli, ...args], {
       cwd: buildDir,
-      stdio: 'inherit'
+      stdio: 'inherit',
     });
   };
 
   runCli(['--help']);
+  runCli(['doctor', '--help']);
   runCli(['--assistant', 'codex', '--skip-git', '--dry-run', path.join(workspace, 'smoke-codex')]);
-  runCli(['--assistant', 'opencode', '--skip-git', '--dry-run', path.join(workspace, 'smoke-opencode')]);
   runCli(['--assistant', 'codex', '--skip-git', path.join(workspace, 'smoke-verified-codex')]);
-  runCli(['install-skill', '--assistant', 'opencode', '--target-root', skillRoot, '--config-root', configRoot]);
 } finally {
   rmSync(workspace, { recursive: true, force: true });
 }

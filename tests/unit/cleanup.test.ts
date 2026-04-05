@@ -11,7 +11,11 @@ const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 const legacyRuntimeGuide = manifest.entries.find((entry) => entry.id === 'legacy-runtime-guide')!.path;
 const legacyPlanningDir = manifest.entries.find((entry) => entry.id === 'legacy-gsd-planning-workspace')!.path;
+const legacySisyphusDir = manifest.entries.find((entry) => entry.id === 'legacy-sisyphus-archive')!.path;
 const legacyGsdWorkflowRule = manifest.entries.find((entry) => entry.id === 'legacy-gsd-workflow-rule')!.path;
+const legacyBroadCogneeSync = manifest.entries.find((entry) => entry.id === 'legacy-broad-cognee-sync')!.path;
+const legacyPlanningSyncBackend = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-backend')!.path;
+const legacyPlanningSyncWrapper = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-wrapper')!.path;
 
 describe('cleanup manifests', () => {
   it('exposes the curated legacy cleanup manifest', () => {
@@ -22,8 +26,11 @@ describe('cleanup manifests', () => {
         expect.objectContaining({ path: legacyRuntimeGuide, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyRuntimeDir, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyPlanningDir, disposition: 'prompt-before-delete' }),
+        expect.objectContaining({ path: legacySisyphusDir, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyGsdWorkflowRule, disposition: 'prompt-before-delete' }),
-        expect.objectContaining({ path: '.codex/scripts/sync-to-cognee.sh', disposition: 'safe-delete' })
+        expect.objectContaining({ path: legacyBroadCogneeSync, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyPlanningSyncBackend, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyPlanningSyncWrapper, disposition: 'safe-delete' })
       ])
     );
   });
@@ -31,7 +38,7 @@ describe('cleanup manifests', () => {
 
 describe('runCleanup', () => {
   it('reports prompt-required for ambiguous curated entries in non-interactive mode', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
     await writeFile(path.join(targetDir, legacyRuntimeDir, 'custom-notes.md'), '# custom\n', 'utf8');
 
@@ -53,7 +60,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes prompt-before-delete entries when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.agents'), { recursive: true });
     await writeFile(path.join(targetDir, '.agents', 'reviewer.md'), '# reviewer\n', 'utf8');
 
@@ -74,7 +81,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes legacy Claude runtime entries only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
     await writeFile(path.join(targetDir, '.claude', 'commands', 'review.md'), '# review\n', 'utf8');
     await writeFile(path.join(targetDir, 'CLAUDE.md'), '# Claude\n', 'utf8');
@@ -96,30 +103,51 @@ describe('runCleanup', () => {
     );
   });
 
-  it('deletes the legacy planning workspace only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
-    await mkdir(path.join(targetDir, '.planning'), { recursive: true });
-    await writeFile(path.join(targetDir, '.planning', 'TRACEABILITY.md'), '# traceability\n', 'utf8');
-    await writeFile(path.join(targetDir, '.planning', 'PROJECT.md'), '# project\n', 'utf8');
+  it('deletes the deprecated planning workspace only when explicitly confirmed', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, legacyPlanningDir), { recursive: true });
+    await writeFile(path.join(targetDir, legacyPlanningDir, 'TRACEABILITY.md'), '# traceability\n', 'utf8');
+    await writeFile(path.join(targetDir, legacyPlanningDir, 'PROJECT.md'), '# project\n', 'utf8');
 
     const result = await runCleanup({
       targetDir,
       manifestId: 'legacy-ai-frameworks-v1',
       dryRun: false,
-      confirmCleanup: async (entry) => entry.path === '.planning'
+      confirmCleanup: async (entry) => entry.path === legacyPlanningDir
     });
 
     expect(result.status).toBe('applied');
-    expect(result.removedPaths).toContain('.planning');
+    expect(result.removedPaths).toContain(legacyPlanningDir);
     expect(result.actions).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ path: '.planning', status: 'deleted' })
+        expect.objectContaining({ path: legacyPlanningDir, status: 'deleted' })
+      ])
+    );
+  });
+
+  it('deletes the deprecated .sisyphus archive only when explicitly confirmed', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, legacySisyphusDir, 'runs'), { recursive: true });
+    await writeFile(path.join(targetDir, legacySisyphusDir, 'runs', '2024-01-01.log'), 'archived\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      confirmCleanup: async (entry) => entry.path === legacySisyphusDir
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toContain(legacySisyphusDir);
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: legacySisyphusDir, status: 'deleted' })
       ])
     );
   });
 
   it('deletes a legacy GSD workflow rule only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.rules', 'patterns'), { recursive: true });
     await writeFile(path.join(targetDir, '.rules', 'patterns', 'gsd-workflow.md'), '# gsd workflow\n', 'utf8');
 
@@ -139,8 +167,34 @@ describe('runCleanup', () => {
     );
   });
 
+  it('deletes deprecated planning-sync scripts without confirmation', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, legacyPlanningSyncBackend), '#!/usr/bin/env bash\n', 'utf8');
+    await writeFile(path.join(targetDir, legacyPlanningSyncWrapper), '#!/usr/bin/env bash\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      nonInteractive: true
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toEqual(
+      expect.arrayContaining([legacyPlanningSyncBackend, legacyPlanningSyncWrapper])
+    );
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: legacyPlanningSyncBackend, status: 'deleted' }),
+        expect.objectContaining({ path: legacyPlanningSyncWrapper, status: 'deleted' })
+      ])
+    );
+  });
+
+
   it('plans safe deletions during dry-run without touching disk', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
     await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
 

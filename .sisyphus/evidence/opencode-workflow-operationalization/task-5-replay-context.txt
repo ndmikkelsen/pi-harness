@@ -1,7 +1,0 @@
-task: 5
-temp_home_pattern: /var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-task-5-home-XXXXXX
-temp_home_actual: /var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-task-5-home-dl037jah
-isolation: HOME overridden for both runs; real HOME not used
-opencode_defaults_path: /var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-task-5-home-dl037jah/.config/opencode/oh-my-opencode.json
-gsd_defaults_path: /var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-task-5-home-dl037jah/.gsd/defaults.json
-command: HOME=/var/folders/mn/3xf3m3n930g8dwsy1s3t954w0000gn/T/ai-harness-task-5-home-dl037jah AI_HARNESS_REPO=/Users/naynay/Projects/personal/feat.workflow-orientation ai-harness install-skill --assistant opencode

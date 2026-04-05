@@ -1,21 +1,19 @@
 # Scaffold Customization Map
 
-Customize only files that `ai-harness` reported in `createdPaths`.
+Customize only files that `pi-harness` reported in `createdPaths`.
 If cleanup was requested, review `cleanup.actions` first so you know which legacy files were removed, preserved, or still need confirmation.
 
 ## Workflow docs
 
 - `.rules/patterns/operator-workflow.md`
-  - keep the OMO + Beads loop intact, but tune examples and repo-specific cues to the actual project
-- `.rules/patterns/omo-agent-contract.md`
-  - preserve the contract structure and only adjust adapter notes when the repository has clear evidence for them
+  - keep the Beads + Cognee loop intact, but tune examples and repo-specific cues to the actual project
 
 ## Runtime docs
 
 - `.codex/README.md`
   - keep the runtime instructions, but tune examples and wording to the repo's actual stack or service boundaries
 - `AGENTS.md`
-  - preserve the Codex/OpenCode guidance and add repo-specific workflow cues only if supported by evidence
+  - preserve the Codex guidance and add repo-specific workflow cues only if supported by evidence
 - `STICKYNOTE.example.md`
   - keep it generic, but update guardrails if the repo has clear conventions worth carrying forward
 

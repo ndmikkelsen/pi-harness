@@ -4,46 +4,52 @@
 
 ## Overview
 
-This repository is prepared for Codex through a focused runtime layer while keeping .rules/, Beads, and .codex workflows as the canonical operating systems.
+This repository is prepared for Codex inside Pi through a focused runtime layer while keeping `.rules/`, native Beads, and `.codex/` workflows as the canonical operating systems.
 
 ## Codex Workflow
 
 Codex works in this repository through a focused runtime layer. The canonical systems remain:
 
-- .rules/ for architecture and workflow rules
-- `.rules/patterns/omo-agent-contract.md` for lane and tool policy
+- `.rules/` for architecture and workflow rules
 - native `bd` for Beads backlog tracking
-- .codex/scripts/ for Cognee and runtime automation
+- `.codex/scripts/` for Cognee and runtime automation
+- repo-local handoff or plan notes when they already exist
 
-Use the Codex compatibility docs and scripts under .codex/ as entrypoints, not as a separate source of truth.
-For OMO lane and tool policy, treat `.rules/patterns/omo-agent-contract.md` as the normative source and keep this file adapter-only.
+Use the Codex compatibility docs and scripts under `.codex/` as entrypoints, not as a separate source of truth.
 
 ### Codex Operating Sequence
 
-1. Read the relevant .rules/ documents before changing code or infrastructure.
-2. Initialize Beads with `bd init` if needed, then start from `bd ready --json` and claim one issue.
-3. For planning, research, or autonomous startup work, query Cognee with `./.codex/scripts/cognee-brief.sh "<query>"` before broad repo exploration.
+1. Read the relevant `.rules/` documents before changing code or infrastructure.
+2. If Beads is available, start from `bd ready --json` and claim one issue with `bd update <id> --claim --json`.
+3. For planning, research, or autonomous startup work, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
 4. Follow `.rules/patterns/operator-workflow.md` plus `.codex/workflows/autonomous-execution.md` as the default execution loop.
-5. If you use OpenCode worktrees, prefer the scaffolded `.opencode/worktree.jsonc` with `kdco/worktree`; otherwise run `./.codex/scripts/bootstrap-worktree.sh` on a fresh worktree.
+5. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
 6. Close Beads work only after verification passes.
 7. If you are in an execution/autonomous landing lane, land the session with `./.codex/scripts/land.sh`.
 
 ### Codex Guardrails
 
-- Do not create duplicate planning systems or issue trackers under .codex/.
-- Do not mirror .planning/ into .codex-specific directories.
-- Do not redefine OMO doctrine here; reference `.rules/patterns/omo-agent-contract.md` when policy decisions are needed.
-- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.
-- Treat .codex/agents/*.md as reusable role briefs and .codex/scripts/*.sh as the executable surface.
-- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with ai-harness.
+- Do not recreate legacy `.planning/` workspaces or duplicate issue trackers under `.codex/`.
+- Do not mirror repo-local handoff or plan notes into `.codex`-specific directories.
+- Treat `.codex/agents/*.md` as reusable role briefs and `.codex/scripts/*.sh` as the executable surface.
+- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 
-### Repo-Specific Notes
+### Landing Authority
 
-- This repository builds the `ai-harness` CLI, its scaffold generators, and the globally installed `harness` skill.
-- For scaffold changes, edit `src/templates/**` and relevant generator code first, then rebuild `dist/`.
-- Use `ai-harness --mode existing . --init-json` and `ai-harness doctor . --assistant codex` when dogfooding the scaffold against this repo.
-- Verify runtime or template changes with `pnpm typecheck`, `pnpm test`, and `pnpm test:smoke:dist`.
+- Only execution/autonomous landing lanes should run `./.codex/scripts/land.sh`.
+- Planning, research, and review lanes must hand off instead of publishing.
+
+### Beads + Cognee Loop
+
+- When Beads is available, use `bd ready --json` and `bd update <id> --claim --json` before implementation work.
+- Use `.codex/workflows/autonomous-execution.md` for one-agent execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
+- Carry the active Beads issue ID through notes, execution context, and handoff docs.
+- Attempt a Cognee brief with `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
+- Close Beads issues only after verification passes.
+- If verification finds gaps, create follow-up Beads bug issues instead of closing the parent work early.
+- If Cognee is unavailable, continue only when the task remains locally verifiable from `.rules/`, handoff notes, and repo evidence.
+- If `.beads/` or `bd` is unavailable, continue with `.rules/patterns/operator-workflow.md` and local verification steps without blocking on issue tracking.
 
 <!-- BEGIN BEADS INTEGRATION -->
 ## Issue Tracking with bd (beads)
@@ -102,7 +108,6 @@ bd close bd-42 --reason "Completed" --json
 - `4` - Backlog (future ideas)
 
 ### Workflow for AI Agents
-
 1. **Check ready work**: `bd ready --json` shows unblocked issues
 2. **Claim your task atomically**: `bd update <id> --claim --json`
 3. **Attempt a Cognee brief**: `./.codex/scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide research
@@ -112,7 +117,6 @@ bd close bd-42 --reason "Completed" --json
 6. **Complete only after verification passes**: `bd close <id> --reason "Verified"`
 
 ### Beads + OMO Harmonization
-
 - Prefer the loop `bd ready -> claim -> cognee brief -> implement -> verify -> bd close`
 - Use `.codex/workflows/autonomous-execution.md` for one-agent phase execution, or `.codex/workflows/parallel-execution.md` for multi-wave work
 - Reference active Beads issue IDs in phase context and handoff notes when the work maps to a phase
@@ -122,13 +126,11 @@ bd close bd-42 --reason "Completed" --json
 ### Project-Local Beads State
 
 Beads is project-local in this repository:
-
 - Each write updates local Beads state under `.beads/`
 - No separate Beads Dolt remote sync is required for normal usage
 - Keep issue status current in the repo before landing or handing off work
 
 ### Important Rules
-
 - ✅ Use bd for ALL task tracking
 - ✅ Always use `--json` flag for programmatic use
 - ✅ Link discovered work with `discovered-from` dependencies
@@ -146,7 +148,6 @@ For more details, see README.md, `docs/harness-usage.md`, and `.rules/patterns/o
 **When ending an execution/autonomous landing session**, you MUST complete ALL steps below. Planning, research, and review lanes must hand off instead of pushing or publishing. Work is NOT complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
 
 **MANDATORY WORKFLOW:**
-
 1. **File issues for remaining work** - Create issues for anything that needs follow-up
 2. **Run quality gates** (if code changed) - Tests, linters, builds
 3. **Update issue status** - Close finished work, update in-progress items

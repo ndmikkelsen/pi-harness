@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
 import { expect } from 'vitest';
@@ -170,4 +170,9 @@ export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): v
   expect(result.createdPaths).toEqual(
     expect.arrayContaining(['.codex/README.md', '.codex/workflows/autonomous-execution.md', 'AGENTS.md'])
   );
+}
+
+export async function thenNoOpenCodeCompatibilityFilesAreCreated(world: CliFeatureWorld): Promise<void> {
+  await expect(access(path.join(requireTargetDir(world), '.opencode', 'worktree.jsonc'))).rejects.toThrow();
+  await expect(access(path.join(requireTargetDir(world), '.rules', 'patterns', 'omo-agent-contract.md'))).rejects.toThrow();
 }

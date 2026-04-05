@@ -1,10 +1,9 @@
 import type { AssistantTarget } from './types.js';
 
-export function assistantDisplayName(value: AssistantTarget): string {
-  if (value === 'opencode') return 'OpenCode';
+export function assistantDisplayName(_value: AssistantTarget): string {
   return 'Codex';
 }
 
-export function codexCompatibilityLabel(value: AssistantTarget): string {
-  return value === 'opencode' ? 'OpenCode' : 'Codex';
+export function codexCompatibilityLabel(_value: AssistantTarget): string {
+  return 'Codex';
 }

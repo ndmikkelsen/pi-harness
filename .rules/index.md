@@ -1,20 +1,19 @@
-# AI Harness Rules
+# Pi Harness Rules
 
 Use `.rules/` for repo-local workflow and architecture guidance.
 
 ## Start Here
 
 - `patterns/operator-workflow.md`
-- `patterns/omo-agent-contract.md`
 - `patterns/git-workflow.md`
 - `patterns/beads-integration.md`
 - `patterns/bdd-workflow.md`
 - `patterns/deployment.md`
 - `patterns/env-security.md`
 
-## Repo Notes
+## Expectations
 
-- keep these rules aligned with the real `ai-harness` CLI and scaffold workflow
+- keep rules aligned with the repo's real workflow
 - treat `patterns/operator-workflow.md` as the canonical operator runbook
-- use repo-local handoff or planning context, `AGENTS.md`, and `.codex/README.md` alongside these rules
-- update `src/templates/rules/**` first when a rule change should ship to scaffolded repos
+- use `AGENTS.md` and `.codex/README.md` alongside these rules
+- update an existing rule before creating overlapping guidance
