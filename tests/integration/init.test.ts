@@ -26,7 +26,7 @@ describe('runInit', () => {
     });
 
     const envExample = await readFile(path.join(workspace, 'sample-app', '.env.example'), 'utf8');
-
+    const beadsConfig = await readFile(path.join(workspace, 'sample-app', '.beads', 'config.yaml'), 'utf8');
     expect(result.mode).toBe('new');
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.gitignore');
@@ -52,6 +52,8 @@ describe('runInit', () => {
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
     expect(envExample).toContain('COGNEE_URL=https://sample-app-cognee.apps.compute.lan');
     expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
+    expect(beadsConfig).toContain('backup:');
+    expect(beadsConfig).toContain('enabled: false');
     expect(result.cleanup.enabled).toBe(false);
   });
 

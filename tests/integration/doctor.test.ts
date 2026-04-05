@@ -64,6 +64,41 @@ describe('runDoctor', () => {
     expect(result.status).toBe('pass');
   });
 
+
+  it('fails when Beads backups are enabled in the scaffold config', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-beads-backup',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-beads-backup');
+    await writeFile(path.join(targetDir, '.beads', 'config.yaml'), 'backup:\n  enabled: true\n', 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.beads/config.yaml',
+          reason: 'Beads backups must be disabled by default'
+        })
+      ])
+    );
+  });
   it('fails when the canonical operator workflow reference is removed from AGENTS.md', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 

@@ -232,6 +232,16 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
+  const beadsConfig = await readFileIfPresent(targetDir, '.beads/config.yaml');
+  if (beadsConfig !== null && !beadsConfig.includes('backup:\n  enabled: false')) {
+    alignmentInvalid.push({
+      path: '.beads/config.yaml',
+      reason: 'Beads backups must be disabled by default',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
   for (const entry of cleanupManifest.entries) {
     const presentKind = await pathKind(targetDir, entry.path);
     if (presentKind === 'missing') {
