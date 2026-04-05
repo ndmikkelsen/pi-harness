@@ -38,7 +38,7 @@ describe('cleanup manifests', () => {
 
 describe('runCleanup', () => {
   it('reports prompt-required for ambiguous curated entries in non-interactive mode', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
     await writeFile(path.join(targetDir, legacyRuntimeDir, 'custom-notes.md'), '# custom\n', 'utf8');
 
@@ -60,7 +60,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes prompt-before-delete entries when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.agents'), { recursive: true });
     await writeFile(path.join(targetDir, '.agents', 'reviewer.md'), '# reviewer\n', 'utf8');
 
@@ -81,7 +81,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes legacy Claude runtime entries only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
     await writeFile(path.join(targetDir, '.claude', 'commands', 'review.md'), '# review\n', 'utf8');
     await writeFile(path.join(targetDir, 'CLAUDE.md'), '# Claude\n', 'utf8');
@@ -104,7 +104,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes the deprecated planning workspace only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, legacyPlanningDir), { recursive: true });
     await writeFile(path.join(targetDir, legacyPlanningDir, 'TRACEABILITY.md'), '# traceability\n', 'utf8');
     await writeFile(path.join(targetDir, legacyPlanningDir, 'PROJECT.md'), '# project\n', 'utf8');
@@ -126,7 +126,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes the deprecated .sisyphus archive only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, legacySisyphusDir, 'runs'), { recursive: true });
     await writeFile(path.join(targetDir, legacySisyphusDir, 'runs', '2024-01-01.log'), 'archived\n', 'utf8');
 
@@ -147,7 +147,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes a legacy GSD workflow rule only when explicitly confirmed', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.rules', 'patterns'), { recursive: true });
     await writeFile(path.join(targetDir, '.rules', 'patterns', 'gsd-workflow.md'), '# gsd workflow\n', 'utf8');
 
@@ -168,7 +168,7 @@ describe('runCleanup', () => {
   });
 
   it('deletes deprecated planning-sync scripts without confirmation', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
     await writeFile(path.join(targetDir, legacyPlanningSyncBackend), '#!/usr/bin/env bash\n', 'utf8');
     await writeFile(path.join(targetDir, legacyPlanningSyncWrapper), '#!/usr/bin/env bash\n', 'utf8');
@@ -194,7 +194,7 @@ describe('runCleanup', () => {
 
 
   it('plans safe deletions during dry-run without touching disk', async () => {
-    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-cleanup-'));
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
     await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
 

@@ -10,12 +10,12 @@ const execFile = promisify(execFileCallback);
 
 async function initGitRepo(repoDir: string) {
   await execFile('git', ['init', '-b', 'main'], { cwd: repoDir });
-  await execFile('git', ['config', 'user.name', 'AI Harness Tests'], { cwd: repoDir });
+  await execFile('git', ['config', 'user.name', 'Pi Harness Tests'], { cwd: repoDir });
   await execFile('git', ['config', 'user.email', 'tests@example.com'], { cwd: repoDir });
 }
 
 async function createLandFixture() {
-  const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-land-'));
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-land-'));
   const repoDir = path.join(workspace, 'repo');
   const remoteDir = path.join(workspace, 'remote.git');
   const binDir = path.join(workspace, 'bin');

@@ -1,4 +1,4 @@
-# AI Harness Command Matrix
+# Pi Harness Command Matrix
 
 ## Choose the mode first
 
@@ -7,14 +7,14 @@
 
 ## Distribution model
 
-- intended use: run `ai-harness` locally on a developer machine to scaffold or refresh repos
-- documented setup path: checked-out `ai-harness` repo + `pnpm build` + `pnpm install:local`
+- intended use: run `pi-harness` locally on a developer machine to scaffold or refresh repos
+- documented setup path: checked-out `pi-harness` repo + `pnpm build` + `pnpm install:local`
 - no registry/package publication path is planned
 - `dist/` is a local build artifact for the launcher, not a release channel
 
 ## Commands
 
-### Install or refresh the local ai-harness launcher
+### Install or refresh the local pi-harness launcher
 
 ```bash
 pnpm install
@@ -25,37 +25,37 @@ pnpm install:local
 ### New repository
 
 ```bash
-ai-harness <project-slug> --assistant codex --init-json
+pi-harness <project-slug> --assistant codex --init-json
 ```
 
 ### Existing current repository
 
 ```bash
-ai-harness --mode existing . --assistant codex --init-json
+pi-harness --mode existing . --assistant codex --init-json
 ```
 
 ### Existing external path
 
 ```bash
-ai-harness --mode existing <path> --assistant codex --init-json
+pi-harness --mode existing <path> --assistant codex --init-json
 ```
 
 ### Existing repository with root-file merges
 
 ```bash
-ai-harness --mode existing <path> --assistant codex --merge-root-files --init-json
+pi-harness --mode existing <path> --assistant codex --merge-root-files --init-json
 ```
 
 ### Existing repository with curated legacy cleanup
 
 ```bash
-ai-harness --mode existing <path> --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --init-json
+pi-harness --mode existing <path> --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --init-json
 ```
 
 ### Existing repository automation with cleanup and no prompts
 
 ```bash
-ai-harness --mode existing <path> --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --non-interactive --init-json
+pi-harness --mode existing <path> --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --non-interactive --init-json
 ```
 
 ## Follow-up
@@ -63,14 +63,14 @@ ai-harness --mode existing <path> --assistant codex --cleanup-manifest legacy-ai
 After any scaffold run:
 
 ```bash
-ai-harness doctor <target> --assistant codex
+pi-harness doctor <target> --assistant codex
 ```
 
-When you update an existing repo, record the previous and new `ai-harness` versions plus the source commit in the PR or handoff note.
+When you update an existing repo, record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
 ## scaiff compatibility
 
-- `ai-harness` replaces `scaiff`; install and invoke `ai-harness` directly
+- `pi-harness` replaces `scaiff`; install and invoke `pi-harness` directly
 - there is no separate `scaiff` package or CLI alias to keep old commands alive
 - if a repo still has curated `scaiff`-era leftovers, remove them deliberately with `--cleanup-manifest legacy-ai-frameworks-v1`
 

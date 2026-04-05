@@ -104,13 +104,13 @@ function buildRecommendations(
 
   if (warnings.rootWarnings.length > 0) {
     recommendations.push(
-      `Preserved root files are missing scaffold hints. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`,
+      `Preserved root files are missing scaffold hints. Rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`,
     );
   }
 
   if (warnings.deprecatedWarnings.length > 0) {
     recommendations.push(
-      `Deprecated curated artifacts are still present. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`,
+      `Deprecated curated artifacts are still present. Rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`,
     );
   }
 
@@ -121,7 +121,7 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale OpenCode/OMO/GSD artifacts, and rerun \`ai-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
+      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale OpenCode/OMO/GSD artifacts, and rerun \`pi-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
     );
   }
 
@@ -166,7 +166,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'README.md',
     '.codex/README.md',
     '.codex/skills/harness/SKILL.md',
-    '.codex/skills/harness/references/ai-harness-command-matrix.md',
+    '.codex/skills/harness/references/pi-harness-command-matrix.md',
     '.codex/skills/harness/references/scaffold-customization-map.md',
     '.codex/skills/harness/references/existing-repo-context-checklist.md',
     '.codex/scripts/bootstrap-worktree.sh',
@@ -227,7 +227,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     const mismatchSuffix = presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
     deprecatedWarnings.push({
       path: entry.path,
-      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ai-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`,
+      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with pi-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`,
       category: 'deprecated-artifact',
       severity: 'warn',
     });
@@ -457,7 +457,7 @@ export function formatDoctorReport(result: DoctorResult): string {
   lines.push(
     '',
     'Guidance:',
-    '- `ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.',
+    '- `pi-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.',
   );
 
   return `${lines.join('\n')}\n`;

@@ -32,7 +32,7 @@ Use the Codex compatibility docs and scripts under `.codex/` as entrypoints, not
 - Do not recreate legacy `.planning/` workspaces or duplicate issue trackers under `.codex/`.
 - Do not mirror repo-local handoff or plan notes into `.codex`-specific directories.
 - Treat `.codex/agents/*.md` as reusable role briefs and `.codex/scripts/*.sh` as the executable surface.
-- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `ai-harness`.
+- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 
 ### Landing Authority

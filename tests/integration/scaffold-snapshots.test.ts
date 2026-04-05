@@ -49,7 +49,7 @@ describe('scaffold snapshots', () => {
   });
 
   it('matches the Codex scaffold snapshot', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-snapshot-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-snapshot-'));
 
     await runInit({
       cwd: workspace,
@@ -77,12 +77,12 @@ describe('scaffold snapshots', () => {
     expect(result.files).not.toContain('CONSTITUTION.md');
     expect(result.files).not.toContain('VISION.md');
     expect(result.files).not.toContain('STICKYNOTE.md');
-    expect(result['README.md']).toContain('Scaffolded with `ai-harness` v0.1.0');
-    expect(result['README.md']).toContain('This scaffold assumes `ai-harness` is used locally to set up and refresh repos');
+    expect(result['README.md']).toContain('Scaffolded with `pi-harness` v0.1.0');
+    expect(result['README.md']).toContain('This scaffold assumes `pi-harness` is used locally to set up and refresh repos');
     expect(result['README.md']).toContain('there is no separate `scaiff` binary or package alias');
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
     expect(result['README.md']).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
-    expect(result['.codex/README.md']).toContain('Use `ai-harness --mode existing . --assistant codex --init-json`');
+    expect(result['.codex/README.md']).toContain('Use `pi-harness --mode existing . --assistant codex --init-json`');
     expect(result['.codex/README.md']).toContain('./.codex/scripts/cognee-brief.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');
     expect(result['.codex/README.md']).toContain('pnpm test:bdd');

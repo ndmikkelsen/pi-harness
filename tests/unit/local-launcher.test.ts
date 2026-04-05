@@ -9,10 +9,10 @@ import { LOCAL_LAUNCHER_NAMES, renderLauncherScript } from '../../src/local-laun
 
 describe('renderLauncherScript', () => {
   it('renders a wrapper that targets the selected repo', () => {
-    const repoPath = '/tmp/ai-harness';
+    const repoPath = '/tmp/pi-harness';
     const result = renderLauncherScript(repoPath);
 
-    expect(result).toContain(`REPO="\${AI_HARNESS_REPO:-${repoPath}}"`);
+    expect(result).toContain(`REPO="\${PI_HARNESS_REPO:-${repoPath}}"`);
     expect(result).toContain('DIST="$REPO/dist/src/cli.js"');
     expect(result).toContain('TSX="$REPO/node_modules/.bin/tsx"');
     expect(result).toContain('exec node "$DIST" "$@"');
@@ -21,7 +21,7 @@ describe('renderLauncherScript', () => {
   });
 
   it('installs the CLI launcher name', () => {
-    expect(LOCAL_LAUNCHER_NAMES).toEqual(['ai-harness']);
+    expect(LOCAL_LAUNCHER_NAMES).toEqual(['pi-harness']);
   });
 
   it('renders a stable basename-based error prefix', () => {
@@ -30,8 +30,8 @@ describe('renderLauncherScript', () => {
   });
 
   it('renders a shell-valid launcher script', () => {
-    const workspace = mkdtempSync(path.join(os.tmpdir(), 'ai-harness-launcher-'));
-    const scriptPath = path.join(workspace, 'ai-harness');
+    const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-launcher-'));
+    const scriptPath = path.join(workspace, 'pi-harness');
 
     try {
       writeFileSync(scriptPath, renderLauncherScript(path.resolve('/tmp/repo')), 'utf8');

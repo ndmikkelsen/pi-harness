@@ -37,8 +37,8 @@ This repository already has working project systems for backlog tracking, runtim
 2. For scaffold changes, update `src/templates/**` and relevant generators before rebuilding `dist/`.
 3. Follow `.rules/patterns/operator-workflow.md` as the canonical operator runbook.
 4. If Beads is available, use `bd ready --json`, claim the active issue, and work from repo-local context plus verification evidence.
-5. Use `ai-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
-6. Use `ai-harness doctor . --assistant codex` to audit the current repo after runtime changes.
+5. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
+6. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
 7. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
 8. For planning, research, or autonomous startup work, generate a knowledge brief with `./.codex/scripts/cognee-brief.sh` when Cognee is available.
 9. Use `.codex/workflows/autonomous-execution.md` for one-agent backlog-driven execution, or `.codex/workflows/parallel-execution.md` for multi-wave execution.
@@ -51,4 +51,4 @@ This repository already has working project systems for backlog tracking, runtim
 - Do not create parallel planning systems under `.codex/`.
 - Treat `.codex/` as the runtime surface for Codex-specific scripts and docs while keeping Beads and `.rules/` canonical.
 - Keep source templates, generated docs, and built `dist/` artifacts in sync.
-- Prefer `harness` as the reusable setup reference and `ai-harness` as the CLI/package name.
+- Prefer `harness` as the reusable setup reference and `pi-harness` as the CLI/package name.

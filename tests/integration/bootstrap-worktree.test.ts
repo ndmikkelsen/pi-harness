@@ -12,14 +12,14 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 
 async function initGitRepo(repoDir: string) {
   await execFile('git', ['init', '--initial-branch=dev'], { cwd: repoDir });
-  await execFile('git', ['config', 'user.name', 'AI Harness Tests'], { cwd: repoDir });
+  await execFile('git', ['config', 'user.name', 'Pi Harness Tests'], { cwd: repoDir });
   await execFile('git', ['config', 'user.email', 'tests@example.com'], { cwd: repoDir });
   await execFile('git', ['config', 'core.hooksPath', '.beads/hooks'], { cwd: repoDir });
 }
 
 describe('bootstrap-worktree hook', () => {
   it('links shared env files and secrets into new worktrees', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-worktree-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-'));
     const repoDir = path.join(workspace, 'repo');
     const worktreeDir = path.join(workspace, 'repo.feature');
     const binDir = path.join(workspace, 'bin');
@@ -86,7 +86,7 @@ describe('bootstrap-worktree hook', () => {
   });
 
   it('is idempotent when rerun after the initial worktree bootstrap', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-worktree-rerun-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-rerun-'));
     const repoDir = path.join(workspace, 'repo');
     const worktreeDir = path.join(workspace, 'repo.feature');
     const binDir = path.join(workspace, 'bin');
@@ -162,7 +162,7 @@ describe('bootstrap-worktree hook', () => {
   });
 
   it('still bootstraps the worktree before returning a non-zero Beads hook status', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-worktree-degraded-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-degraded-'));
     const repoDir = path.join(workspace, 'repo');
     const worktreeDir = path.join(workspace, 'repo.feature');
     const binDir = path.join(workspace, 'bin');

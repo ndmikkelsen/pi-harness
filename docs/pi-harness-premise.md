@@ -1,6 +1,6 @@
-# ai-harness premise
+# pi-harness premise
 
-`ai-harness` is a modular TypeScript CLI for bootstrapping and refreshing a local Codex workflow that is operated from Pi and backed by Beads plus Cognee.
+`pi-harness` is a modular TypeScript CLI for bootstrapping and refreshing a local Codex workflow that is operated from Pi and backed by Beads plus Cognee.
 
 ## Core idea
 
@@ -55,7 +55,7 @@ pnpm build
 pnpm install:local
 ```
 
-That produces a local `ai-harness` command backed by this checkout.
+That produces a local `pi-harness` command backed by this checkout.
 
 ## Implications for future work
 

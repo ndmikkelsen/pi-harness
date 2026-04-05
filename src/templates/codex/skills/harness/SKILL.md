@@ -1,31 +1,31 @@
 ---
 name: harness
-description: Use the ai-harness CLI to scaffold new and existing repositories for Codex with Beads, Cognee, and the shared `.codex/` runtime surface. For existing repositories, gather project context first and then customize only newly created scaffold files.
+description: Use the pi-harness CLI to scaffold new and existing repositories for Codex with Beads, Cognee, and the shared `.codex/` runtime surface. For existing repositories, gather project context first and then customize only newly created scaffold files.
 ---
 
 # Harness
 
-Use this skill when the user wants to bootstrap a repository with `ai-harness`, adopt an existing codebase into the scaffold, or tailor newly created AI workflow files to the project's real history and stack.
+Use this skill when the user wants to bootstrap a repository with `pi-harness`, adopt an existing codebase into the scaffold, or tailor newly created AI workflow files to the project's real history and stack.
 
 ## Rules
 
-- Decide `greenfield` (`new` mode) vs `existing` before running `ai-harness`
-- Never run `ai-harness` in `new` mode against a non-empty directory
+- Decide `greenfield` (`new` mode) vs `existing` before running `pi-harness`
+- Never run `pi-harness` in `new` mode against a non-empty directory
 - Never use `--force` by default
 - In existing repos, preserve pre-existing scaffold files by default
 - Only use `--cleanup-manifest legacy-ai-frameworks-v1` when the user explicitly wants curated legacy AI-framework files removed
 - Only use `--merge-root-files` when the user explicitly wants `.gitignore` and `.env.example` merged
 - Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `.codex/scripts/cognee-brief.sh` exists, and continue only when local repo evidence remains sufficient if Cognee is unavailable
-- Customize only files that `ai-harness` just created unless the user explicitly asks to rewrite existing scaffold files
+- Customize only files that `pi-harness` just created unless the user explicitly asks to rewrite existing scaffold files
 
 ## Workflow
 
-1. Determine repository mode using `references/ai-harness-command-matrix.md`
+1. Determine repository mode using `references/pi-harness-command-matrix.md`
 2. If the repository is existing, gather context using `references/existing-repo-context-checklist.md`
-3. If the repo contains curated legacy AI-framework files and the user wants them cleaned up, run `ai-harness --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --init-json` first
-4. When adopting the current repository, run `ai-harness --mode existing . --assistant codex --init-json` so you can distinguish `createdPaths` from `skippedPaths`
+3. If the repo contains curated legacy AI-framework files and the user wants them cleaned up, run `pi-harness --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --init-json` first
+4. When adopting the current repository, run `pi-harness --mode existing . --assistant codex --init-json` so you can distinguish `createdPaths` from `skippedPaths`
 5. In existing repos, customize only the files listed in `createdPaths`, guided by `references/scaffold-customization-map.md`
-6. Run `ai-harness doctor <target> --assistant codex` after setup
+6. Run `pi-harness doctor <target> --assistant codex` after setup
 7. Summarize what was created, what was preserved, what was removed, and any follow-up gaps
 
 ## Existing Repository Adaptation

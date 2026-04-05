@@ -16,7 +16,7 @@ if (!existsSync(compiledTemplates)) {
   throw new Error(`Templates missing from build: ${compiledTemplates}`);
 }
 
-const workspace = mkdtempSync(path.join(os.tmpdir(), 'ai-harness-smoke-'));
+const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-smoke-'));
 
 try {
   const cli = path.join(buildDir, 'src', 'cli.js');

@@ -1,6 +1,6 @@
 # Scaffold Customization Map
 
-Customize only files that `ai-harness` reported in `createdPaths`.
+Customize only files that `pi-harness` reported in `createdPaths`.
 If cleanup was requested, review `cleanup.actions` first so you know which legacy files were removed, preserved, or still need confirmation.
 
 ## Workflow docs

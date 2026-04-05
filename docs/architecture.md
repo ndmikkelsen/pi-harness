@@ -2,7 +2,7 @@
 
 ## Overall shape
 
-`ai-harness` is a layered scaffold-generator CLI with a dogfooded runtime surface.
+`pi-harness` is a layered scaffold-generator CLI with a dogfooded runtime surface.
 
 - `src/cli.ts` is the command-line entrypoint
 - `src/commands/*.ts` orchestrate command behavior

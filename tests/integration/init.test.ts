@@ -13,7 +13,7 @@ const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-r
 
 describe('runInit', () => {
   it('creates the scaffold for a new project', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'sample-app',
@@ -54,7 +54,7 @@ describe('runInit', () => {
   });
 
   it('does not scaffold planning artifacts by default', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -83,7 +83,7 @@ describe('runInit', () => {
   });
 
   it('creates Codex compatibility files when codex is selected', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'codex-app',
@@ -126,7 +126,7 @@ describe('runInit', () => {
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -155,7 +155,7 @@ describe('runInit', () => {
   });
 
   it('creates a worktree bootstrap script that links shared local env files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -182,7 +182,7 @@ describe('runInit', () => {
   });
 
   it('scaffolds Cognee fallback behavior for the codex-only baseline', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
@@ -212,7 +212,7 @@ describe('runInit', () => {
   });
 
   it('does not overwrite existing files in existing-project mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-project');
     const readmePath = path.join(targetDir, 'README.md');
     const gitignorePath = path.join(targetDir, '.gitignore');
@@ -257,7 +257,7 @@ describe('runInit', () => {
   });
 
   it('merges root files in existing-project mode only when explicitly requested', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-project-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -313,7 +313,7 @@ describe('runInit', () => {
   });
 
   it('applies safe curated cleanup entries before scaffolding existing repos', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-cleanup');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
@@ -351,7 +351,7 @@ describe('runInit', () => {
   });
 
   it('blocks ambiguous curated cleanup entries without deleting them in non-interactive mode', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-ambiguous-cleanup');
 
     await mkdir(path.join(targetDir, legacyRuntimeDir), { recursive: true });
@@ -383,7 +383,7 @@ describe('runInit', () => {
   });
 
   it('deletes prompt-before-delete entries when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-cleanup');
 
     await mkdir(path.join(targetDir, '.agents'), { recursive: true });
@@ -408,7 +408,7 @@ describe('runInit', () => {
   });
 
   it('removes legacy Claude workflow artifacts only when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-claude-cleanup');
 
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
@@ -435,7 +435,7 @@ describe('runInit', () => {
   });
 
   it('removes the legacy planning workspace only when confirmation is provided', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-confirmed-planning-cleanup');
 
     await mkdir(path.join(targetDir, '.planning'), { recursive: true });
@@ -462,7 +462,7 @@ describe('runInit', () => {
   });
 
   it('preserves mixed custom AI files while removing curated leftovers and creating missing harness files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-mixed-adoption');
 
     await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
@@ -494,7 +494,7 @@ describe('runInit', () => {
   });
 
   it('reports prompt-required in mixed repos while still removing safe curated leftovers', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const targetDir = path.join(workspace, 'existing-mixed-blocked-adoption');
 
     await mkdir(path.join(targetDir, '.claude', 'commands'), { recursive: true });
@@ -528,7 +528,7 @@ describe('runInit', () => {
   });
 
   it('supports dry-run mode without writing files', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
       projectArg: 'dry-run-app',

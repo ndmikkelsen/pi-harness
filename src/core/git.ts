@@ -2,8 +2,8 @@ import { spawnSync } from 'node:child_process';
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
-const worktreeHookStart = '# --- BEGIN AI HARNESS WORKTREE HOOK ---';
-const worktreeHookEnd = '# --- END AI HARNESS WORKTREE HOOK ---';
+const worktreeHookStart = '# --- BEGIN PI HARNESS WORKTREE HOOK ---';
+const worktreeHookEnd = '# --- END PI HARNESS WORKTREE HOOK ---';
 
 function gitOutput(targetDir: string, args: string[]): string | null {
   const result = spawnSync('git', args, {
@@ -139,11 +139,11 @@ function ensureWorktreeHookSetup(targetDir: string): string[] {
   }
 
   if (preCommitStatus === 'missing') {
-    notes.push('`pre-commit` is not installed locally, so ai-harness fell back to a direct post-checkout hook.');
+    notes.push('`pre-commit` is not installed locally, so pi-harness fell back to a direct post-checkout hook.');
   } else if (preCommitStatus === 'unsupported') {
-    notes.push('The existing `.pre-commit-config.yaml` does not declare the ai-harness worktree bootstrap hook, so ai-harness fell back to a direct post-checkout hook.');
+    notes.push('The existing `.pre-commit-config.yaml` does not declare the pi-harness worktree bootstrap hook, so pi-harness fell back to a direct post-checkout hook.');
   } else if (preCommitStatus === 'failed') {
-    notes.push('`pre-commit install` did not succeed, so ai-harness fell back to a direct post-checkout hook.');
+    notes.push('`pre-commit install` did not succeed, so pi-harness fell back to a direct post-checkout hook.');
   }
 
   return notes;

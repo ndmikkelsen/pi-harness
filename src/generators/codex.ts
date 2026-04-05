@@ -34,8 +34,8 @@ function harnessSkill(): string {
   return loadTemplate('codex/skills/harness/SKILL.md');
 }
 
-function aiHarnessCommandMatrix(): string {
-  return loadTemplate('codex/skills/harness/references/ai-harness-command-matrix.md');
+function piHarnessCommandMatrix(): string {
+  return loadTemplate('codex/skills/harness/references/pi-harness-command-matrix.md');
 }
 
 function existingRepoContextChecklist(): string {
@@ -104,8 +104,8 @@ export function buildCodexEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/ai-harness-command-matrix.md',
-      content: () => aiHarnessCommandMatrix()
+      path: '.codex/skills/harness/references/pi-harness-command-matrix.md',
+      content: () => piHarnessCommandMatrix()
     },
     {
       kind: 'file',

@@ -34,7 +34,7 @@ function parseDoctorAssistant(value: string): AssistantSelection {
 const program = new Command();
 
 program
-  .name('ai-harness')
+  .name('pi-harness')
   .description('AI workflow scaffolder for local setup of new and existing projects.')
   .argument('[project]', 'project name or target path')
   .argument('[target]', 'target directory')

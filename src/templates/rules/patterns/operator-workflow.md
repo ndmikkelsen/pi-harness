@@ -1,6 +1,6 @@
 ## Operator Workflow Pattern
 
-Use this file as the canonical day-to-day workflow for repositories scaffolded with `ai-harness`.
+Use this file as the canonical day-to-day workflow for repositories scaffolded with `pi-harness`.
 
 The default experience is interactive-first: pick ready work in Beads, scope with repo-local context, verify the result, then land from your feature branch.
 

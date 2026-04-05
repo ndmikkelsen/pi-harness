@@ -2,10 +2,10 @@
 
 ## What it is
 
-`ai-harness` is the local CLI that scaffolds and refreshes repositories.
+`pi-harness` is the local CLI that scaffolds and refreshes repositories.
 The scaffold it produces is designed for a Pi-operated Codex workflow with Beads and Cognee.
 
-- `ai-harness` does the actual scaffold and adoption work
+- `pi-harness` does the actual scaffold and adoption work
 - `.codex/` holds the Codex-facing runtime scripts and workflow docs
 - Beads remains the backlog system through native `bd`
 - Cognee remains an optional knowledge accelerator through `./.codex/scripts/cognee-brief.sh`
@@ -13,7 +13,7 @@ The scaffold it produces is designed for a Pi-operated Codex workflow with Beads
 
 ## Install once on your machine
 
-From your local `ai-harness` checkout:
+From your local `pi-harness` checkout:
 
 ```bash
 pnpm install
@@ -23,7 +23,7 @@ pnpm install:local
 
 That gives you:
 
-- `ai-harness` on your `PATH`
+- `pi-harness` on your `PATH`
 - the built scaffold templates under `dist/`
 - a local launcher backed by your checkout
 
@@ -31,8 +31,8 @@ That gives you:
 
 Use this as the authoritative sequence after install:
 
-1. Scaffold or adopt with `ai-harness ... --assistant codex --init-json`.
-2. Run `ai-harness doctor <target> --assistant codex`.
+1. Scaffold or adopt with `pi-harness ... --assistant codex --init-json`.
+2. Run `pi-harness doctor <target> --assistant codex`.
 3. Run `bd init` once in the target repo if Beads has not been initialized yet.
 4. Use the daily Beads + Cognee loop from `.rules/patterns/operator-workflow.md`.
 5. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
@@ -43,9 +43,9 @@ When you use the scaffold from Pi, the flow is:
 
 1. Decide whether the target is a new repo or an existing repo.
 2. If it is an existing repo, gather context first.
-3. Run `ai-harness ... --assistant codex --init-json`.
+3. Run `pi-harness ... --assistant codex --init-json`.
 4. In existing repos, customize only files listed in `createdPaths`.
-5. Finish with `ai-harness doctor <target> --assistant codex`.
+5. Finish with `pi-harness doctor <target> --assistant codex`.
 
 ## New repository walkthrough
 
@@ -64,7 +64,7 @@ Use harness to scaffold a new repository named acme-api for Codex.
 The equivalent CLI command is:
 
 ```bash
-ai-harness acme-api --assistant codex --init-json
+pi-harness acme-api --assistant codex --init-json
 ```
 
 ### What gets created
@@ -80,7 +80,7 @@ The new repo gets the standard AI workflow foundation:
 ### What to do next
 
 1. Copy `.env.example` to `.env` and fill in local values.
-2. Run `ai-harness doctor . --assistant codex`.
+2. Run `pi-harness doctor . --assistant codex`.
 3. Run `bd init` once before using Beads in that repo.
 4. Start normal work with `bd ready --json` and `bd update <id> --claim --json`.
 5. For planning, research, or autonomous startup work, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
@@ -116,7 +116,7 @@ This context is used to tailor only the newly created scaffold files, not to rew
 The normal adoption command is:
 
 ```bash
-ai-harness --mode existing . --assistant codex --init-json
+pi-harness --mode existing . --assistant codex --init-json
 ```
 
 ### Preserve-by-default behavior
@@ -141,7 +141,7 @@ Use these only when you explicitly want them.
 Curated legacy cleanup:
 
 ```bash
-ai-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --init-json
+pi-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --init-json
 ```
 
 Use this only for deprecated workflow leftovers, including legacy `.planning/`, `.sisyphus/`, and planning-sync artifacts when they are present.
@@ -149,13 +149,13 @@ Use this only for deprecated workflow leftovers, including legacy `.planning/`, 
 Root-file merge for `.gitignore` and `.env.example`:
 
 ```bash
-ai-harness --mode existing . --assistant codex --merge-root-files --init-json
+pi-harness --mode existing . --assistant codex --merge-root-files --init-json
 ```
 
 Non-interactive cleanup in automation:
 
 ```bash
-ai-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --non-interactive --init-json
+pi-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-frameworks-v1 --non-interactive --init-json
 ```
 
 ### What to do next
@@ -163,23 +163,23 @@ ai-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-fram
 1. Customize only the files listed in `createdPaths`.
 2. Leave `skippedPaths` alone unless you explicitly want to edit them.
 3. Review any cleanup results before continuing.
-4. Run `ai-harness doctor . --assistant codex`.
+4. Run `pi-harness doctor . --assistant codex`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
 6. Start the normal loop: `bd ready --json` -> claim issue -> Cognee brief when needed -> verify -> close -> execution/autonomous landing lane runs `./.codex/scripts/land.sh`.
 
 ## Refreshing an already scaffolded repo later
 
-When you want to bring a repo forward to a newer `ai-harness` version:
+When you want to bring a repo forward to a newer `pi-harness` version:
 
 ```bash
 pnpm install
 pnpm build
 pnpm install:local
-ai-harness --mode existing <path> --assistant codex --init-json
-ai-harness doctor <path> --assistant codex
+pi-harness --mode existing <path> --assistant codex --init-json
+pi-harness doctor <path> --assistant codex
 ```
 
-Record the previous and new `ai-harness` versions plus the source commit in the PR or handoff note.
+Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
 ## Daily workflow after setup
 

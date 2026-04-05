@@ -1,6 +1,6 @@
-# ai-harness map
+# pi-harness map
 
-`ai-harness` is a TypeScript CLI that bootstraps repositories for a Pi-operated Codex workflow with Beads and Cognee.
+`pi-harness` is a TypeScript CLI that bootstraps repositories for a Pi-operated Codex workflow with Beads and Cognee.
 
 ## Key surfaces
 
@@ -18,13 +18,13 @@
 
 ```bash
 # new repository
-ai-harness my-app --assistant codex --init-json
+pi-harness my-app --assistant codex --init-json
 
 # existing repository
-ai-harness --mode existing . --assistant codex --init-json
+pi-harness --mode existing . --assistant codex --init-json
 
 # audit a repository
-ai-harness doctor . --assistant codex
+pi-harness doctor . --assistant codex
 ```
 
 ## Behavioral summary

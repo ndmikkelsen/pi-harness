@@ -9,7 +9,7 @@ import { runInit } from '../../src/commands/init.js';
 
 describe('runDoctor', () => {
   it('passes for a fresh Codex scaffold', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -39,7 +39,7 @@ describe('runDoctor', () => {
   });
 
   it('auto-detects Codex and validates the shared backend', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -65,7 +65,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when the canonical operator workflow reference is removed from AGENTS.md', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -100,7 +100,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when a stale OMO contract file is still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -136,7 +136,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when the Beads post-checkout hook loses the worktree bootstrap fallback', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -171,7 +171,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when autonomous workflow loses Beads work selection guidance', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -208,7 +208,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when a stale GSD alignment artifact is still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -244,7 +244,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when a stale OpenCode worktree config is still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -280,7 +280,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when a managed workflow doc regresses to GSD command guidance', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -317,7 +317,7 @@ describe('runDoctor', () => {
   });
 
   it('fails when a Codex repo is missing a shared backend file', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -345,7 +345,7 @@ describe('runDoctor', () => {
   });
 
   it('warns when an expected executable loses its execute bit', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -377,7 +377,7 @@ describe('runDoctor', () => {
   });
 
   it('does not fail adopted existing repos when preserved root files lack scaffold values', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,
@@ -425,7 +425,7 @@ describe('runDoctor', () => {
   });
 
   it('warns when deprecated planning-era artifacts are still present', async () => {
-    const workspace = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-doctor-'));
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
       cwd: workspace,

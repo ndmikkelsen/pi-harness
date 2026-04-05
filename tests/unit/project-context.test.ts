@@ -19,7 +19,7 @@ describe('resolveProjectInput', () => {
   });
 
   it('infers a project name from the current directory in existing mode', async () => {
-    const parentDir = await mkdtemp(path.join(os.tmpdir(), 'ai-harness-context-'));
+    const parentDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-context-'));
     const projectDir = path.join(parentDir, 'existing-project');
     await mkdir(projectDir);
 
