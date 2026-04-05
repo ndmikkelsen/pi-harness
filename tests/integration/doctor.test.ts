@@ -38,7 +38,7 @@ describe('runDoctor', () => {
     );
   });
 
-  it('auto-detects Codex and validates the shared backend', async () => {
+  it('validates the shared backend for the codex baseline', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
@@ -56,7 +56,7 @@ describe('runDoctor', () => {
     const result = await runDoctor({
       cwd: workspace,
       targetArg: targetDir,
-      assistant: 'auto',
+      assistant: 'codex',
       json: true
     });
 
@@ -316,6 +316,48 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when operator workflow regresses to the legacy ai-harness name', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-ai-harness-name',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-ai-harness-name');
+    const workflowPath = path.join(targetDir, '.rules', 'patterns', 'operator-workflow.md');
+    const workflow = await readFile(workflowPath, 'utf8');
+    await writeFile(
+      workflowPath,
+      workflow.replace('repositories scaffolded with `pi-harness`', 'repositories scaffolded with `ai-harness`'),
+      'utf8',
+    );
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.rules/patterns/operator-workflow.md',
+          reason: 'missing pi-harness scaffold reference'
+        })
+      ])
+    );
+  });
+
+
   it('fails when a Codex repo is missing a shared backend file', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
@@ -424,7 +466,7 @@ describe('runDoctor', () => {
     );
   });
 
-  it('warns when deprecated planning-era artifacts are still present', async () => {
+  it('fails when deprecated planning-era artifacts are still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 
     await runInit({
@@ -454,31 +496,35 @@ describe('runDoctor', () => {
       json: false
     });
 
-    expect(result.status).toBe('warn');
+    expect(result.status).toBe('fail');
     expect(result.groups).toEqual(
-      expect.arrayContaining([expect.objectContaining({ name: 'deprecated-artifacts', status: 'warn' })])
+      expect.arrayContaining([expect.objectContaining({ name: 'deprecated-artifacts', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.planning',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/cognee-sync-planning.sh',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        }),
+        expect.objectContaining({
+          path: '.codex/scripts/sync-planning-to-cognee.sh',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        })
+      ])
     );
     expect(result.warnings).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: '.planning',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
-        }),
-        expect.objectContaining({
           path: '.sisyphus',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
-        }),
-        expect.objectContaining({
-          path: '.codex/scripts/cognee-sync-planning.sh',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
-        }),
-        expect.objectContaining({
-          path: '.codex/scripts/sync-planning-to-cognee.sh',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1')
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
         })
       ])
     );
-    expect(formatDoctorReport(result)).toContain('deprecated-artifacts: warn');
+    expect(formatDoctorReport(result)).toContain('deprecated-artifacts: fail');
     expect(result.recommendations).toEqual(
       expect.arrayContaining([
         expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')

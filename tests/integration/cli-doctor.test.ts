@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +14,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
 describe('CLI doctor', () => {
-  it('accepts auto assistant on the doctor subcommand for the codex baseline', async () => {
+  it('rejects auto assistant on the doctor subcommand', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
 
     await runInit({
@@ -29,20 +29,68 @@ describe('CLI doctor', () => {
     });
 
     const targetDir = path.join(workspace, 'doctor-cli-codex');
-    const result = await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', 'doctor', '--assistant', 'auto', '--json', targetDir],
-      {
+
+    await expect(
+      execFile(process.execPath, [tsxCli, 'src/cli.ts', 'doctor', '--assistant', 'auto', '--json', targetDir], {
         cwd: repoRoot,
         encoding: 'utf8'
-      }
+      }),
+    ).rejects.toMatchObject({
+      stderr: expect.stringContaining('Assistant must be one of: codex.')
+    });
+  });
+
+  it('supports the documented existing-repo adoption path followed by doctor', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
+    const targetDir = path.join(workspace, 'existing-cli-adoption');
+
+    await mkdir(targetDir, { recursive: true });
+
+
+    await writeFile(path.join(targetDir, 'README.md'), '# Existing repo\n', 'utf8');
+
+    const initResult = await execFile(
+      process.execPath,
+      [
+        tsxCli,
+        path.join(repoRoot, 'src', 'cli.ts'),
+        '--mode',
+        'existing',
+        '--assistant',
+        'codex',
+        '--init-json',
+        '.',
+      ],
+      {
+        cwd: targetDir,
+        encoding: 'utf8'
+      },
     );
 
-    const payload = JSON.parse(result.stdout) as { assistant: string; status: string };
+    const initPayload = JSON.parse(initResult.stdout) as { createdPaths: string[]; skippedPaths: string[] };
+    expect(initPayload.createdPaths).toContain('.codex/README.md');
+    expect(initPayload.skippedPaths).toContain('README.md');
 
-    expect(payload.assistant).toBe('codex');
-    expect(payload.status).toBe('pass');
+    const doctorResult = await execFile(
+      process.execPath,
+      [tsxCli, path.join(repoRoot, 'src', 'cli.ts'), 'doctor', '--assistant', 'codex', '--json', '.'],
+      {
+        cwd: targetDir,
+        encoding: 'utf8'
+      },
+    );
+
+    const doctorPayload = JSON.parse(doctorResult.stdout) as {
+      status: string;
+      groups: Array<{ name: string; status: string }>;
+    };
+
+    expect(doctorPayload.status).toBe('pass');
+    expect(doctorPayload.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'pass' })]),
+    );
   });
+
 
   it('prints local-use guidance in the human-readable doctor report', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));

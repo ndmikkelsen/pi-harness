@@ -81,7 +81,7 @@ describe('scaffold snapshots', () => {
     expect(result['README.md']).toContain('This scaffold assumes `pi-harness` is used locally to set up and refresh repos');
     expect(result['README.md']).toContain('there is no separate `scaiff` binary or package alias');
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(result['README.md']).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
+    expect(result['README.md']).toContain('Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.');
     expect(result['.codex/README.md']).toContain('Use `pi-harness --mode existing . --assistant codex --init-json`');
     expect(result['.codex/README.md']).toContain('./.codex/scripts/cognee-brief.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');

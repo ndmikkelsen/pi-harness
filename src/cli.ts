@@ -3,7 +3,7 @@
 import { Command, InvalidArgumentError } from 'commander';
 
 import { DEFAULT_POLICY, type ProjectMode } from './core/policy.js';
-import type { AssistantSelection, AssistantTarget } from './core/types.js';
+import type { AssistantTarget } from './core/types.js';
 import { formatDoctorReport, runDoctor } from './commands/doctor.js';
 import { formatInitReport, runInit } from './commands/init.js';
 
@@ -16,19 +16,11 @@ function parseMode(value: string): ProjectMode {
 }
 
 function parseAssistant(value: string): AssistantTarget {
-  if (value === 'auto' || value === 'codex') {
+  if (value === 'codex') {
     return 'codex';
   }
 
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex.');
-}
-
-function parseDoctorAssistant(value: string): AssistantSelection {
-  if (value === 'auto' || value === 'codex') {
-    return value;
-  }
-
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex.');
+  throw new InvalidArgumentError('Assistant must be one of: codex.');
 }
 
 const program = new Command();
@@ -92,7 +84,7 @@ program
   .command('doctor')
   .description('Audit whether a repository matches the Codex + Beads + Cognee scaffold baseline.')
   .argument('[target]', 'target directory', '.')
-  .option('--assistant <assistant>', 'assistant target: auto or codex', parseDoctorAssistant, 'auto')
+  .option('--assistant <assistant>', 'assistant target: codex', parseAssistant, 'codex')
   .option('--json', 'emit machine-readable JSON output', false)
   .action(async (targetArg: string, options) => {
     const result = await runDoctor({

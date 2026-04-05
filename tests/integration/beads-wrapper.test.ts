@@ -28,15 +28,15 @@ describe('Beads integration', () => {
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
 
     expect(readme).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(readme).toContain('Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.');
+    expect(readme).toContain('Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
     expect(beadsGuide).toContain('## Beads -> Verify -> Beads');
     expect(beadsGuide).toContain('`bd update <id> --claim --json`');
     expect(beadsGuide).toContain('repo-local workflow and plan');
     expect(codexReadme).toContain('Use `pi-harness --mode existing . --assistant codex --init-json`');
-    expect(codexReadme).toContain('Close or update Beads issues only after verification passes');
+    expect(codexReadme).toContain('runtime surface map and maintenance guide');
     expect(codexReadme).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(agentsGuide).toContain('Follow `.rules/patterns/operator-workflow.md` plus `.codex/workflows/autonomous-execution.md` as the default execution loop.');
+    expect(agentsGuide).toContain('Use `.rules/patterns/operator-workflow.md` as the canonical day-to-day runbook');
     expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(agentsGuide).toContain('### Beads + Cognee Loop');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');

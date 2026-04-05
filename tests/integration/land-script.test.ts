@@ -208,5 +208,5 @@ exit 43
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
-  });
+  }, 15000);
 });

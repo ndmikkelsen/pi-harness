@@ -29,12 +29,12 @@ That gives you:
 
 ## Current-state runbook
 
-Use this as the authoritative sequence after install:
+Use this as the install and adoption entrypoint, then hand daily execution to the canonical runbooks:
 
 1. Scaffold or adopt with `pi-harness ... --assistant codex --init-json`.
 2. Run `pi-harness doctor <target> --assistant codex`.
 3. Run `bd init` once in the target repo if Beads has not been initialized yet.
-4. Use the daily Beads + Cognee loop from `.rules/patterns/operator-workflow.md`.
+4. Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop.
 5. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
 
 ## Mental model
@@ -82,10 +82,9 @@ The new repo gets the standard AI workflow foundation:
 1. Copy `.env.example` to `.env` and fill in local values.
 2. Run `pi-harness doctor . --assistant codex`.
 3. Run `bd init` once before using Beads in that repo.
-4. Start normal work with `bd ready --json` and `bd update <id> --claim --json`.
-5. For planning, research, or autonomous startup work, attempt `./.codex/scripts/cognee-brief.sh "<query>"` before broad repository exploration.
-6. Execute and verify from `.rules/patterns/operator-workflow.md` and `.codex/workflows/autonomous-execution.md`.
-7. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
+4. Use `.rules/patterns/operator-workflow.md` for the daily claim-first loop.
+5. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
+6. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
 
 ## Existing repository walkthrough
 
@@ -165,7 +164,7 @@ pi-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-fram
 3. Review any cleanup results before continuing.
 4. Run `pi-harness doctor . --assistant codex`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
-6. Start the normal loop: `bd ready --json` -> claim issue -> Cognee brief when needed -> verify -> close -> execution/autonomous landing lane runs `./.codex/scripts/land.sh`.
+6. Use `.rules/patterns/operator-workflow.md` for the daily loop and `.codex/workflows/autonomous-execution.md` for backlog-driven automation.
 
 ## Refreshing an already scaffolded repo later
 
@@ -181,16 +180,30 @@ pi-harness doctor <path> --assistant codex
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
-## Daily workflow after setup
+## Seeding Cognee datasets when briefs are empty
 
-Once a repo is scaffolded, the intended default loop is:
+If `./.codex/scripts/cognee-brief.sh` reports missing datasets, seed the knowledge garden before treating Cognee as unavailable.
+
+- Keep the default split: `<app>-knowledge` for README/docs/rules/handoff context, `<app>-patterns` for reusable agents, skills, feature files, and workflow examples.
+- Use `sync-dir` for directories containing `.md` or `.feature` files, and `upload` for standalone files such as `README.md`, `STICKYNOTE.md`, or a single handoff note.
 
 ```bash
-bd ready --json
-bd update <id> --claim --json
-./.codex/scripts/cognee-brief.sh "<query>"
-# then execute and verify from .rules/patterns/operator-workflow.md
-# and .codex/workflows/autonomous-execution.md
-bd close <id> --reason "Verified: <artifact or task> passed" --json
-# execution/autonomous landing lane runs ./.codex/scripts/land.sh
+APP_SLUG=<app-slug>
+
+./.codex/scripts/cognee-bridge.sh sync-dir docs --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh sync-dir .rules --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh upload README.md --dataset "$APP_SLUG-knowledge"
+
+./.codex/scripts/cognee-bridge.sh sync-dir .codex/agents --dataset "$APP_SLUG-patterns"
+./.codex/scripts/cognee-bridge.sh sync-dir .codex/skills --dataset "$APP_SLUG-patterns"
+
+./.codex/scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-knowledge"
+./.codex/scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-patterns"
 ```
+
+Validate the refresh with `./.codex/scripts/cognee-bridge.sh health` and a follow-up `./.codex/scripts/cognee-brief.sh "<query>"`. Cognee remains optional acceleration; local verification is still required.
+
+
+## Daily workflow after setup
+
+After setup, `.rules/patterns/operator-workflow.md` is the canonical daily runbook and `.codex/workflows/autonomous-execution.md` is the canonical autonomous variant. This guide intentionally stops at install, adoption, refresh, and audit commands so it does not become a second workflow authority.

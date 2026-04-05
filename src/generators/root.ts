@@ -70,7 +70,7 @@ function envrc(context: ScaffoldContext): string {
 function readme(context: ScaffoldContext): string {
   const assistantLabel = assistantDisplayName(context.assistant);
   const codexBullet = '- Codex runtime files in .codex/ and AGENTS.md';
-  const workflowGuideLine = 'Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.';
+  const workflowGuideLine = 'Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.';
 
   return loadTemplate('root/README.md', {
     APP_TITLE: context.appTitle,
