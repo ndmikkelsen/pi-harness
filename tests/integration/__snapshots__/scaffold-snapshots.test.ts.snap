@@ -28,6 +28,8 @@ exports[`scaffold snapshots > matches the Codex scaffold snapshot 1`] = `
   ".gitignore",
   ".gitleaks.toml",
   ".kamal/secrets.example",
+  ".omp/agents/orchestrator.md",
+  ".omp/skills/parallel-wave-design/SKILL.md",
   ".pre-commit-config.yaml",
   ".rules/index.md",
   ".rules/patterns/bdd-workflow.md",

@@ -119,7 +119,7 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale legacy assistant artifacts, and rerun \`pi-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
+      `Refresh the scaffold workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, restore the expected .omp/.codex workflow assets, remove stale legacy assistant artifacts, and rerun \`pi-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
     );
   }
 
@@ -171,12 +171,16 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'AGENTS.md',
     'README.md',
     '.codex/README.md',
+    '.codex/agents/orchestrator.md',
     '.codex/skills/harness/SKILL.md',
     '.codex/skills/harness/references/pi-harness-command-matrix.md',
     '.codex/skills/harness/references/scaffold-customization-map.md',
     '.codex/skills/harness/references/existing-repo-context-checklist.md',
     '.codex/scripts/bootstrap-worktree.sh',
     '.codex/workflows/autonomous-execution.md',
+    '.codex/workflows/parallel-execution.md',
+    '.omp/agents/orchestrator.md',
+    '.omp/skills/parallel-wave-design/SKILL.md',
     '.rules/index.md',
     '.rules/patterns/beads-integration.md',
     '.rules/patterns/git-workflow.md',
@@ -185,7 +189,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const alignmentManagedPaths = new Set([
     'AGENTS.md',
     '.codex/README.md',
+    '.codex/agents/orchestrator.md',
     '.codex/workflows/autonomous-execution.md',
+    '.codex/workflows/parallel-execution.md',
+    '.omp/agents/orchestrator.md',
+    '.omp/skills/parallel-wave-design/SKILL.md',
     '.rules/patterns/operator-workflow.md',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
@@ -270,6 +278,22 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       severity: 'fail',
     });
   }
+  if (codexReadme !== null && !codexReadme.includes('.omp/agents/orchestrator.md')) {
+    alignmentInvalid.push({
+      path: '.codex/README.md',
+      reason: 'missing Pi-native orchestrator mapping',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (codexReadme !== null && !codexReadme.includes('.omp/skills/parallel-wave-design/SKILL.md')) {
+    alignmentInvalid.push({
+      path: '.codex/README.md',
+      reason: 'missing Pi-native skill mapping',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
   if (agentsGuide !== null && !agentsGuide.includes('.codex/scripts/')) {
@@ -279,6 +303,14 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     alignmentInvalid.push({
       path: 'AGENTS.md',
       reason: 'missing canonical operator workflow reference',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (agentsGuide !== null && !agentsGuide.includes('.omp/agents/*.md')) {
+    alignmentInvalid.push({
+      path: 'AGENTS.md',
+      reason: 'missing Pi-native orchestration guidance',
       category: 'alignment',
       severity: 'fail',
     });
@@ -331,6 +363,102 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     alignmentInvalid.push({
       path: '.codex/workflows/autonomous-execution.md',
       reason: 'missing Cognee availability fallback guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
+  const parallelWorkflow = await readFileIfPresent(targetDir, '.codex/workflows/parallel-execution.md');
+  if (parallelWorkflow !== null && !parallelWorkflow.includes('3-5 files')) {
+    alignmentInvalid.push({
+      path: '.codex/workflows/parallel-execution.md',
+      reason: 'missing Pi task scope guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (parallelWorkflow !== null && !parallelWorkflow.includes('task `context`')) {
+    alignmentInvalid.push({
+      path: '.codex/workflows/parallel-execution.md',
+      reason: 'missing shared task context guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (parallelWorkflow !== null && !parallelWorkflow.includes('isolated: true')) {
+    alignmentInvalid.push({
+      path: '.codex/workflows/parallel-execution.md',
+      reason: 'missing isolated task guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
+  const codexOrchestrator = await readFileIfPresent(targetDir, '.codex/agents/orchestrator.md');
+  if (codexOrchestrator !== null && !codexOrchestrator.includes('.omp/agents/orchestrator.md')) {
+    alignmentInvalid.push({
+      path: '.codex/agents/orchestrator.md',
+      reason: 'missing Pi-native orchestrator handoff',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (codexOrchestrator !== null && !codexOrchestrator.includes('3-5 files')) {
+    alignmentInvalid.push({
+      path: '.codex/agents/orchestrator.md',
+      reason: 'missing Pi task scope guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
+  const ompOrchestrator = await readFileIfPresent(targetDir, '.omp/agents/orchestrator.md');
+  if (ompOrchestrator !== null && !ompOrchestrator.includes('name: orchestrator')) {
+    alignmentInvalid.push({
+      path: '.omp/agents/orchestrator.md',
+      reason: 'missing orchestrator frontmatter name',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (ompOrchestrator !== null && !ompOrchestrator.includes('skill://parallel-wave-design')) {
+    alignmentInvalid.push({
+      path: '.omp/agents/orchestrator.md',
+      reason: 'missing parallel-wave skill reference',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (ompOrchestrator !== null && !ompOrchestrator.includes('3-5 files')) {
+    alignmentInvalid.push({
+      path: '.omp/agents/orchestrator.md',
+      reason: 'missing Pi task scope guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+
+  const ompParallelWaveSkill = await readFileIfPresent(targetDir, '.omp/skills/parallel-wave-design/SKILL.md');
+  if (ompParallelWaveSkill !== null && !ompParallelWaveSkill.includes('name: parallel-wave-design')) {
+    alignmentInvalid.push({
+      path: '.omp/skills/parallel-wave-design/SKILL.md',
+      reason: 'missing parallel-wave skill frontmatter name',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (ompParallelWaveSkill !== null && !ompParallelWaveSkill.includes('3-5 files')) {
+    alignmentInvalid.push({
+      path: '.omp/skills/parallel-wave-design/SKILL.md',
+      reason: 'missing Pi task scope guidance',
+      category: 'alignment',
+      severity: 'fail',
+    });
+  }
+  if (ompParallelWaveSkill !== null && !ompParallelWaveSkill.includes('task `context`')) {
+    alignmentInvalid.push({
+      path: '.omp/skills/parallel-wave-design/SKILL.md',
+      reason: 'missing shared task context guidance',
       category: 'alignment',
       severity: 'fail',
     });

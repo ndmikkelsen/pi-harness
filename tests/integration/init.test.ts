@@ -34,6 +34,8 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
+    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(result.createdPaths).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
@@ -97,12 +99,19 @@ describe('runInit', () => {
 
     const codexReadme = await readFile(path.join(workspace, 'codex-app', '.codex', 'README.md'), 'utf8');
     const agentsGuide = await readFile(path.join(workspace, 'codex-app', 'AGENTS.md'), 'utf8');
+    const ompOrchestrator = await readFile(path.join(workspace, 'codex-app', '.omp', 'agents', 'orchestrator.md'), 'utf8');
+    const ompSkill = await readFile(
+      path.join(workspace, 'codex-app', '.omp', 'skills', 'parallel-wave-design', 'SKILL.md'),
+      'utf8'
+    );
     const codexBridgeWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-brief.sh'), 'utf8');
 
     expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
+    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
     expect(result.createdPaths).toContain('AGENTS.md');
     expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
@@ -113,13 +122,19 @@ describe('runInit', () => {
     expect(codexReadme).toContain('Codex Compatibility Layer');
     expect(codexReadme).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
+    expect(codexReadme).toContain('.omp/agents/orchestrator.md');
+    expect(codexReadme).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
     expect(codexReadme).toContain('./.codex/scripts/cognee-brief.sh');
     expect(codexReadme).toContain('.codex/skills/harness/SKILL.md');
     expect(codexReadme).not.toContain('./.codex/scripts/sync-to-cognee.sh');
     expect(agentsGuide).toContain('Codex Workflow');
+    expect(agentsGuide).toContain('.omp/agents/*.md');
     expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
     expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
+    expect(ompOrchestrator).toContain('name: orchestrator');
+    expect(ompOrchestrator).toContain('skill://parallel-wave-design');
+    expect(ompSkill).toContain('name: parallel-wave-design');
     expect(codexBridgeWrapper).toContain('.codex/scripts/cognee-bridge.sh');
     await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-sync-planning.sh'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8')).rejects.toThrow();
@@ -253,6 +268,8 @@ describe('runInit', () => {
     expect(result.createdPaths).toContain('.codex/README.md');
     expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
     expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
+    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
+    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(result.cleanup.enabled).toBe(false);
   });
 

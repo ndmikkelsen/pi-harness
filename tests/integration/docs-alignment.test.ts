@@ -32,6 +32,30 @@ describe('workflow docs alignment', () => {
           ['dist', 'templates', 'codex', 'workflows', 'autonomous-execution.md'],
         ],
       },
+      {
+        sourcePath: ['src', 'templates', 'codex', 'workflows', 'parallel-execution.md'],
+        mirrorPaths: [
+          ['.codex', 'workflows', 'parallel-execution.md'],
+          ['dist', 'src', 'templates', 'codex', 'workflows', 'parallel-execution.md'],
+          ['dist', 'templates', 'codex', 'workflows', 'parallel-execution.md'],
+        ],
+      },
+      {
+        sourcePath: ['src', 'templates', 'omp', 'agents', 'orchestrator.md'],
+        mirrorPaths: [
+          ['.omp', 'agents', 'orchestrator.md'],
+          ['dist', 'src', 'templates', 'omp', 'agents', 'orchestrator.md'],
+          ['dist', 'templates', 'omp', 'agents', 'orchestrator.md'],
+        ],
+      },
+      {
+        sourcePath: ['src', 'templates', 'omp', 'skills', 'parallel-wave-design', 'SKILL.md'],
+        mirrorPaths: [
+          ['.omp', 'skills', 'parallel-wave-design', 'SKILL.md'],
+          ['dist', 'src', 'templates', 'omp', 'skills', 'parallel-wave-design', 'SKILL.md'],
+          ['dist', 'templates', 'omp', 'skills', 'parallel-wave-design', 'SKILL.md'],
+        ],
+      },
     ] as const;
 
     for (const surface of literalWorkflowSurfaces) {
@@ -50,16 +74,45 @@ describe('workflow docs alignment', () => {
       'patterns',
       'operator-workflow.md',
     );
+    const templateParallelWorkflow = await readRepoFile(
+      'src',
+      'templates',
+      'codex',
+      'workflows',
+      'parallel-execution.md',
+    );
+    const templateOmpOrchestrator = await readRepoFile(
+      'src',
+      'templates',
+      'omp',
+      'agents',
+      'orchestrator.md',
+    );
+    const templateOmpSkill = await readRepoFile(
+      'src',
+      'templates',
+      'omp',
+      'skills',
+      'parallel-wave-design',
+      'SKILL.md',
+    );
+
     expect(templateOperatorWorkflow).toContain('repositories scaffolded with `pi-harness`');
+    expect(templateParallelWorkflow).toContain('3-5 files');
+    expect(templateOmpOrchestrator).toContain('name: orchestrator');
+    expect(templateOmpSkill).toContain('name: parallel-wave-design');
   });
 
-  it('keeps repo-facing docs aligned to the codex-only baseline', async () => {
+  it('keeps repo-facing docs aligned to the hybrid Pi-native baseline', async () => {
     const rootReadme = await readRepoFile('README.md');
     const harnessUsage = await readRepoFile('docs', 'harness-usage.md');
     const operatorWorkflow = await readRepoFile('.rules', 'patterns', 'operator-workflow.md');
     const agentsGuide = await readRepoFile('AGENTS.md');
     const codexReadme = await readRepoFile('.codex', 'README.md');
     const autonomousWorkflow = await readRepoFile('.codex', 'workflows', 'autonomous-execution.md');
+    const parallelWorkflow = await readRepoFile('.codex', 'workflows', 'parallel-execution.md');
+    const ompOrchestrator = await readRepoFile('.omp', 'agents', 'orchestrator.md');
+    const ompSkill = await readRepoFile('.omp', 'skills', 'parallel-wave-design', 'SKILL.md');
     const templateAgentsGuide = await readRepoFile('src', 'templates', 'codex', 'AGENTS.md');
     const templateCodexReadme = await readRepoFile('src', 'templates', 'codex', 'README.md');
     const templateRootReadme = await readRepoFile('src', 'templates', 'root', 'README.md');
@@ -70,6 +123,13 @@ describe('workflow docs alignment', () => {
       'workflows',
       'autonomous-execution.md',
     );
+    const templateParallelWorkflow = await readRepoFile(
+      'src',
+      'templates',
+      'codex',
+      'workflows',
+      'parallel-execution.md',
+    );
     const orchestratorGuide = await readRepoFile('.codex', 'agents', 'orchestrator.md');
     const templateOrchestratorGuide = await readRepoFile(
       'src',
@@ -78,17 +138,40 @@ describe('workflow docs alignment', () => {
       'agents',
       'orchestrator.md',
     );
+    const templateOmpOrchestrator = await readRepoFile(
+      'src',
+      'templates',
+      'omp',
+      'agents',
+      'orchestrator.md',
+    );
+    const templateOmpSkill = await readRepoFile(
+      'src',
+      'templates',
+      'omp',
+      'skills',
+      'parallel-wave-design',
+      'SKILL.md',
+    );
 
     const migratedDocs = [
       rootReadme,
       harnessUsage,
       agentsGuide,
       codexReadme,
+      autonomousWorkflow,
+      parallelWorkflow,
+      ompOrchestrator,
+      ompSkill,
       templateAgentsGuide,
       templateCodexReadme,
       templateRootReadme,
-      autonomousWorkflow,
       templateAutonomousWorkflow,
+      templateParallelWorkflow,
+      templateOrchestratorGuide,
+      templateOmpOrchestrator,
+      templateOmpSkill,
+      orchestratorGuide,
     ];
 
     for (const doc of migratedDocs) {
@@ -107,31 +190,37 @@ describe('workflow docs alignment', () => {
       expect(doc).not.toContain('./.codex/scripts/sync-planning-to-cognee.sh');
     }
 
-    expect(rootReadme).toContain('Pi-operated Codex workflow with Beads and Cognee');
-    expect(rootReadme).toContain('Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.');
-    expect(harnessUsage).toContain('Pi-operated Codex workflow with Beads and Cognee');
-    expect(harnessUsage).toContain('Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop.');
+    expect(rootReadme).toContain('Pi-operated Codex workflow with Beads, Cognee, and Pi-native orchestration assets');
+    expect(rootReadme).toContain('Review AGENTS.md, `.omp/`, and `.codex/README.md` for workflow authority, Pi-native assets, and compatibility maintenance notes.');
+    expect(harnessUsage).toContain('Pi-operated Codex workflow with Beads, Cognee, and Pi-native orchestration assets');
+    expect(harnessUsage).toContain('.omp/agents/*.md');
     expect(harnessUsage).toContain('## Seeding Cognee datasets when briefs are empty');
-    expect(agentsGuide).toContain('### Beads + Cognee Loop');
+    expect(agentsGuide).toContain('.omp/agents/*.md');
     expect(agentsGuide).toContain('Planning, research, and review lanes must hand off instead of publishing.');
-    expect(codexReadme).toContain('should use them directly from Pi');
+    expect(codexReadme).toContain('should use them directly from Pi through this compatibility layer');
+    expect(codexReadme).toContain('.omp/agents/orchestrator.md');
+    expect(codexReadme).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(codexReadme).toContain('APP_SLUG=<app-slug>');
-    expect(codexReadme).not.toContain('| Planning sync |');
-    if (codexReadme.includes('.planning/')) {
-      expect(codexReadme).toContain('planning-sync surfaces stay cleanup-only');
-    }
     expect(operatorWorkflow).toContain('if you are in an execution/autonomous landing lane, finish the branch with `./.codex/scripts/land.sh`');
     expect(autonomousWorkflow).toContain('planning, research, or review lanes must stop with a handoff instead of publishing');
-    expect(templateAgentsGuide).toContain('inside Pi');
-    expect(templateCodexReadme).toContain('should use them directly from Pi');
-    expect(templateCodexReadme).toContain('APP_SLUG=<app-slug>');
-    expect(templateCodexReadme).not.toContain('| Planning sync |');
-    if (templateCodexReadme.includes('.planning/')) {
-      expect(templateCodexReadme).toContain('planning-sync surfaces stay cleanup-only');
-    }
-    expect(templateRootReadme).toContain('Pi-operated {{ASSISTANT_LABEL}} workflow with Beads and Cognee');
+    expect(parallelWorkflow).toContain('3-5 files');
+    expect(parallelWorkflow).toContain('task `context`');
+    expect(parallelWorkflow).toContain('isolated: true');
+    expect(ompOrchestrator).toContain('name: orchestrator');
+    expect(ompOrchestrator).toContain('skill://parallel-wave-design');
+    expect(ompSkill).toContain('name: parallel-wave-design');
+    expect(ompSkill).toContain('task `context`');
+    expect(templateAgentsGuide).toContain('.omp/agents/*.md');
+    expect(templateCodexReadme).toContain('.omp/agents/orchestrator.md');
+    expect(templateCodexReadme).toContain('.omp/skills/parallel-wave-design/SKILL.md');
+    expect(templateRootReadme).toContain('Pi-operated {{ASSISTANT_LABEL}} workflow with Beads, Cognee, and Pi-native orchestration assets');
     expect(templateAutonomousWorkflow).toContain('continue only when the work remains locally verifiable');
-    expect(orchestratorGuide).toContain('Generate a Cognee brief before major planning or research, and consume the latest brief during execution when one exists');
-    expect(templateOrchestratorGuide).toContain('Generate a Cognee brief before major planning or research, and consume the latest brief during execution when one exists');
+    expect(templateParallelWorkflow).toContain('3-5 files');
+    expect(orchestratorGuide).toContain('.omp/agents/orchestrator.md');
+    expect(orchestratorGuide).toContain('3-5 files');
+    expect(templateOrchestratorGuide).toContain('.omp/agents/orchestrator.md');
+    expect(templateOrchestratorGuide).toContain('3-5 files');
+    expect(templateOmpOrchestrator).toContain('name: orchestrator');
+    expect(templateOmpSkill).toContain('name: parallel-wave-design');
   });
 });

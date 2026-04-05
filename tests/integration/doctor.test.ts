@@ -207,6 +207,80 @@ describe('runDoctor', () => {
     );
   });
 
+
+  it('fails when parallel workflow loses isolated task guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-parallel-guidance',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-parallel-guidance');
+    const workflowPath = path.join(targetDir, '.codex', 'workflows', 'parallel-execution.md');
+    const workflow = await readFile(workflowPath, 'utf8');
+    await writeFile(workflowPath, workflow.replace('isolated: true', 'isolated true'), 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.codex/workflows/parallel-execution.md',
+          reason: 'missing isolated task guidance'
+        })
+      ])
+    );
+  });
+
+  it('fails when the Pi-native orchestrator loses required frontmatter', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+
+    await runInit({
+      cwd: workspace,
+      projectArg: 'doctor-omp-orchestrator',
+      assistant: 'codex',
+      mode: 'auto',
+      dryRun: false,
+      force: false,
+      skipGit: true,
+      detectPorts: false
+    });
+
+    const targetDir = path.join(workspace, 'doctor-omp-orchestrator');
+    const orchestratorPath = path.join(targetDir, '.omp', 'agents', 'orchestrator.md');
+    const orchestrator = await readFile(orchestratorPath, 'utf8');
+    await writeFile(orchestratorPath, orchestrator.replace('name: orchestrator', 'name:'), 'utf8');
+
+    const result = await runDoctor({
+      cwd: workspace,
+      targetArg: targetDir,
+      assistant: 'codex',
+      json: false
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.omp/agents/orchestrator.md',
+          reason: 'missing orchestrator frontmatter name'
+        })
+      ])
+    );
+  });
   it('fails when a stale GSD alignment artifact is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
 

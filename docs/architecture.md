@@ -9,7 +9,7 @@
 - `src/core/*.ts` provides reusable filesystem, cleanup, git, policy, and helper logic
 - `src/generators/*.ts` map scaffold concerns to output paths
 - `src/templates/**` stores the canonical scaffold content
-- the repository root, `.codex/**`, `.rules/**`, and `config/**` are the scaffold applied back onto this repo
+- the repository root, `.omp/**`, `.codex/**`, `.rules/**`, and `config/**` are the scaffold applied back onto this repo
 
 ## Layers
 
@@ -32,7 +32,7 @@
 
 ### Scaffold composition layer
 
-- files: `src/generators/index.ts`, `src/generators/root.ts`, `src/generators/codex.ts`, `src/generators/rules.ts`, `src/generators/config.ts`, `src/generators/project-docs.ts`
+- files: `src/generators/index.ts`, `src/generators/root.ts`, `src/generators/omp.ts`, `src/generators/codex.ts`, `src/generators/rules.ts`, `src/generators/config.ts`, `src/generators/project-docs.ts`
 - responsibility: define the live scaffolded surfaces, by concern, without baking every output into one monolithic command
 
 ### Template source layer
@@ -43,7 +43,7 @@
 
 ### Dogfooded runtime and policy layer
 
-- files: `AGENTS.md`, `.codex/**`, `.rules/**`, `config/**`, `.kamal/secrets.example`, `STICKYNOTE.example.md`
+- files: `AGENTS.md`, `.omp/**`, `.codex/**`, `.rules/**`, `config/**`, `.kamal/secrets.example`, `STICKYNOTE.example.md`
 - responsibility: prove that the scaffold works against the repository that builds it
 
 ### Verification layer
@@ -62,14 +62,14 @@
 
 ## Source-of-truth rules
 
-- edit `src/templates/**` before touching dogfooded `.codex/**`, `.rules/**`, or root scaffold outputs
+- edit `src/templates/**` before touching dogfooded `.omp/**`, `.codex/**`, `.rules/**`, or root scaffold outputs
 - rebuild `dist/` after source or template changes
 - keep tests and dogfooded outputs aligned in the same change
 
 ## Current baseline assumptions
 
-- Codex is the only supported scaffold target
+- Codex is the only assistant compatibility layer currently scaffolded
 - Beads is the only backlog system intentionally scaffolded
 - Cognee is optional but first-class through `.codex/scripts/*`
-- Pi is the operating environment for the workflow, not a separate scaffold mode
+- Pi is the operating environment for the workflow, and Pi-native reusable orchestration may be scaffolded under `.omp/*`
 - legacy `.planning/`, `.sisyphus/`, and planning-sync scripts are cleanup targets rather than scaffolded runtime surfaces

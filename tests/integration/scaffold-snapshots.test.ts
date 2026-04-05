@@ -27,6 +27,11 @@ async function snapshotForProject(rootDir: string, includeCodex: boolean) {
     files: await collectFiles(rootDir),
     'README.md': await readFile(path.join(rootDir, 'README.md'), 'utf8'),
     '.codex/README.md': await readFile(path.join(rootDir, '.codex', 'README.md'), 'utf8'),
+    '.omp/agents/orchestrator.md': await readFile(path.join(rootDir, '.omp', 'agents', 'orchestrator.md'), 'utf8'),
+    '.omp/skills/parallel-wave-design/SKILL.md': await readFile(
+      path.join(rootDir, '.omp', 'skills', 'parallel-wave-design', 'SKILL.md'),
+      'utf8'
+    ),
     'STICKYNOTE.example.md': await readFile(path.join(rootDir, 'STICKYNOTE.example.md'), 'utf8'),
     '.gitignore': await readFile(path.join(rootDir, '.gitignore'), 'utf8')
   };
@@ -70,6 +75,8 @@ describe('scaffold snapshots', () => {
     expect(envrc).not.toContain('metadata.json');
     expect(envrc).not.toContain('$_DOLT_');
     expect(result.files).toContain('.beads/config.yaml');
+    expect(result.files).toContain('.omp/agents/orchestrator.md');
+    expect(result.files).toContain('.omp/skills/parallel-wave-design/SKILL.md');
     expect(result.files).not.toContain('.codex/scripts/cognee-sync-planning.sh');
     expect(result.files).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
     expect(result.files).not.toContain('.codex/scripts/sync-to-cognee.sh');
@@ -78,16 +85,19 @@ describe('scaffold snapshots', () => {
     expect(result.files).not.toContain('VISION.md');
     expect(result.files).not.toContain('STICKYNOTE.md');
     expect(result['README.md']).toContain('Scaffolded with `pi-harness` v0.1.0');
-    expect(result['README.md']).toContain('This scaffold assumes `pi-harness` is used locally to set up and refresh repos');
+    expect(result['README.md']).toContain('Pi-operated Codex workflow with Beads, Cognee, and Pi-native orchestration assets');
+    expect(result['README.md']).toContain('Review AGENTS.md, `.omp/`, and `.codex/README.md` for workflow authority, Pi-native assets, and compatibility maintenance notes.');
     expect(result['README.md']).toContain('there is no separate `scaiff` binary or package alias');
     expect(result['README.md']).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(result['README.md']).toContain('Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.');
     expect(result['.codex/README.md']).toContain('Use `pi-harness --mode existing . --assistant codex --init-json`');
+    expect(result['.codex/README.md']).toContain('.omp/agents/orchestrator.md');
     expect(result['.codex/README.md']).toContain('./.codex/scripts/cognee-brief.sh');
     expect(result['.codex/README.md']).toContain('.codex/workflows/autonomous-execution.md');
     expect(result['.codex/README.md']).toContain('pnpm test:bdd');
     expect(result['.codex/README.md']).not.toContain('.rules/patterns/omo-agent-contract.md');
     expect(result['.codex/README.md']).not.toContain('./.codex/scripts/sync-to-cognee.sh');
+    expect(result['.omp/agents/orchestrator.md']).toContain('name: orchestrator');
+    expect(result['.omp/skills/parallel-wave-design/SKILL.md']).toContain('name: parallel-wave-design');
     expect(beadsGuide).toContain('Run `bd init` once per repository');
     expect(beadsGuide).toContain('Use native `bd` commands for Beads.');
     expect(autonomousWorkflow).toContain('BEADS_AVAILABLE');

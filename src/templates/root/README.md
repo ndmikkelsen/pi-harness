@@ -1,10 +1,11 @@
 # {{APP_TITLE}}
 
-This project is scaffolded for a Pi-operated {{ASSISTANT_LABEL}} workflow with Beads and Cognee.
+This project is scaffolded for a Pi-operated {{ASSISTANT_LABEL}} workflow with Beads, Cognee, and Pi-native orchestration assets.
 
 ## What was added
 
-- Codex runtime files in `.codex/`
+- Pi-native orchestration assets in `.omp/`
+- Codex compatibility files in `.codex/`
 - Repo setup guidance in `.codex/skills/harness/`
 - Beads workflow guidance using native `bd`
 - Deployment templates in `config/` and `.kamal/`
@@ -32,7 +33,7 @@ This project is scaffolded for a Pi-operated {{ASSISTANT_LABEL}} workflow with B
 4. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
 5. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
 6. Run `bd init` once in the repository before using Beads.
-7. Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop and `.codex/workflows/autonomous-execution.md` when you want backlog-driven automation.
+7. Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop, `.omp/agents/*.md` plus `.omp/skills/*/SKILL.md` for Pi-native orchestration help, and `.codex/workflows/autonomous-execution.md` when you want backlog-driven automation.
 8. Create a feature branch before your first commit.
 9. Use `.codex/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
 10. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.

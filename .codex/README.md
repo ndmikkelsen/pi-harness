@@ -1,36 +1,44 @@
 # Codex Compatibility Layer
 
+> Compatibility map and maintenance guide for the Codex-facing runtime surface.
+
 This repository already has working project systems for backlog tracking, runtime automation, and knowledge capture.
-Codex should use them directly from Pi through this runtime layer.
+Codex should use them directly from Pi through this compatibility layer.
 
-This README is a runtime surface map and maintenance guide; `.rules/patterns/operator-workflow.md` and `.codex/workflows/*.md` remain the workflow authorities.
+Workflow authority lives in `.rules/patterns/operator-workflow.md`; Pi-native reusable orchestration lives in `.omp/*`; `.codex/*` carries compatibility docs, wrappers, and maintenance notes.
 
-## Canonical Systems
+## Authority Split
 
-- `.rules/` is the source of truth for architecture and workflow patterns
-- native `bd` is the backlog interface for Beads tracking
-- `.codex/scripts/` contains the live Cognee and runtime automation plumbing
-- `README.md` plus repo docs describe the real product and architecture
+- `.rules/patterns/operator-workflow.md` - canonical day-to-day operator workflow
+- `.omp/agents/*.md` - Pi-native custom agents discovered directly by Pi
+- `.omp/skills/*/SKILL.md` - Pi-native reusable skills for repo-specific task shaping and execution help
+- `.codex/workflows/*.md` - Codex-compatible autonomous or multi-wave deltas
+- `.codex/scripts/*.sh` - compatibility wrappers for Cognee, bootstrap, and landing
+- `README.md` plus repo docs - product and architecture truth
 
 ## Codex Mapping
 
-| Existing project surface | Codex entrypoint |
+| Project surface | Primary entrypoint |
 | --- | --- |
+| Pi-native custom agents | `.omp/agents/*.md` |
+| Pi-native reusable skills | `.omp/skills/*/SKILL.md` |
 | Runtime scripts | `.codex/scripts/*.sh` |
-| Agent role briefs | `.codex/agents/*.md` |
+| Compatibility workflow deltas | `.codex/workflows/*.md` |
+| Compatibility agent briefs | `.codex/agents/*.md` |
 | Repo setup skill | `.codex/skills/harness/SKILL.md` |
 | Cognee advisor | `./.codex/scripts/cognee-brief.sh` |
-| Worktree bootstrap | `./.codex/scripts/bootstrap-worktree.sh` |
+| Operator runbook | `.rules/patterns/operator-workflow.md` |
 | Landing protocol | `./.codex/scripts/land.sh` |
 
 ## Runtime Surface
 
-- `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `.omp/agents/orchestrator.md` - Pi-native custom agent for multi-wave task orchestration
+- `.omp/skills/parallel-wave-design/SKILL.md` - Pi-native reusable guidance for safe task batching and wave handshakes
 - `./.codex/scripts/cognee-bridge.sh` - low-level Cognee query, upload, and cognify entrypoint
-- `./.codex/scripts/cognee-brief.sh` - operator-facing Cognee brief entrypoint
-- `./.codex/scripts/land.sh` - landing protocol for execution/autonomous lanes on feature branches
-- `.codex/workflows/autonomous-execution.md` - backlog-driven autonomous execution policy for the Codex baseline
-- `.codex/workflows/parallel-execution.md` - multi-wave execution policy for the Codex baseline
+- `./.codex/scripts/bootstrap-worktree.sh` - seed local worktree state and link shared `.env` / `.kamal` secrets when present
+- `./.codex/scripts/land.sh` - feature-branch closeout that publishes the current branch and ensures a PR to `dev` exists
+- `.codex/workflows/autonomous-execution.md` - Codex-compatible backlog-driven autonomous lane delta
+- `.codex/workflows/parallel-execution.md` - Codex-compatible multi-wave delta aligned to Pi task semantics
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
 - `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
 
@@ -39,11 +47,12 @@ This README is a runtime surface map and maintenance guide; `.rules/patterns/ope
 1. Read `README.md`, repo docs, and the active handoff or plan context before editing scaffold behavior.
 2. For scaffold changes, update `src/templates/**` and relevant generators before rebuilding `dist/`.
 3. Use `.rules/patterns/operator-workflow.md` as the canonical day-to-day operator runbook.
-4. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only for autonomous or multi-wave lanes.
-5. Use the runtime scripts in `.codex/scripts/` when those runbooks call for Cognee briefs, worktree bootstrap, or landing.
-6. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
-7. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
-8. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
+4. Use `.omp/agents/*.md` and `.omp/skills/*/SKILL.md` for Pi-native reusable orchestration help when the work benefits from custom project guidance.
+5. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only for Codex-compatible autonomous or multi-wave deltas.
+6. Use the runtime scripts in `.codex/scripts/` when those runbooks call for Cognee briefs, worktree bootstrap, or landing.
+7. Use `pi-harness --mode existing . --assistant codex --init-json` to validate how this repo adopts its own scaffold without clobbering existing files.
+8. Use `pi-harness doctor . --assistant codex` to audit the current repo after runtime changes.
+9. Run `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, and `pnpm test:smoke:dist` before landing scaffold or runtime changes.
 
 ## Cognee Dataset Seeding
 
@@ -60,6 +69,8 @@ APP_SLUG=<app-slug>
 ./.codex/scripts/cognee-bridge.sh sync-dir .rules --dataset "$APP_SLUG-knowledge"
 ./.codex/scripts/cognee-bridge.sh upload README.md --dataset "$APP_SLUG-knowledge"
 
+./.codex/scripts/cognee-bridge.sh sync-dir .omp/agents --dataset "$APP_SLUG-patterns"
+./.codex/scripts/cognee-bridge.sh sync-dir .omp/skills --dataset "$APP_SLUG-patterns"
 ./.codex/scripts/cognee-bridge.sh sync-dir .codex/agents --dataset "$APP_SLUG-patterns"
 ./.codex/scripts/cognee-bridge.sh sync-dir .codex/skills --dataset "$APP_SLUG-patterns"
 
@@ -69,10 +80,9 @@ APP_SLUG=<app-slug>
 
 - Validate the refresh with `./.codex/scripts/cognee-bridge.sh health` and a follow-up `./.codex/scripts/cognee-brief.sh "<query>"`.
 
-
 ## Rules
 
-- Do not create parallel planning systems under `.codex/`; legacy `.planning/`, `.sisyphus/`, and planning-sync surfaces stay cleanup-only.
-- Treat `.codex/` as the runtime surface for Codex-specific scripts and docs while keeping Beads and `.rules/` canonical.
+- Do not create parallel planning systems under `.codex/` or `.omp/`; legacy `.planning/`, `.sisyphus/`, and planning-sync surfaces stay cleanup-only.
+- Keep `.rules/` canonical, `.omp/` Pi-native, and `.codex/` compatibility-only.
 - Keep source templates, generated docs, and built `dist/` artifacts in sync.
 - Prefer `harness` as the reusable setup reference and `pi-harness` as the CLI/package name.

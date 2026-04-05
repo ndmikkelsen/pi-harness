@@ -3,10 +3,12 @@
 ## What it is
 
 `pi-harness` is the local CLI that scaffolds and refreshes repositories.
-The scaffold it produces is designed for a Pi-operated Codex workflow with Beads and Cognee.
+The scaffold it produces is designed for a Pi-operated Codex workflow with Beads, Cognee, and Pi-native orchestration assets.
 
 - `pi-harness` does the actual scaffold and adoption work
-- `.codex/` holds the Codex-facing runtime scripts and workflow docs
+- `.rules/` remains the canonical workflow and architecture surface
+- `.omp/` holds Pi-native custom agents and reusable skills discovered directly by Pi
+- `.codex/` holds the Codex-facing compatibility scripts and workflow deltas
 - Beads remains the backlog system through native `bd`
 - Cognee remains an optional knowledge accelerator through `./.codex/scripts/cognee-brief.sh`
 - the supported setup is local-only: a checkout of this repo on your machine plus `pnpm build` and `pnpm install:local`
@@ -35,7 +37,8 @@ Use this as the install and adoption entrypoint, then hand daily execution to th
 2. Run `pi-harness doctor <target> --assistant codex`.
 3. Run `bd init` once in the target repo if Beads has not been initialized yet.
 4. Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop.
-5. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
+5. Use `.omp/agents/*.md` and `.omp/skills/*/SKILL.md` for Pi-native task orchestration help.
+6. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
 
 ## Mental model
 
@@ -72,7 +75,8 @@ pi-harness acme-api --assistant codex --init-json
 The new repo gets the standard AI workflow foundation:
 
 - `.rules/` for workflow and architecture guidance
-- `.codex/` for the Codex runtime layer
+- `.omp/` for Pi-native project agents and reusable skills
+- `.codex/` for the Codex compatibility layer
 - `AGENTS.md` and `STICKYNOTE.example.md`
 - root setup files like `.gitignore`, `.env.example`, and deploy starters
 - Beads config and hook wiring for native `bd`
@@ -83,8 +87,9 @@ The new repo gets the standard AI workflow foundation:
 2. Run `pi-harness doctor . --assistant codex`.
 3. Run `bd init` once before using Beads in that repo.
 4. Use `.rules/patterns/operator-workflow.md` for the daily claim-first loop.
-5. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
-6. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
+5. Use `.omp/agents/*.md` and `.omp/skills/*/SKILL.md` for Pi-native orchestration help.
+6. Use `.codex/workflows/autonomous-execution.md` when you want backlog-driven autonomous execution.
+7. Let execution/autonomous lanes own `./.codex/scripts/land.sh`; planning, research, and review lanes should hand off instead of publishing.
 
 ## Existing repository walkthrough
 
@@ -105,7 +110,7 @@ Before changing scaffold files, gather repo context from:
 - git status, branch, remotes, and recent commits
 - Beads state if `bd` or `.beads/` exists
 - a Cognee brief if `.codex/scripts/cognee-brief.sh` already exists
-- docs like `README*`, `docs/**/*.md`, `.rules/**/*`, and `AGENTS.md`
+- docs like `README*`, `docs/**/*.md`, `.rules/**/*`, `AGENTS.md`, and any existing `.omp/**/*` project assets
 - package or runtime manifests
 
 This context is used to tailor only the newly created scaffold files, not to rewrite the whole repo.
@@ -164,7 +169,7 @@ pi-harness --mode existing . --assistant codex --cleanup-manifest legacy-ai-fram
 3. Review any cleanup results before continuing.
 4. Run `pi-harness doctor . --assistant codex`.
 5. If the repo is using Beads and it is not initialized yet, run `bd init`.
-6. Use `.rules/patterns/operator-workflow.md` for the daily loop and `.codex/workflows/autonomous-execution.md` for backlog-driven automation.
+6. Use `.rules/patterns/operator-workflow.md` for the daily loop, `.omp/agents/*.md` plus `.omp/skills/*/SKILL.md` for Pi-native orchestration help, and `.codex/workflows/autonomous-execution.md` for backlog-driven automation.
 
 ## Refreshing an already scaffolded repo later
 
@@ -194,6 +199,8 @@ APP_SLUG=<app-slug>
 ./.codex/scripts/cognee-bridge.sh sync-dir .rules --dataset "$APP_SLUG-knowledge"
 ./.codex/scripts/cognee-bridge.sh upload README.md --dataset "$APP_SLUG-knowledge"
 
+./.codex/scripts/cognee-bridge.sh sync-dir .omp/agents --dataset "$APP_SLUG-patterns"
+./.codex/scripts/cognee-bridge.sh sync-dir .omp/skills --dataset "$APP_SLUG-patterns"
 ./.codex/scripts/cognee-bridge.sh sync-dir .codex/agents --dataset "$APP_SLUG-patterns"
 ./.codex/scripts/cognee-bridge.sh sync-dir .codex/skills --dataset "$APP_SLUG-patterns"
 
@@ -206,4 +213,4 @@ Validate the refresh with `./.codex/scripts/cognee-bridge.sh health` and a follo
 
 ## Daily workflow after setup
 
-After setup, `.rules/patterns/operator-workflow.md` is the canonical daily runbook and `.codex/workflows/autonomous-execution.md` is the canonical autonomous variant. This guide intentionally stops at install, adoption, refresh, and audit commands so it does not become a second workflow authority.
+After setup, `.rules/patterns/operator-workflow.md` is the canonical daily runbook, `.omp/` holds Pi-native reusable orchestration assets, and `.codex/workflows/*.md` documents Codex-compatible lane deltas. This guide intentionally stops at install, adoption, refresh, and audit commands so it does not become a second workflow authority.

@@ -69,8 +69,8 @@ function envrc(context: ScaffoldContext): string {
 
 function readme(context: ScaffoldContext): string {
   const assistantLabel = assistantDisplayName(context.assistant);
-  const codexBullet = '- Codex runtime files in .codex/ and AGENTS.md';
-  const workflowGuideLine = 'Review AGENTS.md and .codex/README.md for runtime entrypoints and scaffold maintenance notes.';
+  const codexBullet = 'Compatibility maintenance notes in `AGENTS.md`';
+  const workflowGuideLine = 'Review AGENTS.md, `.omp/`, and `.codex/README.md` for workflow authority, Pi-native assets, and compatibility maintenance notes.';
 
   return loadTemplate('root/README.md', {
     APP_TITLE: context.appTitle,
