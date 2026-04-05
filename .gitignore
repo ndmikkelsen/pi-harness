@@ -28,3 +28,7 @@ __pycache__/
 .kamal/secrets-common
 !.kamal/secrets.example
 cognee_data/
+
+# Dolt database files (added by bd init)
+.dolt/
+*.db
