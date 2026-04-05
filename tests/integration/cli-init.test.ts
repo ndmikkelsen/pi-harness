@@ -33,7 +33,7 @@ describe('CLI init', () => {
     expect(result.stdout).toContain('Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
   });
 
-  it('rejects the legacy OpenCode assistant target', async () => {
+  it('rejects retired legacy assistant targets', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'legacy-opencode');
 
@@ -43,7 +43,7 @@ describe('CLI init', () => {
         encoding: 'utf8'
       })
     ).rejects.toMatchObject({
-      stderr: expect.stringMatching(/OpenCode|opencode/)
+      stderr: expect.stringContaining('Assistant must be one of: auto, codex.')
     });
   });
 

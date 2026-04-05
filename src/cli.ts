@@ -20,7 +20,7 @@ function parseAssistant(value: string): AssistantTarget {
     return 'codex';
   }
 
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex. The OpenCode target has been retired from this baseline.');
+  throw new InvalidArgumentError('Assistant must be one of: auto, codex.');
 }
 
 function parseDoctorAssistant(value: string): AssistantSelection {
@@ -28,7 +28,7 @@ function parseDoctorAssistant(value: string): AssistantSelection {
     return value;
   }
 
-  throw new InvalidArgumentError('Assistant must be one of: auto, codex. The OpenCode target has been retired from this baseline.');
+  throw new InvalidArgumentError('Assistant must be one of: auto, codex.');
 }
 
 const program = new Command();

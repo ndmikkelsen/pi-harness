@@ -22,7 +22,6 @@ The repo owns one scaffold and dogfoods it in place:
 ## What this baseline deliberately does not provide
 
 - a second assistant runtime surface beside Codex
-- a global OpenCode skill installer or managed OpenCode defaults
 - a repo-scaffolded `.planning/` or `.sisyphus/` workspace
 - a separate OMO policy contract layered on top of the operator workflow
 

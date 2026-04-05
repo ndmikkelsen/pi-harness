@@ -121,7 +121,7 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale OpenCode/OMO/GSD artifacts, and rerun \`pi-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
+      `Refresh the Codex workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --assistant ${assistant} --force --init-json\`, remove stale legacy assistant artifacts, and rerun \`pi-harness doctor ${targetLabel} --assistant ${assistant}\`.`,
     );
   }
 

@@ -83,7 +83,7 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       path: '.opencode',
       kind: 'directory',
       disposition: 'prompt-before-delete',
-      reason: 'deprecated OpenCode plugin/config directory removed from the codex-only baseline',
+      reason: 'deprecated extra-assistant plugin/config directory removed from the Pi + Codex + Beads + Cognee baseline',
     },
     {
       id: 'legacy-broad-cognee-sync',

@@ -38,5 +38,5 @@ pi-harness doctor . --assistant codex
 
 - no registry-published distribution path is assumed
 - no `.planning/` or `.sisyphus/` workspace is part of the supported scaffold surface
-- no OpenCode or OMO compatibility layer is scaffolded in the current baseline
+- no extra assistant compatibility layer is scaffolded in the current baseline
 - legacy workflow leftovers such as planning workspaces and retired planning-sync scripts are removed only through curated cleanup manifests

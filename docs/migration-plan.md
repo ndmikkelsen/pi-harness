@@ -3,7 +3,7 @@
 ## Completed changes
 
 - collapsed the supported scaffold target to `codex`
-- removed the OpenCode global skill/install path from the runtime baseline
+- removed the retired extra-assistant/runtime compatibility surface from the baseline
 - removed the OMO contract from the generated scaffold baseline
 - kept Beads as the canonical backlog system through native `bd`
 - kept Cognee as the optional knowledge brief surface through `.codex/scripts/*`
