@@ -9,8 +9,8 @@ if command -v bd >/dev/null 2>&1; then
 fi
 # --- END BEADS INTEGRATION ---
 
-# --- BEGIN AI HARNESS WORKTREE HOOK ---
-# Beads runs first. The AI Harness bootstrap runs after the Beads hook and is
+# --- BEGIN PI HARNESS WORKTREE HOOK ---
+# Beads runs first. The Pi Harness bootstrap runs after the Beads hook and is
 # safe to invoke even when worktree bootstrap already ran earlier in checkout
 # or worktree creation.
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
@@ -20,4 +20,5 @@ fi
 if [ "$_bd_exit" -ne 0 ]; then
   exit "$_bd_exit"
 fi
-# --- END AI HARNESS WORKTREE HOOK ---
+# --- END PI HARNESS WORKTREE HOOK ---
+

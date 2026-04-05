@@ -4,6 +4,15 @@ import path from 'node:path';
 
 const worktreeHookStart = '# --- BEGIN PI HARNESS WORKTREE HOOK ---';
 const worktreeHookEnd = '# --- END PI HARNESS WORKTREE HOOK ---';
+const legacyWorktreeHookStart = '# --- BEGIN AI HARNESS WORKTREE HOOK ---';
+const legacyWorktreeHookEnd = '# --- END AI HARNESS WORKTREE HOOK ---';
+
+const managedWorktreeHookMarkers = [
+  { start: worktreeHookStart, end: worktreeHookEnd },
+  { start: legacyWorktreeHookStart, end: legacyWorktreeHookEnd }
+] as const;
+
+type ManagedWorktreeHookMarker = (typeof managedWorktreeHookMarkers)[number];
 
 function gitOutput(targetDir: string, args: string[]): string | null {
   const result = spawnSync('git', args, {
@@ -50,6 +59,73 @@ function worktreeHookBlock(): string {
   ].join('\n');
 }
 
+function findManagedWorktreeHookBlocks(
+  content: string
+): Array<{ start: number; end: number; text: string; markers: ManagedWorktreeHookMarker }> {
+  const matches: Array<{ start: number; end: number; text: string; markers: ManagedWorktreeHookMarker }> = [];
+
+  for (const markers of managedWorktreeHookMarkers) {
+    let searchStart = 0;
+
+    while (searchStart < content.length) {
+      const blockStart = content.indexOf(markers.start, searchStart);
+      if (blockStart === -1) {
+        break;
+      }
+
+      const endMarkerIndex = content.indexOf(markers.end, blockStart + markers.start.length);
+      if (endMarkerIndex === -1) {
+        break;
+      }
+
+      let blockEnd = endMarkerIndex + markers.end.length;
+      if (content.startsWith('\r\n', blockEnd)) {
+        blockEnd += 2;
+      } else if (content.startsWith('\n', blockEnd)) {
+        blockEnd += 1;
+      }
+
+      matches.push({
+        start: blockStart,
+        end: blockEnd,
+        text: content.slice(blockStart, blockEnd),
+        markers
+      });
+      searchStart = blockEnd;
+    }
+  }
+
+  return matches.sort((left, right) => left.start - right.start);
+}
+
+function normalizeManagedWorktreeHookBlock(block: string, markers: ManagedWorktreeHookMarker): string {
+  return block
+    .replace(markers.start, worktreeHookStart)
+    .replace(markers.end, worktreeHookEnd)
+    .replaceAll('AI Harness', 'Pi Harness');
+}
+
+function normalizeManagedPostCheckoutHook(content: string): string | null {
+  const matches = findManagedWorktreeHookBlocks(content);
+  if (matches.length === 0) {
+    return null;
+  }
+
+  const normalizedContent: string[] = [];
+  let cursor = 0;
+
+  for (const [index, match] of matches.entries()) {
+    normalizedContent.push(content.slice(cursor, match.start));
+    if (index === 0) {
+      normalizedContent.push(normalizeManagedWorktreeHookBlock(match.text, match.markers));
+    }
+    cursor = match.end;
+  }
+
+  normalizedContent.push(content.slice(cursor));
+  return normalizedContent.join('');
+}
+
 function preCommitConfigSupportsWorktreeBootstrap(targetDir: string): boolean {
   const configPath = path.join(targetDir, '.pre-commit-config.yaml');
   if (!existsSync(configPath)) {
@@ -71,7 +147,14 @@ function ensureManagedPostCheckoutHook(hookFile: string): 'created' | 'updated' 
   }
 
   const existingContent = readFileSync(hookFile, 'utf8');
-  if (existingContent.includes(worktreeHookStart)) {
+  const normalizedContent = normalizeManagedPostCheckoutHook(existingContent);
+  if (normalizedContent !== null) {
+    if (normalizedContent !== existingContent) {
+      writeFileSync(hookFile, normalizedContent, 'utf8');
+      chmodSync(hookFile, 0o755);
+      return 'updated';
+    }
+
     chmodSync(hookFile, 0o755);
     return 'unchanged';
   }
