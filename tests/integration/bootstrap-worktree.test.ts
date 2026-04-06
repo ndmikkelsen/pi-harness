@@ -28,23 +28,23 @@ describe('bootstrap-worktree hook', () => {
     await mkdir(binDir, { recursive: true });
     await initGitRepo(repoDir);
 
-    const bootstrapScript = await readFile(path.join(repoRoot, '.codex', 'scripts', 'bootstrap-worktree.sh'), 'utf8');
+    const bootstrapScript = await readFile(path.join(repoRoot, 'scripts', 'bootstrap-worktree.sh'), 'utf8');
     const postCheckoutHook = await readFile(path.join(repoRoot, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
     expect(bootstrapScript).not.toContain('/gsd-');
     expect(bootstrapScript).not.toContain('.planning/STATE.md');
 
-    await mkdir(path.join(repoDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
     await mkdir(path.join(repoDir, '.beads', 'hooks'), { recursive: true });
     await mkdir(path.join(repoDir, '.kamal'), { recursive: true });
 
-    await writeFile(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
+    await writeFile(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
     await writeFile(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), postCheckoutHook, 'utf8');
     await writeFile(path.join(repoDir, '.envrc'), '# direnv fixture\n', 'utf8');
     await writeFile(path.join(repoDir, 'STICKYNOTE.example.md'), '# Sticky fixture\n', 'utf8');
     await writeFile(path.join(repoDir, '.kamal', 'secrets.example'), 'EXAMPLE=1\n', 'utf8');
 
-    await chmod(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), 0o755);
+    await chmod(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), 0o755);
     await chmod(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), 0o755);
 
     await execFile('git', ['add', '.'], { cwd: repoDir });
@@ -95,24 +95,24 @@ describe('bootstrap-worktree hook', () => {
     await mkdir(binDir, { recursive: true });
     await initGitRepo(repoDir);
 
-    const bootstrapScriptPath = path.join(repoRoot, '.codex', 'scripts', 'bootstrap-worktree.sh');
+    const bootstrapScriptPath = path.join(repoRoot, 'scripts', 'bootstrap-worktree.sh');
     const bootstrapScript = await readFile(bootstrapScriptPath, 'utf8');
     const postCheckoutHook = await readFile(path.join(repoRoot, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
     expect(bootstrapScript).not.toContain('/gsd-');
     expect(bootstrapScript).not.toContain('.planning/STATE.md');
 
-    await mkdir(path.join(repoDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
     await mkdir(path.join(repoDir, '.beads', 'hooks'), { recursive: true });
     await mkdir(path.join(repoDir, '.kamal'), { recursive: true });
 
-    await writeFile(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
+    await writeFile(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
     await writeFile(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), postCheckoutHook, 'utf8');
     await writeFile(path.join(repoDir, '.envrc'), '# direnv fixture\n', 'utf8');
     await writeFile(path.join(repoDir, 'STICKYNOTE.example.md'), '# Sticky fixture\n', 'utf8');
     await writeFile(path.join(repoDir, '.kamal', 'secrets.example'), 'EXAMPLE=1\n', 'utf8');
 
-    await chmod(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), 0o755);
+    await chmod(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), 0o755);
     await chmod(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), 0o755);
 
     await execFile('git', ['add', '.'], { cwd: repoDir });
@@ -137,7 +137,7 @@ describe('bootstrap-worktree hook', () => {
         }
       });
 
-      await execFile(path.join(worktreeDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), ['--quiet'], {
+      await execFile(path.join(worktreeDir, 'scripts', 'bootstrap-worktree.sh'), ['--quiet'], {
         cwd: worktreeDir,
         env: {
           ...process.env,
@@ -171,23 +171,23 @@ describe('bootstrap-worktree hook', () => {
     await mkdir(binDir, { recursive: true });
     await initGitRepo(repoDir);
 
-    const bootstrapScript = await readFile(path.join(repoRoot, '.codex', 'scripts', 'bootstrap-worktree.sh'), 'utf8');
+    const bootstrapScript = await readFile(path.join(repoRoot, 'scripts', 'bootstrap-worktree.sh'), 'utf8');
     const postCheckoutHook = await readFile(path.join(repoRoot, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
     expect(bootstrapScript).not.toContain('/gsd-');
     expect(bootstrapScript).not.toContain('.planning/STATE.md');
 
-    await mkdir(path.join(repoDir, '.codex', 'scripts'), { recursive: true });
+    await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
     await mkdir(path.join(repoDir, '.beads', 'hooks'), { recursive: true });
     await mkdir(path.join(repoDir, '.kamal'), { recursive: true });
 
-    await writeFile(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
+    await writeFile(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
     await writeFile(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), postCheckoutHook, 'utf8');
     await writeFile(path.join(repoDir, '.envrc'), '# direnv fixture\n', 'utf8');
     await writeFile(path.join(repoDir, 'STICKYNOTE.example.md'), '# Sticky fixture\n', 'utf8');
     await writeFile(path.join(repoDir, '.kamal', 'secrets.example'), 'EXAMPLE=1\n', 'utf8');
 
-    await chmod(path.join(repoDir, '.codex', 'scripts', 'bootstrap-worktree.sh'), 0o755);
+    await chmod(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), 0o755);
     await chmod(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), 0o755);
 
     await execFile('git', ['add', '.'], { cwd: repoDir });

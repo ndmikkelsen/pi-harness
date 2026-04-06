@@ -29,7 +29,6 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 
   const context: ScaffoldContext = {
     ...input,
-    assistant: options.assistant,
     harnessVersion: PI_HARNESS_VERSION,
     doltPort: portSettings.doltPort,
     cogneeDbPort: portSettings.cogneeDbPort,
@@ -69,7 +68,6 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 
   return {
     ...entryResult,
-    assistant: context.assistant,
     mode: context.mode,
     targetDir: context.targetDir,
     appName: context.appName,
@@ -81,7 +79,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 export function formatInitReport(result: InitResult): string {
   const targetLabel = path.relative(process.cwd(), result.targetDir) || '.';
   const lines = [
-    `Scaffolded ${result.appName} (${result.mode}, ${result.assistant}) in ${targetLabel}`,
+    `Scaffolded ${result.appName} (${result.mode}) in ${targetLabel}`,
     `Created: ${result.createdPaths.length}`,
     `Skipped: ${result.skippedPaths.length}`
   ];

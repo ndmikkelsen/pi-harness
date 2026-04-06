@@ -1,7 +1,5 @@
 import type { ProjectMode } from './policy.js';
 
-export type AssistantTarget = 'codex';
-
 export interface ResolveProjectInputOptions {
   cwd: string;
   projectArg?: string;
@@ -28,7 +26,6 @@ export interface InitCommandOptions {
   cwd: string;
   projectArg?: string;
   targetArg?: string;
-  assistant: AssistantTarget;
   mode: ProjectMode;
   dryRun: boolean;
   force: boolean;
@@ -90,7 +87,6 @@ export interface CleanupResult {
 export type CleanupConfirmer = (entry: CleanupManifestEntry) => Promise<boolean>;
 
 export interface ScaffoldContext extends ResolvedProjectInput {
-  assistant: AssistantTarget;
   harnessVersion?: string;
   doltPort: number;
   cogneeDbPort: number;
@@ -130,7 +126,6 @@ export interface ApplyManagedEntriesResult {
 }
 
 export interface InitResult extends ApplyManagedEntriesResult {
-  assistant: AssistantTarget;
   mode: Exclude<ProjectMode, 'auto'>;
   targetDir: string;
   appName: string;
@@ -138,11 +133,9 @@ export interface InitResult extends ApplyManagedEntriesResult {
   cleanup: CleanupResult;
 }
 
-
 export interface DoctorCommandOptions {
   cwd: string;
   targetArg?: string;
-  assistant: AssistantTarget;
   json: boolean;
 }
 
@@ -161,7 +154,6 @@ export interface DoctorGroupResult {
 
 export interface DoctorResult {
   targetDir: string;
-  assistant: AssistantTarget;
   status: 'pass' | 'warn' | 'fail';
   summary: {
     passed: number;

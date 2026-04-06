@@ -52,8 +52,8 @@ function worktreeHookBlock(): string {
   return [
     worktreeHookStart,
     'repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"',
-    'if [ -n "$repo_root" ] && [ -x "$repo_root/.codex/scripts/bootstrap-worktree.sh" ]; then',
-    '  "$repo_root/.codex/scripts/bootstrap-worktree.sh" --quiet || true',
+    'if [ -n "$repo_root" ] && [ -x "$repo_root/scripts/bootstrap-worktree.sh" ]; then',
+    '  "$repo_root/scripts/bootstrap-worktree.sh" --quiet || true',
     'fi',
     worktreeHookEnd
   ].join('\n');

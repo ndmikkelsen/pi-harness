@@ -5,11 +5,36 @@ import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
 import { getCleanupManifest } from '../../src/core/cleanup-manifests.js';
-import { AI_HARNESS_VERSION } from '../../src/core/harness-release.js';
 import { runInit } from '../../src/commands/init.js';
 
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
+const requiredRuntimePaths = [
+  'AGENTS.md',
+  '.pi/settings.json',
+  '.pi/SYSTEM.md',
+  '.pi/extensions/repo-workflows.ts',
+  '.pi/prompts/adopt.md',
+  '.pi/prompts/land.md',
+  '.pi/prompts/triage.md',
+  '.pi/skills/beads/SKILL.md',
+  '.pi/skills/harness/SKILL.md',
+  '.pi/skills/parallel-wave-design/SKILL.md',
+  'scripts/bootstrap-worktree.sh',
+  'scripts/cognee-bridge.sh',
+  'scripts/cognee-brief.sh',
+  'scripts/land.sh',
+  'docker/Dockerfile.cognee',
+  'config/deploy.cognee.yml'
+];
+const existingModeBaselinePaths = [
+  'AGENTS.md',
+  '.pi/settings.json',
+  '.pi/extensions/repo-workflows.ts',
+  '.pi/prompts/adopt.md',
+  '.pi/skills/harness/SKILL.md',
+  'scripts/bootstrap-worktree.sh'
+];
 
 describe('runInit', () => {
   it('creates the scaffold for a new project', async () => {
@@ -17,7 +42,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: 'sample-app',
-      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -25,30 +49,20 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    const envExample = await readFile(path.join(workspace, 'sample-app', '.env.example'), 'utf8');
-    const beadsConfig = await readFile(path.join(workspace, 'sample-app', '.beads', 'config.yaml'), 'utf8');
+    const projectDir = path.join(workspace, 'sample-app');
+    const envExample = await readFile(path.join(projectDir, '.env.example'), 'utf8');
+    const beadsConfig = await readFile(path.join(projectDir, '.beads', 'config.yaml'), 'utf8');
+
     expect(result.mode).toBe('new');
-    expect(result.assistant).toBe('codex');
     expect(result.createdPaths).toContain('.gitignore');
-    expect(result.createdPaths).not.toContain('.opencode/worktree.jsonc');
-    expect(result.createdPaths).toContain('.codex/README.md');
-    expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
-    expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
-    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
-    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
-    expect(result.createdPaths).not.toContain('.rules/patterns/omo-agent-contract.md');
+    expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
-    expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
-    expect(result.createdPaths).toContain('.codex/scripts/cognee-bridge.sh');
-    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
-    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
-    expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
-    expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
+    expect(result.createdPaths).toContain('STICKYNOTE.example.md');
+    expect(result.createdPaths).not.toContain('.opencode/worktree.jsonc');
     expect(result.createdPaths).not.toContain('.planning/TRACEABILITY.md');
     expect(result.createdPaths).not.toContain('CONSTITUTION.md');
     expect(result.createdPaths).not.toContain('VISION.md');
     expect(result.createdPaths).not.toContain('STICKYNOTE.md');
-    expect(result.createdPaths).toContain('STICKYNOTE.example.md');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
     expect(envExample).toContain('COGNEE_URL=https://sample-app-cognee.apps.compute.lan');
     expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
@@ -63,7 +77,6 @@ describe('runInit', () => {
     await runInit({
       cwd: workspace,
       projectArg: 'planning-app',
-      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -86,12 +99,11 @@ describe('runInit', () => {
     await expect(readFile(path.join(projectDir, 'STICKYNOTE.md'), 'utf8')).rejects.toThrow();
   });
 
-  it('creates Codex compatibility files when codex is selected', async () => {
+  it('creates the Pi-native runtime baseline', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
     const result = await runInit({
       cwd: workspace,
-      projectArg: 'codex-app',
-      assistant: 'codex',
+      projectArg: 'pi-app',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -99,47 +111,33 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    const codexReadme = await readFile(path.join(workspace, 'codex-app', '.codex', 'README.md'), 'utf8');
-    const agentsGuide = await readFile(path.join(workspace, 'codex-app', 'AGENTS.md'), 'utf8');
-    const ompOrchestrator = await readFile(path.join(workspace, 'codex-app', '.omp', 'agents', 'orchestrator.md'), 'utf8');
-    const ompSkill = await readFile(
-      path.join(workspace, 'codex-app', '.omp', 'skills', 'parallel-wave-design', 'SKILL.md'),
-      'utf8'
-    );
-    const codexBridgeWrapper = await readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-brief.sh'), 'utf8');
+    const projectDir = path.join(workspace, 'pi-app');
+    const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
+    const systemPrompt = await readFile(path.join(projectDir, '.pi', 'SYSTEM.md'), 'utf8');
+    const settings = await readFile(path.join(projectDir, '.pi', 'settings.json'), 'utf8');
+    const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
+    const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
+    const harnessSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'harness', 'SKILL.md'), 'utf8');
 
-    expect(result.assistant).toBe('codex');
-    expect(result.createdPaths).toContain('.codex/README.md');
-    expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
-    expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
-    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
-    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
-    expect(result.createdPaths).toContain('.rules/patterns/operator-workflow.md');
-    expect(result.createdPaths).toContain('AGENTS.md');
-    expect(result.createdPaths).toContain('.codex/docker/Dockerfile.cognee');
-    expect(result.createdPaths).not.toContain('.codex/scripts/cognee-sync-planning.sh');
-    expect(result.createdPaths).not.toContain('.codex/scripts/sync-planning-to-cognee.sh');
-    expect(result.createdPaths).not.toContain('.codex/scripts/sync-to-cognee.sh');
-    expect(result.createdPaths).not.toContain('.codex/templates/session-handoff.md');
-    expect(codexReadme).toContain('Codex Compatibility Layer');
-    expect(codexReadme).not.toContain('.rules/patterns/omo-agent-contract.md');
-    expect(codexReadme).toContain('.rules/patterns/operator-workflow.md');
-    expect(codexReadme).toContain('.omp/agents/orchestrator.md');
-    expect(codexReadme).toContain('.omp/skills/parallel-wave-design/SKILL.md');
-    expect(codexReadme).toContain('.codex/workflows/autonomous-execution.md');
-    expect(codexReadme).toContain('./.codex/scripts/cognee-brief.sh');
-    expect(codexReadme).toContain('.codex/skills/harness/SKILL.md');
-    expect(codexReadme).not.toContain('./.codex/scripts/sync-to-cognee.sh');
-    expect(agentsGuide).toContain('Codex Workflow');
-    expect(agentsGuide).toContain('.omp/agents/*.md');
-    expect(agentsGuide).toContain('.codex/workflows/autonomous-execution.md');
-    expect(agentsGuide).not.toContain('.rules/patterns/omo-agent-contract.md');
-    expect(ompOrchestrator).toContain('name: orchestrator');
-    expect(ompOrchestrator).toContain('skill://parallel-wave-design');
-    expect(ompSkill).toContain('name: parallel-wave-design');
-    expect(codexBridgeWrapper).toContain('.codex/scripts/cognee-bridge.sh');
-    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'cognee-sync-planning.sh'), 'utf8')).rejects.toThrow();
-    await expect(readFile(path.join(workspace, 'codex-app', '.codex', 'scripts', 'sync-planning-to-cognee.sh'), 'utf8')).rejects.toThrow();
+    expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
+    expect(agentsGuide).toContain('.pi/extensions/*');
+    expect(agentsGuide).toContain('.pi/prompts/*');
+    expect(agentsGuide).toContain('.pi/skills/*');
+    expect(agentsGuide).toContain('./scripts/bootstrap-worktree.sh');
+    expect(agentsGuide).toContain('./scripts/cognee-brief.sh');
+    expect(agentsGuide).toContain('./scripts/land.sh');
+    expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
+    expect(systemPrompt).toContain('Prefer project-local `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
+    expect(settings).toContain('.pi/extensions/repo-workflows.ts');
+    expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
+    expect(workflowExtension).toContain("registerCommand('cognee-brief'");
+    expect(workflowExtension).toContain("registerCommand('land'");
+    expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
+    expect(workflowExtension).toContain('scripts/cognee-brief.sh');
+    expect(workflowExtension).toContain('scripts/land.sh');
+    expect(landPrompt).toContain('scripts/land.sh');
+    expect(harnessSkill).toContain('.pi/extensions/repo-workflows.ts');
+    expect(harnessSkill).toContain('.pi/prompts/land.md');
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
@@ -148,7 +146,6 @@ describe('runInit', () => {
     await runInit({
       cwd: workspace,
       projectArg: 'cognee-app',
-      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -156,8 +153,9 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    const deployConfig = await readFile(path.join(workspace, 'cognee-app', 'config', 'deploy.cognee.yml'), 'utf8');
-    const dockerfile = await readFile(path.join(workspace, 'cognee-app', '.codex', 'docker', 'Dockerfile.cognee'), 'utf8');
+    const projectDir = path.join(workspace, 'cognee-app');
+    const deployConfig = await readFile(path.join(projectDir, 'config', 'deploy.cognee.yml'), 'utf8');
+    const dockerfile = await readFile(path.join(projectDir, 'docker', 'Dockerfile.cognee'), 'utf8');
 
     expect(deployConfig).toContain('REQUIRE_AUTHENTICATION: "false"');
     expect(deployConfig).toContain('ENABLE_BACKEND_ACCESS_CONTROL: "false"');
@@ -165,6 +163,7 @@ describe('runInit', () => {
     expect(deployConfig).toContain('VECTOR_DATASET_DATABASE_HANDLER: pgvector');
     expect(deployConfig).toContain('response_timeout: 300');
     expect(deployConfig).toContain('path: /health');
+    expect(deployConfig).toContain('dockerfile: docker/Dockerfile.cognee');
     expect(dockerfile).toContain('Cognee release tags are not consistently published to Docker Hub.');
     expect(dockerfile).toContain(
       'FROM cognee/cognee:latest@sha256:eba227c33dd7f5eb997a0072f418792fd8aaa8873e9bb12240915d4e69396970'
@@ -177,7 +176,6 @@ describe('runInit', () => {
     await runInit({
       cwd: workspace,
       projectArg: 'bootstrap-app',
-      assistant: 'codex',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -185,26 +183,23 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    const bootstrapScript = await readFile(
-      path.join(workspace, 'bootstrap-app', '.codex', 'scripts', 'bootstrap-worktree.sh'),
-      'utf8'
-    );
-    await expect(readFile(path.join(workspace, 'bootstrap-app', '.opencode', 'worktree.jsonc'), 'utf8')).rejects.toThrow();
+    const projectDir = path.join(workspace, 'bootstrap-app');
+    const bootstrapScript = await readFile(path.join(projectDir, 'scripts', 'bootstrap-worktree.sh'), 'utf8');
+    await expect(readFile(path.join(projectDir, '.opencode', 'worktree.jsonc'), 'utf8')).rejects.toThrow();
 
     expect(bootstrapScript).toContain('.env');
     expect(bootstrapScript).toContain('.kamal/secrets');
     expect(bootstrapScript).toContain('direnv allow');
-    expect(bootstrapScript).toContain('.rules/patterns/operator-workflow.md');
-    expect(bootstrapScript).not.toContain('.rules/patterns/omo-agent-contract.md');
+    expect(bootstrapScript).toContain('bd ready --json');
+    expect(bootstrapScript).toContain('AGENTS.md');
   });
 
-  it('scaffolds Cognee fallback behavior for the codex-only baseline', async () => {
+  it('scaffolds Pi-native prompts and scripts for Cognee and landing', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
 
     await runInit({
       cwd: workspace,
-      projectArg: 'cognee-policy-app',
-      assistant: 'codex',
+      projectArg: 'workflow-app',
       mode: 'auto',
       dryRun: false,
       force: false,
@@ -212,20 +207,20 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    const projectDir = path.join(workspace, 'cognee-policy-app');
-    const autonomousWorkflow = await readFile(
-      path.join(projectDir, '.codex', 'workflows', 'autonomous-execution.md'),
-      'utf8'
-    );
-    const managedAutonomousWorkflow = await readFile(
-      path.join(projectDir, '.codex', 'scripts', 'bootstrap-worktree.sh'),
-      'utf8'
-    );
+    const projectDir = path.join(workspace, 'workflow-app');
+    const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
+    const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
+    const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
+    const cogneeBriefScript = await readFile(path.join(projectDir, 'scripts', 'cognee-brief.sh'), 'utf8');
 
-    expect(autonomousWorkflow).toContain('COGNEE_AVAILABLE');
-    expect(autonomousWorkflow).toContain('continue only when the work remains locally verifiable');
-    expect(autonomousWorkflow).not.toContain('.rules/patterns/omo-agent-contract.md');
-    expect(managedAutonomousWorkflow).toContain('quiet=false');
+    expect(agentsGuide).toContain('./scripts/cognee-brief.sh "<query>"');
+    expect(agentsGuide).toContain('./scripts/land.sh');
+    expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
+    expect(adoptPrompt).toContain('--cleanup-manifest legacy-ai-frameworks-v1 --init-json');
+    expect(landPrompt).toContain('/land');
+    expect(landPrompt).toContain('scripts/land.sh');
+    expect(cogneeBriefScript).toContain('scripts/cognee-bridge.sh');
+    expect(cogneeBriefScript).toContain('exec "$BRIDGE" brief "$@"');
   });
 
   it('does not overwrite existing files in existing-project mode', async () => {
@@ -247,7 +242,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -267,11 +261,7 @@ describe('runInit', () => {
     expect(result.skippedPaths).toContain('.env.example');
     expect(result.createdPaths).not.toContain('.gitignore');
     expect(result.createdPaths).not.toContain('.env.example');
-    expect(result.createdPaths).toContain('.codex/README.md');
-    expect(result.createdPaths).toContain('.codex/workflows/autonomous-execution.md');
-    expect(result.createdPaths).toContain('.codex/skills/harness/SKILL.md');
-    expect(result.createdPaths).toContain('.omp/agents/orchestrator.md');
-    expect(result.createdPaths).toContain('.omp/skills/parallel-wave-design/SKILL.md');
+    expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
     expect(result.cleanup.enabled).toBe(false);
   });
 
@@ -288,7 +278,6 @@ describe('runInit', () => {
     const firstResult = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -313,7 +302,6 @@ describe('runInit', () => {
     const secondResult = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -347,7 +335,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -357,12 +344,16 @@ describe('runInit', () => {
     });
 
     expect(result.cleanup.enabled).toBe(true);
-    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.status).toBe('blocked');
     expect(result.cleanup.removedPaths).toEqual(
       expect.arrayContaining(['.codex/templates/session-handoff.md', '.codex/scripts/sync-to-cognee.sh'])
     );
     expect(result.cleanup.summary.deleted).toBe(2);
-    expect(result.createdPaths).toContain('.codex/README.md');
+    expect(result.cleanup.summary.promptRequired).toBeGreaterThan(0);
+    expect(result.cleanup.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
+    );
+    expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
     expect(await readFile(gitignorePath, 'utf8')).toBe('dist/\n');
     expect(await readFile(envExamplePath, 'utf8')).toBe('EXISTING_ONLY=true\n');
     await expect(readFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), 'utf8')).rejects.toThrow();
@@ -379,7 +370,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -393,11 +383,9 @@ describe('runInit', () => {
     expect(result.cleanup.status).toBe('blocked');
     expect(result.cleanup.summary.promptRequired).toBeGreaterThan(0);
     expect(result.cleanup.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })
-      ])
+      expect.arrayContaining([expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })])
     );
-    expect(result.createdPaths).toContain('.codex/README.md');
+    expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
     expect(await readFile(path.join(targetDir, legacyRuntimeDir, 'notes.md'), 'utf8')).toContain('notes');
   });
 
@@ -411,7 +399,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -437,7 +424,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -464,7 +450,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -493,7 +478,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -502,11 +486,13 @@ describe('runInit', () => {
       detectPorts: false
     });
 
-    expect(result.cleanup.status).toBe('applied');
+    expect(result.cleanup.status).toBe('blocked');
     expect(result.cleanup.removedPaths).toContain('.codex/scripts/sync-to-cognee.sh');
-    expect(result.createdPaths).toEqual(
-      expect.arrayContaining(['.codex/README.md', 'AGENTS.md'])
+    expect(result.cleanup.summary.promptRequired).toBeGreaterThan(0);
+    expect(result.cleanup.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
     );
+    expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
     expect(result.skippedPaths).toEqual(expect.arrayContaining(['.env.example']));
     expect(await readFile(path.join(targetDir, '.github', 'prompts', 'review.md'), 'utf8')).toBe('# custom prompt\n');
     await expect(readFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), 'utf8')).rejects.toThrow();
@@ -526,7 +512,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: targetDir,
-      assistant: 'codex',
       mode: 'existing',
       dryRun: false,
       force: false,
@@ -551,7 +536,6 @@ describe('runInit', () => {
     const result = await runInit({
       cwd: workspace,
       projectArg: 'dry-run-app',
-      assistant: 'codex',
       mode: 'auto',
       dryRun: true,
       force: false,

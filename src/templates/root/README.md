@@ -1,23 +1,28 @@
 # {{APP_TITLE}}
 
-This project is scaffolded for a Pi-operated {{ASSISTANT_LABEL}} workflow with Beads, Cognee, and Pi-native orchestration assets.
+This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.
+Provider and model choice stay inside Pi runtime configuration, not in the scaffold identity.
 
-## What was added
+## Runtime surfaces
 
-- Pi-native orchestration assets in `.omp/`
-- Codex compatibility files in `.codex/`
-- Repo setup guidance in `.codex/skills/harness/`
-- Beads workflow guidance using native `bd`
-- Deployment templates in `config/` and `.kamal/`
-- {{CODEx_BULLET}}
+The canonical workflow surfaces are:
+- `AGENTS.md`
+- `.pi/settings.json`
+- `.pi/SYSTEM.md`
+- `.pi/extensions/*`
+- `.pi/prompts/*`
+- `.pi/skills/*`
+- `scripts/*`
+- native `bd` with `.beads/**`
+- deployment templates in `config/` and `.kamal/`
 
 ## Harness baseline
 
 - Scaffolded with `pi-harness` v{{HARNESS_VERSION}} on {{GENERATED_ON}}.
 - Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
-- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `pi-harness --mode existing <path> --assistant codex --init-json`, then customize only `createdPaths`.
+- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `pi-harness --mode existing <path> --init-json`, then customize only `createdPaths`.
+- Finish updates with `pi-harness doctor <path>`.
 - This scaffold assumes `pi-harness` is used locally to set up and refresh repos, not consumed as a registry-published package.
-- Finish updates with `pi-harness doctor <path> --assistant codex`.
 
 ## If you are migrating from scaiff
 
@@ -25,16 +30,23 @@ This project is scaffolded for a Pi-operated {{ASSISTANT_LABEL}} workflow with B
 - Use `pi-harness` for installs and updates; there is no separate `scaiff` binary or package alias.
 - Use `--cleanup-manifest legacy-ai-frameworks-v1` only when you intentionally want curated legacy workflow leftovers removed.
 
+## Pi setup
+
+1. Install Pi locally: `npm install -g @mariozechner/pi-coding-agent`
+2. Start Pi in the repository.
+3. Run `/login` to configure the provider credentials you want Pi to use.
+4. Run `/model` to select the current model.
+5. Use `.pi/settings.json` for project-local overrides and `~/.pi/agent/models.json` for global model/provider definitions when needed.
+
 ## Next steps
 
-1. Read `.rules/patterns/operator-workflow.md`.
-2. {{WORKFLOW_GUIDE_LINE}}
+1. Read `AGENTS.md`.
+2. Review `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.
 3. Copy `.env.example` to `.env` and fill in local values.
-4. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
+4. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
 5. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
 6. Run `bd init` once in the repository before using Beads.
-7. Use `.rules/patterns/operator-workflow.md` for the daily Beads + Cognee loop, `.omp/agents/*.md` plus `.omp/skills/*/SKILL.md` for Pi-native orchestration help, and `.codex/workflows/autonomous-execution.md` when you want backlog-driven automation.
-8. Create a feature branch before your first commit.
-9. Use `.codex/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
-10. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
-11. Let an execution/autonomous landing lane run `./.codex/scripts/land.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+7. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+8. Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
+9. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+10. Let an execution or autonomous landing lane run `./scripts/land.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.

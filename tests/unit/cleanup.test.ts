@@ -167,7 +167,7 @@ describe('runCleanup', () => {
     );
   });
 
-  it('deletes deprecated planning-sync scripts without confirmation', async () => {
+  it('deletes deprecated planning-sync scripts even when the parent legacy runtime directory still requires confirmation', async () => {
     const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.codex', 'scripts'), { recursive: true });
     await writeFile(path.join(targetDir, legacyPlanningSyncBackend), '#!/usr/bin/env bash\n', 'utf8');
@@ -180,12 +180,14 @@ describe('runCleanup', () => {
       nonInteractive: true
     });
 
-    expect(result.status).toBe('applied');
+    expect(result.status).toBe('blocked');
+    expect(result.summary.promptRequired).toBeGreaterThan(0);
     expect(result.removedPaths).toEqual(
       expect.arrayContaining([legacyPlanningSyncBackend, legacyPlanningSyncWrapper])
     );
     expect(result.actions).toEqual(
       expect.arrayContaining([
+        expect.objectContaining({ path: '.codex', status: 'prompt-required' }),
         expect.objectContaining({ path: legacyPlanningSyncBackend, status: 'deleted' }),
         expect.objectContaining({ path: legacyPlanningSyncWrapper, status: 'deleted' })
       ])

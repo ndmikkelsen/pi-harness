@@ -5,7 +5,7 @@ import { expect } from 'vitest';
 
 import { runInit } from '../../../../src/commands/init.js';
 import { getCleanupManifest } from '../../../../src/core/cleanup-manifests.js';
-import type { AssistantTarget, InitResult } from '../../../../src/core/types.js';
+import type { InitResult } from '../../../../src/core/types.js';
 import type { CliFeatureWorld } from '../support/world.js';
 import { requireResult, requireTargetDir } from '../support/world.js';
 
@@ -13,7 +13,6 @@ const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 
 type ExistingRepoOptions = {
-  assistant?: AssistantTarget;
   mergeRootFiles?: boolean;
   cleanupManifestId?: string;
   nonInteractive?: boolean;
@@ -23,7 +22,6 @@ async function applyExistingRepo(world: CliFeatureWorld, options: ExistingRepoOp
   const result = await runInit({
     cwd: world.workspace,
     projectArg: requireTargetDir(world),
-    assistant: options.assistant ?? 'codex',
     mode: 'existing',
     dryRun: false,
     force: false,
@@ -90,16 +88,16 @@ export async function whenIApplyTheScaffoldInExistingProjectModeWithCuratedClean
 }
 
 export async function givenExistingProjectDirectoryWithoutCodexFiles(world: CliFeatureWorld): Promise<void> {
-  world.targetDir = path.join(world.workspace, 'existing-assistant');
+  world.targetDir = path.join(world.workspace, 'existing-pi-baseline');
   await mkdir(requireTargetDir(world), { recursive: true });
   await writeFile(path.join(requireTargetDir(world), 'README.md'), '# Existing Repo\n', 'utf8');
 }
 
 export async function whenIApplyTheScaffoldInExistingProjectModeForAssistant(
   world: CliFeatureWorld,
-  assistant: AssistantTarget
+  ..._legacyStepArgs: unknown[]
 ): Promise<void> {
-  await applyExistingRepo(world, { assistant });
+  await applyExistingRepo(world);
 }
 
 export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): void {
@@ -107,9 +105,12 @@ export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): vo
 
   expect(result.createdPaths).toEqual(
     expect.arrayContaining([
-      '.codex/README.md',
-      '.codex/workflows/autonomous-execution.md',
-      '.rules/patterns/operator-workflow.md'
+      'AGENTS.md',
+      '.pi/settings.json',
+      '.pi/prompts/adopt.md',
+      '.pi/skills/harness/SKILL.md',
+      'scripts/bootstrap-worktree.sh',
+      'scripts/cognee-brief.sh'
     ])
   );
 }
@@ -142,11 +143,15 @@ export async function thenCuratedLegacyFilesAreRemovedBeforeNewScaffoldFilesAreC
 ): Promise<void> {
   const result = requireResult(world);
 
-  expect(result.cleanup.status).toBe('applied');
+  expect(result.cleanup.status).toBe('blocked');
   expect(result.cleanup.removedPaths).toEqual(
     expect.arrayContaining(['.codex/templates/session-handoff.md', '.codex/scripts/sync-to-cognee.sh'])
   );
-  expect(result.createdPaths).toContain('.codex/README.md');
+  expect(result.cleanup.summary.promptRequired).toBeGreaterThan(0);
+  expect(result.cleanup.actions).toEqual(
+    expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
+  );
+  expect(result.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json']));
 }
 
 export function thenAmbiguousCleanupEntriesAreReportedForConfirmation(world: CliFeatureWorld): void {
@@ -168,7 +173,7 @@ export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): v
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
-    expect.arrayContaining(['.codex/README.md', '.codex/workflows/autonomous-execution.md', 'AGENTS.md'])
+    expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/land.md', 'scripts/bootstrap-worktree.sh'])
   );
 }
 
