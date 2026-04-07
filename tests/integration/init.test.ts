@@ -40,6 +40,7 @@ const requiredRuntimePaths = [
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
   'scripts/sync-artifacts-to-cognee.sh',
+  'scripts/seed-cognee-garden.sh',
   'scripts/land.sh',
   '.docker/Dockerfile.cognee',
   '.config/deploy.cognee.yml'
@@ -55,7 +56,8 @@ const existingModeBaselinePaths = [
   '.pi/skills/harness/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
-  'scripts/sync-artifacts-to-cognee.sh'
+  'scripts/sync-artifacts-to-cognee.sh',
+  'scripts/seed-cognee-garden.sh'
 ];
 
 describe('runInit', () => {
@@ -141,6 +143,7 @@ describe('runInit', () => {
     const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
     const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
     const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
+    const seedCogneeGardenScript = await readFile(path.join(projectDir, 'scripts', 'seed-cognee-garden.sh'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const harnessSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'harness', 'SKILL.md'), 'utf8');
 
@@ -168,6 +171,10 @@ describe('runInit', () => {
     expect(landPrompt).toContain('scripts/land.sh');
     expect(syncArtifactsScript).toContain('context.md');
     expect(syncArtifactsScript).toContain('progress.md');
+    expect(seedCogneeGardenScript).toContain('scripts/cognee-bridge.sh');
+    expect(seedCogneeGardenScript).toContain('BEHAVIOR_DATASET');
+    expect(seedCogneeGardenScript).toContain('IMPLEMENTATION_DATASET');
+    expect(seedCogneeGardenScript).toContain('REGRESSIONS_DATASET');
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
@@ -255,6 +262,7 @@ describe('runInit', () => {
     const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
     const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
     const cogneeBriefScript = await readFile(path.join(projectDir, 'scripts', 'cognee-brief.sh'), 'utf8');
+    const seedCogneeGardenScript = await readFile(path.join(projectDir, 'scripts', 'seed-cognee-garden.sh'), 'utf8');
 
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh "<query>"');
     expect(agentsGuide).toContain('./scripts/land.sh');
@@ -264,6 +272,8 @@ describe('runInit', () => {
     expect(landPrompt).toContain('scripts/land.sh');
     expect(cogneeBriefScript).toContain('scripts/cognee-bridge.sh');
     expect(cogneeBriefScript).toContain('exec "$BRIDGE" brief "$@"');
+    expect(seedCogneeGardenScript).toContain('scripts/sync-artifacts-to-cognee.sh');
+    expect(seedCogneeGardenScript).toContain('KNOWLEDGE_DATASET');
   });
 
   it('does not overwrite existing files in existing-project mode', async () => {

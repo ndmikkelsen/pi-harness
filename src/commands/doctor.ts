@@ -265,6 +265,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
+    'scripts/seed-cognee-garden.sh',
     'scripts/land.sh',
     'scripts/hooks/post-checkout',
     '.config/deploy.cognee.yml',
@@ -303,6 +304,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/cognee-bridge.sh',
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
+    'scripts/seed-cognee-garden.sh',
     'scripts/land.sh',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
@@ -564,11 +566,29 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     pushRuntimeInvalid(invalid, 'scripts/cognee-brief.sh', 'missing runtime backend reference');
   }
 
+  const cogneeBridge = await readFileIfPresent(targetDir, 'scripts/cognee-bridge.sh');
+  if (cogneeBridge !== null) {
+    for (const token of ['COGNEE_BRIEF_DATASETS', 'ls-files -z --cached --others --exclude-standard', 'find "$dir" -type f', 'grep -Iq']) {
+      if (!cogneeBridge.includes(token)) {
+        pushRuntimeInvalid(invalid, 'scripts/cognee-bridge.sh', `missing runtime backend reference: ${token}`);
+      }
+    }
+  }
+
   const syncArtifactsScript = await readFileIfPresent(targetDir, 'scripts/sync-artifacts-to-cognee.sh');
   if (syncArtifactsScript !== null) {
     for (const token of ['scripts/cognee-bridge.sh', 'context.md', 'plan.md', 'progress.md', 'review.md', 'wave.md']) {
       if (!syncArtifactsScript.includes(token)) {
         pushRuntimeInvalid(invalid, 'scripts/sync-artifacts-to-cognee.sh', `missing runtime backend reference: ${token}`);
+      }
+    }
+  }
+
+  const seedCogneeGardenScript = await readFileIfPresent(targetDir, 'scripts/seed-cognee-garden.sh');
+  if (seedCogneeGardenScript !== null) {
+    for (const token of ['scripts/cognee-bridge.sh', 'scripts/sync-artifacts-to-cognee.sh', 'docs', '.pi', 'apps/cli/features', 'src', 'tests']) {
+      if (!seedCogneeGardenScript.includes(token)) {
+        pushRuntimeInvalid(invalid, 'scripts/seed-cognee-garden.sh', `missing runtime backend reference: ${token}`);
       }
     }
   }

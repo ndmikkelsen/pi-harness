@@ -51,6 +51,7 @@ describe('scaffold source graph', () => {
         '.config/deploy.cognee.yml',
         '.docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
+        'scripts/seed-cognee-garden.sh',
         'scripts/land.sh',
         'STICKYNOTE.example.md',
       ]),

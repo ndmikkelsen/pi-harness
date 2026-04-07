@@ -90,15 +90,22 @@ Record the previous and new `pi-harness` versions plus the source commit in the 
 
 ## Seeding Cognee datasets when briefs are empty
 
-If `./scripts/cognee-brief.sh` reports missing datasets, seed the knowledge garden before treating Cognee as unavailable.
+If `./scripts/cognee-brief.sh` reports missing datasets or stale low-signal results, seed the knowledge garden before treating Cognee as unavailable.
+
+Use the repo-managed seed command:
 
 ```bash
-APP_SLUG=<app-slug>
-./scripts/cognee-bridge.sh sync-dir docs --dataset "$APP_SLUG-knowledge"
-./scripts/cognee-bridge.sh upload README.md --dataset "$APP_SLUG-knowledge"
-./scripts/cognee-bridge.sh sync-dir .pi --dataset "$APP_SLUG-patterns"
-./scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-knowledge"
-./scripts/cognee-bridge.sh cognify --dataset "$APP_SLUG-patterns"
+./scripts/seed-cognee-garden.sh
 ```
+
+The default seed flow covers:
+- `APP_SLUG-knowledge`: `docs/**`, `README.md`, `AGENTS.md`
+- `APP_SLUG-patterns`: `.pi/**`, `scripts/**`
+- `APP_SLUG-behavior`: `apps/cli/features/**`
+- `APP_SLUG-implementation`: `src/**`, `package.json`
+- `APP_SLUG-regressions`: `tests/**`
+- `APP_SLUG-artifacts`: `context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md` through `scripts/sync-artifacts-to-cognee.sh`
+
+`./scripts/cognee-brief.sh` defaults to the knowledge, patterns, behavior, implementation, and regressions datasets. Override with `--datasets` or `COGNEE_BRIEF_DATASETS` when you need a narrower brief.
 
 Validate with `./scripts/cognee-bridge.sh health` and a follow-up `./scripts/cognee-brief.sh "<query>"`.

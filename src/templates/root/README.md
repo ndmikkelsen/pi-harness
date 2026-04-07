@@ -52,7 +52,7 @@ The canonical workflow surfaces are:
 7. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
 8. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
 9. Run `bd init` once in the repository before using Beads.
-10. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+10. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration. If briefs are empty or dataset coverage is stale, run `./scripts/seed-cognee-garden.sh`.
 11. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
 12. Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
 13. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.

@@ -143,9 +143,15 @@ describe('workflow docs alignment', () => {
       { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
     );
     const dogfoodSyncArtifactsScript = normalizeDoc(await readRepoFile('scripts', 'sync-artifacts-to-cognee.sh'));
+    const renderedSeedCogneeGardenScript = renderTemplate(
+      normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'scripts', 'seed-cognee-garden.sh')),
+      { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
+    );
+    const dogfoodSeedCogneeGardenScript = normalizeDoc(await readRepoFile('scripts', 'seed-cognee-garden.sh'));
 
     expect(dogfoodCogneeBridge).toBe(renderedCogneeBridge);
     expect(dogfoodSyncArtifactsScript).toBe(renderedSyncArtifactsScript);
+    expect(dogfoodSeedCogneeGardenScript).toBe(renderedSeedCogneeGardenScript);
   });
 
   it('keeps repo-facing docs aligned to the Pi-native baseline', async () => {
