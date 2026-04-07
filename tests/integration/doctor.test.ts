@@ -135,6 +135,35 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when an adopted repo still contains legacy codex, omp, and rules runtime directories', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-legacy-runtime-dirs');
+
+    await mkdir(path.join(targetDir, '.codex'), { recursive: true });
+    await mkdir(path.join(targetDir, '.omp'), { recursive: true });
+    await mkdir(path.join(targetDir, '.rules'), { recursive: true });
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.codex',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        }),
+        expect.objectContaining({
+          path: '.omp',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        }),
+        expect.objectContaining({
+          path: '.rules',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        })
+      ])
+    );
+  });
+
   it('fails when the Beads post-checkout hook loses the worktree bootstrap fallback', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-hook-seam');
@@ -477,9 +506,9 @@ describe('runDoctor', () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-legacy-docker-path');
 
-    const deployPath = path.join(targetDir, 'config', 'deploy.cognee.yml');
+    const deployPath = path.join(targetDir, '.config', 'deploy.cognee.yml');
     const deployConfig = await readFile(deployPath, 'utf8');
-    await writeFile(deployPath, deployConfig.replace('docker/Dockerfile.cognee', '.codex/Dockerfile.cognee'), 'utf8');
+    await writeFile(deployPath, deployConfig.replace('.docker/Dockerfile.cognee', '.codex/Dockerfile.cognee'), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -487,7 +516,7 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: 'config/deploy.cognee.yml',
+          path: '.config/deploy.cognee.yml',
           reason: 'missing plain dockerfile path'
         })
       ])

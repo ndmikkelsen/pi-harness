@@ -9,7 +9,7 @@
 - `src/core/*.ts` provides reusable filesystem, cleanup, git, policy, and helper logic
 - `src/generators/*.ts` map scaffold concerns to output paths
 - `src/templates/**` stores the canonical scaffold content
-- the repository root, `.pi/**`, `scripts/**`, `config/**`, and `.kamal/**` are the scaffold applied back onto this repo
+- the repository root, `.pi/**`, `scripts/**`, `.config/**`, `.docker/**`, and `.kamal/**` are the scaffold applied back onto this repo
 
 ## Layers
 
@@ -35,7 +35,7 @@
 - source-of-truth rule: edit here first, not in `dist/templates/**`
 
 ### Dogfooded runtime layer
-- files: `AGENTS.md`, `.pi/**`, `scripts/**`, `config/**`, `.kamal/secrets.example`, `STICKYNOTE.example.md`
+- files: `AGENTS.md`, `.pi/**`, `scripts/**`, `.config/**`, `.docker/**`, `.kamal/secrets.example`, `STICKYNOTE.example.md`
 - responsibility: prove that the scaffold works against the repository that builds it
 
 ### Verification layer

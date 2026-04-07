@@ -26,7 +26,7 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an existing project directory with custom root files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
+      world = await createWorld('pi-harness-bdd-adoption-');
       await adoptionSteps.givenExistingProjectDirectoryWithCustomRootFiles(world);
     });
 
@@ -47,7 +47,7 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an existing project directory with custom root files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
+      world = await createWorld('pi-harness-bdd-adoption-');
       await adoptionSteps.givenExistingProjectDirectoryWithCustomRootFiles(world);
     });
 
@@ -68,7 +68,7 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an existing project directory with curated legacy AI-framework files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
+      world = await createWorld('pi-harness-bdd-adoption-');
       await adoptionSteps.givenExistingProjectDirectoryWithCuratedLegacyAiFrameworkFiles(world);
     });
 
@@ -85,7 +85,7 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an existing project directory with ambiguous legacy AI-framework files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
+      world = await createWorld('pi-harness-bdd-adoption-');
       await adoptionSteps.givenExistingProjectDirectoryWithAmbiguousLegacyAiFrameworkFiles(world);
     });
 
@@ -102,20 +102,20 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
-  Scenario('Add the Pi + Codex compatibility files to an existing project', ({ Given, When, Then, And }) => {
+  Scenario('Add the Pi-native workflow files to an existing project', ({ Given, When, Then, And }) => {
     let world: CliFeatureWorld;
 
-    Given('an existing project directory without Codex files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
-      await adoptionSteps.givenExistingProjectDirectoryWithoutCodexFiles(world);
+    Given('an existing project directory without Pi-native workflow files', async () => {
+      world = await createWorld('pi-harness-bdd-adoption-');
+      await adoptionSteps.givenExistingProjectDirectoryWithoutPiNativeWorkflowFiles(world);
     });
 
-    When('I apply the scaffold in existing-project mode for the "codex" assistant', async () => {
-      await adoptionSteps.whenIApplyTheScaffoldInExistingProjectModeForAssistant(world, 'codex');
+    When('I apply the scaffold in existing-project mode for the Pi-native baseline', async () => {
+      await adoptionSteps.whenIApplyTheScaffoldInExistingProjectModeForPiNativeBaseline(world);
     });
 
-    Then('assistant compatibility files are created', () => {
-      adoptionSteps.thenCodexCompatibilityFilesAreCreated(world);
+    Then('Pi-native workflow files are created', () => {
+      adoptionSteps.thenPiNativeWorkflowFilesAreCreated(world);
     });
 
     And('no OpenCode compatibility files are created', async () => {

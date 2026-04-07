@@ -77,7 +77,7 @@ describe('CLI doctor', () => {
         '.pi/prompts/land.md',
         '.pi/skills/harness/SKILL.md',
         'scripts/bootstrap-worktree.sh',
-        'docker/Dockerfile.cognee'
+        '.docker/Dockerfile.cognee'
       ])
     );
     expect(initPayload.skippedPaths).toContain('README.md');

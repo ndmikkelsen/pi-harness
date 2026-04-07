@@ -4,20 +4,20 @@ import { loadTemplate } from '../core/template-loader.js';
 export function buildConfigEntries(): ManagedEntry[] {
   return [
     { kind: 'directory', path: '.kamal' },
-    { kind: 'directory', path: 'config' },
+    { kind: 'directory', path: '.config' },
     {
       kind: 'file',
       path: '.kamal/secrets.example',
       content: (context) =>
-        loadTemplate('config/secrets.example', {
+        loadTemplate('.config/secrets.example', {
           APP_SLUG: context.appSlug
         })
     },
     {
       kind: 'file',
-      path: 'config/deploy.yml',
+      path: '.config/deploy.yml',
       content: (context) =>
-        loadTemplate('config/deploy.yml', {
+        loadTemplate('.config/deploy.yml', {
           APP_SLUG: context.appSlug,
           COMPUTE_HOST: context.computeHost,
           REGISTRY_HOST: context.registryHost,
@@ -27,9 +27,9 @@ export function buildConfigEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: 'config/deploy.cognee.yml',
+      path: '.config/deploy.cognee.yml',
       content: (context) =>
-        loadTemplate('config/deploy.cognee.yml', {
+        loadTemplate('.config/deploy.cognee.yml', {
           APP_SLUG: context.appSlug,
           COGNEE_DB_HOST: `${context.appSlug}-cognee-db`,
           REGISTRY_HOST: context.registryHost,

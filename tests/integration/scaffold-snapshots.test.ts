@@ -46,9 +46,10 @@ async function snapshotForProject(rootDir: string) {
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
+    seedCogneeGardenScript: await readProjectFile(rootDir, 'scripts', 'seed-cognee-garden.sh'),
     postCheckoutHook: await readProjectFile(rootDir, 'scripts', 'hooks', 'post-checkout'),
     landScript: await readProjectFile(rootDir, 'scripts', 'land.sh'),
-    dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
+    dockerfile: await readProjectFile(rootDir, '.docker', 'Dockerfile.cognee'),
     beadsConfig: await readProjectFile(rootDir, '.beads', 'config.yaml'),
   };
 }
@@ -122,13 +123,14 @@ describe('scaffold snapshots', () => {
         'AGENTS.md',
         'README.md',
         'STICKYNOTE.example.md',
-        'config/deploy.cognee.yml',
-        'config/deploy.yml',
-        'docker/Dockerfile.cognee',
+        '.config/deploy.cognee.yml',
+        '.config/deploy.yml',
+        '.docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',
         'scripts/sync-artifacts-to-cognee.sh',
+        'scripts/seed-cognee-garden.sh',
         'scripts/hooks/post-checkout',
         'scripts/land.sh',
       ]),
@@ -194,9 +196,16 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeBridge).toContain('snapshot-pi-native-cognee.apps.compute.lan');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-knowledge');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-patterns');
+    expect(result.cogneeBridge).toContain('snapshot-pi-native-behavior');
+    expect(result.cogneeBridge).toContain('snapshot-pi-native-implementation');
+    expect(result.cogneeBridge).toContain('snapshot-pi-native-regressions');
+    expect(result.cogneeBridge).toContain('grep -Iq');
+    expect(result.cogneeBridge).toContain('ls-files -z --cached --others --exclude-standard');
     expect(result.cogneeBrief).toContain('exec "$BRIDGE" brief "$@"');
     expect(result.syncArtifactsScript).toContain('context.md');
     expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
+    expect(result.seedCogneeGardenScript).toContain('IMPLEMENTATION_DATASET');
+    expect(result.seedCogneeGardenScript).toContain('scripts/sync-artifacts-to-cognee.sh');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
     expect(result.landScript).toContain('run_cmd pnpm test:bdd');
     expect(result.landScript).toContain('sync-artifacts-to-cognee.sh');

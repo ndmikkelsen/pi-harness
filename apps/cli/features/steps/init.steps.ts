@@ -47,7 +47,7 @@ export function thenTheCliCreatesTheAiWorkflowScaffoldFiles(world: CliFeatureWor
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh',
       'scripts/land.sh',
-      'docker/Dockerfile.cognee',
+      '.docker/Dockerfile.cognee',
       'STICKYNOTE.example.md'
     ])
   );
@@ -70,7 +70,7 @@ export async function thenNoFilesAreWrittenToDisk(world: CliFeatureWorld): Promi
   await expect(access(requireTargetDir(world))).rejects.toThrow();
 }
 
-export async function thenTheCliCreatesCodexCompatibilityFiles(world: CliFeatureWorld): Promise<void> {
+export async function thenTheCliCreatesPiNativeWorkflowFiles(world: CliFeatureWorld): Promise<void> {
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
@@ -83,12 +83,12 @@ export async function thenTheCliCreatesCodexCompatibilityFiles(world: CliFeature
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh',
       'scripts/land.sh',
-      'docker/Dockerfile.cognee'
+      '.docker/Dockerfile.cognee'
     ])
   );
 }
 
-export async function thenTheCodexRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
+export async function thenThePiNativeRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
   const agentsGuide = await readTargetFile(world, 'AGENTS.md');
   const bootstrapScript = await readTargetFile(world, 'scripts/bootstrap-worktree.sh');
   const workflowExtension = await readTargetFile(world, '.pi/extensions/repo-workflows.ts');

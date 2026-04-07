@@ -1,11 +1,11 @@
-service: {{APP_SLUG}}-cognee
-image: {{APP_SLUG}}/cognee
+service: pi-harness-cognee
+image: pi-harness/cognee
 
 servers:
-  - {{COMPUTE_HOST}}
+  - 10.10.20.138
 
 proxy:
-  host: {{APP_SLUG}}-cognee.apps.compute.lan
+  host: pi-harness-cognee.apps.compute.lan
   app_port: 8000
   ssl: false
   forward_headers: true
@@ -16,30 +16,30 @@ proxy:
     timeout: 5
 
 registry:
-  server: {{REGISTRY_HOST}}
+  server: harbor.compute.lan
   username: admin
   password:
     - KAMAL_REGISTRY_PASSWORD
 
 ssh:
-  user: {{COMPUTE_USER}}
+  user: compute
   keys:
-    - {{SSH_KEY_PATH}}
+    - ~/.ssh/z3r0Layer-main
 
 builder:
   arch: amd64
-  dockerfile: docker/Dockerfile.cognee
+  dockerfile: .docker/Dockerfile.cognee
 
 env:
   clear:
     DB_PROVIDER: postgres
-    DB_HOST: {{COGNEE_DB_HOST}}
+    DB_HOST: pi-harness-cognee-db
     DB_PORT: 5432
     DB_NAME: cognee
     DB_USERNAME: cognee
     VECTOR_DB_PROVIDER: pgvector
     VECTOR_DATASET_DATABASE_HANDLER: pgvector
-    VECTOR_DB_HOST: {{COGNEE_DB_HOST}}
+    VECTOR_DB_HOST: pi-harness-cognee-db
     VECTOR_DB_PORT: 5432
     VECTOR_DB_NAME: cognee
     VECTOR_DB_USERNAME: cognee
@@ -59,7 +59,7 @@ env:
 accessories:
   db:
     image: pgvector/pgvector:pg17
-    host: {{COMPUTE_HOST}}
+    host: 10.10.20.138
     env:
       clear:
         POSTGRES_USER: cognee
@@ -67,4 +67,4 @@ accessories:
       secret:
         - POSTGRES_PASSWORD
     volumes:
-      - /mnt/nfs/databases/{{APP_SLUG}}/cognee:/var/lib/postgresql/data
+      - /mnt/nfs/databases/pi-harness/cognee:/var/lib/postgresql/data

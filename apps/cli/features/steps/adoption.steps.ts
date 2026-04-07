@@ -87,15 +87,14 @@ export async function whenIApplyTheScaffoldInExistingProjectModeWithCuratedClean
   });
 }
 
-export async function givenExistingProjectDirectoryWithoutCodexFiles(world: CliFeatureWorld): Promise<void> {
+export async function givenExistingProjectDirectoryWithoutPiNativeWorkflowFiles(world: CliFeatureWorld): Promise<void> {
   world.targetDir = path.join(world.workspace, 'existing-pi-baseline');
   await mkdir(requireTargetDir(world), { recursive: true });
   await writeFile(path.join(requireTargetDir(world), 'README.md'), '# Existing Repo\n', 'utf8');
 }
 
-export async function whenIApplyTheScaffoldInExistingProjectModeForAssistant(
+export async function whenIApplyTheScaffoldInExistingProjectModeForPiNativeBaseline(
   world: CliFeatureWorld,
-  ..._legacyStepArgs: unknown[]
 ): Promise<void> {
   await applyExistingRepo(world);
 }
@@ -169,7 +168,7 @@ export async function thenAmbiguousFilesAreLeftUnchanged(world: CliFeatureWorld)
   expect(content).toBe('# notes\n');
 }
 
-export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): void {
+export function thenPiNativeWorkflowFilesAreCreated(world: CliFeatureWorld): void {
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
