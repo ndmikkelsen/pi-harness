@@ -3,7 +3,6 @@
 import { Command, InvalidArgumentError } from 'commander';
 
 import { DEFAULT_POLICY, type ProjectMode } from './core/policy.js';
-import type { AssistantTarget } from './core/types.js';
 import { formatDoctorReport, runDoctor } from './commands/doctor.js';
 import { formatInitReport, runInit } from './commands/init.js';
 
@@ -15,22 +14,13 @@ function parseMode(value: string): ProjectMode {
   throw new InvalidArgumentError('Mode must be one of: auto, new, existing.');
 }
 
-function parseAssistant(value: string): AssistantTarget {
-  if (value === 'codex') {
-    return 'codex';
-  }
-
-  throw new InvalidArgumentError('Assistant must be one of: codex.');
-}
-
 const program = new Command();
 
 program
   .name('pi-harness')
-  .description('AI workflow scaffolder for local setup of new and existing projects.')
+  .description('Pi-native workflow scaffolder for local setup of new and existing projects.')
   .argument('[project]', 'project name or target path')
   .argument('[target]', 'target directory')
-  .option('--assistant <assistant>', 'assistant target: codex', parseAssistant, 'codex')
   .option('--mode <mode>', 'scaffold mode: auto, new, existing', parseMode, 'auto')
   .option('--init-json', 'emit machine-readable JSON output for scaffold runs', false)
   .option('--dry-run', 'show planned changes without writing files', false)
@@ -50,7 +40,6 @@ program
       cwd: process.cwd(),
       projectArg,
       targetArg,
-      assistant: options.assistant as AssistantTarget,
       mode: options.mode,
       dryRun: options.dryRun,
       force: options.force,
@@ -82,15 +71,13 @@ program
 
 program
   .command('doctor')
-  .description('Audit whether a repository matches the Codex + Beads + Cognee scaffold baseline.')
+  .description('Audit whether a repository matches the pi-native scaffold baseline.')
   .argument('[target]', 'target directory', '.')
-  .option('--assistant <assistant>', 'assistant target: codex', parseAssistant, 'codex')
   .option('--json', 'emit machine-readable JSON output', false)
   .action(async (targetArg: string, options) => {
     const result = await runDoctor({
       cwd: process.cwd(),
       targetArg,
-      assistant: options.assistant,
       json: options.json,
     });
 

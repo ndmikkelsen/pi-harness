@@ -30,8 +30,8 @@ try {
 
   runCli(['--help']);
   runCli(['doctor', '--help']);
-  runCli(['--assistant', 'codex', '--skip-git', '--dry-run', path.join(workspace, 'smoke-codex')]);
-  runCli(['--assistant', 'codex', '--skip-git', path.join(workspace, 'smoke-verified-codex')]);
+  runCli(['--skip-git', '--dry-run', path.join(workspace, 'smoke-pi-native')]);
+  runCli(['--skip-git', path.join(workspace, 'smoke-verified-pi-native')]);
 } finally {
   rmSync(workspace, { recursive: true, force: true });
 }

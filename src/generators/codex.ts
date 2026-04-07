@@ -1,4 +1,4 @@
-import { codexCompatibilityLabel } from '../core/assistant.js';
+import { SCAFFOLD_DISPLAY_NAME } from '../core/runtime.js';
 import type { ManagedEntry } from '../core/types.js';
 import { loadTemplate } from '../core/template-loader.js';
 
@@ -81,7 +81,7 @@ export function buildCodexEntries(): ManagedEntry[] {
     {
       kind: 'file',
       path: '.codex/README.md',
-      content: (context) => codexReadme(codexCompatibilityLabel(context.assistant))
+      content: () => codexReadme(SCAFFOLD_DISPLAY_NAME)
     },
     {
       kind: 'file',
@@ -164,7 +164,7 @@ export function buildCodexEntries(): ManagedEntry[] {
     {
       kind: 'file',
       path: 'AGENTS.md',
-      content: (context) => agentsGuide(codexCompatibilityLabel(context.assistant))
+      content: () => agentsGuide(SCAFFOLD_DISPLAY_NAME)
     }
   ];
 }

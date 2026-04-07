@@ -30,12 +30,12 @@ async function createLandFixture() {
   await execFile('git', ['init', '--bare'], { cwd: remoteDir });
 
   const sourceLand = await readFile(
-    path.join(process.cwd(), '.codex', 'scripts', 'land.sh'),
+    path.join(process.cwd(), 'scripts', 'land.sh'),
     'utf8'
   );
-  await mkdir(path.join(repoDir, '.codex', 'scripts'), { recursive: true });
-  await writeFile(path.join(repoDir, '.codex', 'scripts', 'land.sh'), sourceLand, 'utf8');
-  await chmod(path.join(repoDir, '.codex', 'scripts', 'land.sh'), 0o755);
+  await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
+  await writeFile(path.join(repoDir, 'scripts', 'land.sh'), sourceLand, 'utf8');
+  await chmod(path.join(repoDir, 'scripts', 'land.sh'), 0o755);
 
   await writeFile(
     path.join(repoDir, 'package.json'),
@@ -112,7 +112,7 @@ describe('land.sh', () => {
     const fixture = await createLandFixture();
 
     try {
-      const result = await execFile(path.join(fixture.repoDir, '.codex', 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,
@@ -147,7 +147,7 @@ describe('land.sh', () => {
       await execFile('git', ['checkout', 'main'], { cwd: fixture.repoDir });
 
       await expect(
-        execFile(path.join(fixture.repoDir, '.codex', 'scripts', 'land.sh'), [], {
+        execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
           cwd: fixture.repoDir,
           env: {
             ...process.env,
@@ -161,10 +161,77 @@ describe('land.sh', () => {
     }
   });
 
-  it('does not invoke deprecated planning-sync scripts during landing', async () => {
+  it('invokes the Pi-native artifact sync when present', async () => {
     const fixture = await createLandFixture();
 
     try {
+      await writeFile(
+        path.join(fixture.repoDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
+        `#!/usr/bin/env bash
+set -euo pipefail
+printf 'pi-sync-invoked\n' >> "${fixture.syncLog}"
+exit 0
+`,
+        'utf8'
+      );
+      await chmod(path.join(fixture.repoDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 0o755);
+      await execFile('git', ['add', 'scripts/sync-artifacts-to-cognee.sh'], { cwd: fixture.repoDir });
+      await execFile('git', ['commit', '-m', 'test: seed pi-native artifact sync'], { cwd: fixture.repoDir });
+
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+        cwd: fixture.repoDir,
+        env: {
+          ...process.env,
+          PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+        },
+        encoding: 'utf8'
+      });
+
+      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      expect(await readFile(fixture.syncLog, 'utf8')).toContain('pi-sync-invoked');
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('continues landing when Pi-native artifact sync reports an unavailable-but-skipped path', async () => {
+    const fixture = await createLandFixture();
+
+    try {
+      await writeFile(
+        path.join(fixture.repoDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
+        `#!/usr/bin/env bash
+set -euo pipefail
+printf 'Cognee unavailable - skipping artifact sync\n'
+exit 0
+`,
+        'utf8'
+      );
+      await chmod(path.join(fixture.repoDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 0o755);
+      await execFile('git', ['add', 'scripts/sync-artifacts-to-cognee.sh'], { cwd: fixture.repoDir });
+      await execFile('git', ['commit', '-m', 'test: allow skipped pi-native artifact sync'], { cwd: fixture.repoDir });
+
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+        cwd: fixture.repoDir,
+        env: {
+          ...process.env,
+          PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+        },
+        encoding: 'utf8'
+      });
+
+      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      expect(result.stdout).toContain('Cognee unavailable - skipping artifact sync');
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+  it('does not invoke deprecated planning-sync legacy artifacts during landing', async () => {
+    const fixture = await createLandFixture();
+
+    try {
+      // Seed legacy cleanup artifacts; supported scripts/land.sh must ignore them.
+      await mkdir(path.join(fixture.repoDir, '.codex', 'scripts'), { recursive: true });
       await writeFile(
         path.join(fixture.repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'),
         `#!/usr/bin/env bash
@@ -190,11 +257,11 @@ exit 43
         ['add', '.codex/scripts/sync-planning-to-cognee.sh', '.codex/scripts/cognee-sync-planning.sh'],
         { cwd: fixture.repoDir }
       );
-      await execFile('git', ['commit', '-m', 'test: seed deprecated planning sync scripts'], {
+      await execFile('git', ['commit', '-m', 'test: seed deprecated planning-sync legacy artifacts'], {
         cwd: fixture.repoDir
       });
 
-      const result = await execFile(path.join(fixture.repoDir, '.codex', 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,

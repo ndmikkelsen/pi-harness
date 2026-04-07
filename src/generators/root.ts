@@ -1,5 +1,4 @@
 import type { ManagedEntry, ScaffoldContext } from '../core/types.js';
-import { assistantDisplayName } from '../core/assistant.js';
 import { AI_HARNESS_VERSION } from '../core/harness-release.js';
 import { loadTemplate } from '../core/template-loader.js';
 
@@ -68,15 +67,8 @@ function envrc(context: ScaffoldContext): string {
 }
 
 function readme(context: ScaffoldContext): string {
-  const assistantLabel = assistantDisplayName(context.assistant);
-  const codexBullet = 'Compatibility maintenance notes in `AGENTS.md`';
-  const workflowGuideLine = 'Review AGENTS.md, `.omp/`, and `.codex/README.md` for workflow authority, Pi-native assets, and compatibility maintenance notes.';
-
   return loadTemplate('root/README.md', {
     APP_TITLE: context.appTitle,
-    ASSISTANT_LABEL: assistantLabel,
-    CODEx_BULLET: codexBullet,
-    WORKFLOW_GUIDE_LINE: workflowGuideLine,
     GENERATED_ON: context.generatedOn,
     HARNESS_VERSION: context.harnessVersion ?? AI_HARNESS_VERSION
   });

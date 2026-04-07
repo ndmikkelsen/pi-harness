@@ -2,12 +2,12 @@
 
 ## Completed changes
 
-- collapsed the supported scaffold target to `codex`
-- removed the retired extra-assistant/runtime compatibility surface from the baseline
-- removed the OMO contract from the generated scaffold baseline
+- collapsed the scaffold contract to vanilla Pi instead of an assistant-specific target
+- introduced `AGENTS.md`, `.pi/*`, and `scripts/*` as the supported runtime baseline
 - kept Beads as the canonical backlog system through native `bd`
-- kept Cognee as the optional knowledge brief surface through `.codex/scripts/*`
-- kept `.codex/` as the single generated runtime surface
+- kept Cognee as the optional knowledge brief surface through plain repo scripts
+- moved bootstrap, landing, and Cognee helpers to `scripts/*`
+- updated cleanup and doctor logic toward the Pi-native baseline
 
 ## Current baseline
 
@@ -17,12 +17,12 @@ The supported local workflow is now:
 pnpm install
 pnpm build
 pnpm install:local
-pi-harness --mode existing <path> --assistant codex --init-json
-pi-harness doctor <path> --assistant codex
+pi-harness --mode existing <path> --init-json
+pi-harness doctor <path>
 ```
 
 ## Follow-up areas
 
-- decide whether a future Pi-native runtime surface needs its own generated files or whether Pi remains the operating environment around the Codex scaffold
-- continue simplifying docs and tests around the codex-only baseline
-- keep source templates, dogfooded outputs, and `dist/` aligned as further Pi work lands
+- keep source templates, dogfooded outputs, and `dist/` aligned as the cutover finishes
+- continue simplifying docs and tests around the Pi-native baseline
+- add more Pi extensions only when prompts, skills, and scripts are no longer enough

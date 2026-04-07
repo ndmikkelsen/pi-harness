@@ -14,47 +14,42 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
+const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'human-output-app');
 
-    const result = await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', '--assistant', 'codex', '--skip-git', targetDir],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--skip-git', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
 
-    expect(result.stdout).toContain('Scaffolded human-output-app (new, codex)');
-    expect(result.stdout).toContain('Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.');
+    expect(result.stdout).toContain('Scaffolded human-output-app (new)');
+    expect(result.stdout).toContain(
+      'Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.'
+    );
   });
 
-  it('rejects unsupported assistant targets', async () => {
+  it('emits Pi-native init-json output', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
-    const legacyTargetDir = path.join(workspace, 'legacy-opencode');
-    const autoTargetDir = path.join(workspace, 'legacy-auto');
+    const targetDir = path.join(workspace, 'json-output-app');
 
-    await expect(
-      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'opencode', '--skip-git', legacyTargetDir], {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      })
-    ).rejects.toMatchObject({
-      stderr: expect.stringContaining('Assistant must be one of: codex.')
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--skip-git', '--init-json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
     });
 
-    await expect(
-      execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'auto', '--skip-git', autoTargetDir], {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      })
-    ).rejects.toMatchObject({
-      stderr: expect.stringContaining('Assistant must be one of: codex.')
-    });
+    const payload = JSON.parse(result.stdout) as {
+      mode: string;
+      createdPaths: string[];
+      cleanup: { status: string };
+    };
+
+    expect(payload.mode).toBe('new');
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json', 'scripts/bootstrap-worktree.sh']));
+    expect(payload.cleanup.status).toBe('not-requested');
   });
 
   it('installs post-checkout hook support when pre-commit is available', async () => {
@@ -75,7 +70,7 @@ exit 0
     );
     await chmod(path.join(binDir, 'pre-commit'), 0o755);
 
-    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--assistant', 'codex', targetDir], {
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', targetDir], {
       cwd: repoRoot,
       encoding: 'utf8',
       env: {
@@ -108,14 +103,10 @@ exit 0
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
     await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
 
-    const result = await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--init-json', targetDir],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--mode', 'existing', '--init-json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
 
     const payload = JSON.parse(result.stdout) as { createdPaths: string[]; skippedPaths: string[] };
 
@@ -139,7 +130,7 @@ exit 0
 
     const result = await execFile(
       process.execPath,
-      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--merge-root-files', '--init-json', targetDir],
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--merge-root-files', '--init-json', targetDir],
       {
         cwd: repoRoot,
         encoding: 'utf8'
@@ -165,33 +156,37 @@ exit 0
     await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
     await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
 
-    const result = await execFile(
-      process.execPath,
-      [
-        tsxCli,
-        'src/cli.ts',
-        '--mode',
-        'existing',
-        '--assistant',
-        'codex',
-        '--cleanup-manifest',
-        'legacy-ai-frameworks-v1',
-        '--init-json',
-        targetDir
-      ],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    let stdout = '';
+    try {
+      const result = await execFile(
+        process.execPath,
+        [tsxCli, 'src/cli.ts', '--mode', 'existing', '--cleanup-manifest', 'legacy-ai-frameworks-v1', '--init-json', targetDir],
+        {
+          cwd: repoRoot,
+          encoding: 'utf8'
+        }
+      );
+      stdout = result.stdout;
+    } catch (error) {
+      stdout = (error as { stdout?: string }).stdout ?? '';
+    }
 
-    const payload = JSON.parse(result.stdout) as {
-      cleanup: { status: string; removedPaths: string[]; summary: { deleted: number } };
+    const payload = JSON.parse(stdout) as {
+      cleanup: {
+        status: string;
+        removedPaths: string[];
+        summary: { deleted: number; promptRequired: number };
+        actions: Array<{ path: string; status: string }>;
+      };
     };
 
-    expect(payload.cleanup.status).toBe('applied');
+    expect(payload.cleanup.status).toBe('blocked');
     expect(payload.cleanup.removedPaths).toContain('.codex/templates/session-handoff.md');
     expect(payload.cleanup.summary.deleted).toBeGreaterThan(0);
+    expect(payload.cleanup.summary.promptRequired).toBeGreaterThan(0);
+    expect(payload.cleanup.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
+    );
   });
 
   it('returns prompt-required cleanup actions in non-interactive mode', async () => {
@@ -210,8 +205,6 @@ exit 0
           'src/cli.ts',
           '--mode',
           'existing',
-          '--assistant',
-          'codex',
           '--cleanup-manifest',
           'legacy-ai-frameworks-v1',
           '--non-interactive',
@@ -238,9 +231,7 @@ exit 0
     expect(payload.cleanup.status).toBe('blocked');
     expect(payload.cleanup.summary.promptRequired).toBeGreaterThan(0);
     expect(payload.cleanup.actions).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })
-      ])
+      expect.arrayContaining([expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })])
     );
   });
 
@@ -253,35 +244,39 @@ exit 0
     await writeFile(path.join(targetDir, '.codex', 'scripts', 'sync-to-cognee.sh'), '#!/usr/bin/env bash\n', 'utf8');
     await writeFile(path.join(targetDir, '.github', 'prompts', 'review.md'), '# keep\n', 'utf8');
 
-    const result = await execFile(
-      process.execPath,
-      [
-        tsxCli,
-        'src/cli.ts',
-        '--mode',
-        'existing',
-        '--assistant',
-        'codex',
-        '--cleanup-manifest',
-        'legacy-ai-frameworks-v1',
-        '--init-json',
-        targetDir
-      ],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    let stdout = '';
+    try {
+      const result = await execFile(
+        process.execPath,
+        [tsxCli, 'src/cli.ts', '--mode', 'existing', '--cleanup-manifest', 'legacy-ai-frameworks-v1', '--init-json', targetDir],
+        {
+          cwd: repoRoot,
+          encoding: 'utf8'
+        }
+      );
+      stdout = result.stdout;
+    } catch (error) {
+      stdout = (error as { stdout?: string }).stdout ?? '';
+    }
 
-    const payload = JSON.parse(result.stdout) as {
+    const payload = JSON.parse(stdout) as {
       createdPaths: string[];
       skippedPaths: string[];
-      cleanup: { removedPaths: string[]; status: string };
+      cleanup: {
+        removedPaths: string[];
+        status: string;
+        summary: { promptRequired: number };
+        actions: Array<{ path: string; status: string }>;
+      };
     };
 
-    expect(payload.cleanup.status).toBe('applied');
+    expect(payload.cleanup.status).toBe('blocked');
     expect(payload.cleanup.removedPaths).toContain('.codex/scripts/sync-to-cognee.sh');
-    expect(payload.createdPaths).toEqual(expect.arrayContaining(['.codex/README.md', 'AGENTS.md']));
+    expect(payload.cleanup.summary.promptRequired).toBeGreaterThan(0);
+    expect(payload.cleanup.actions).toEqual(
+      expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
+    );
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
     expect(await readFile(path.join(targetDir, '.github', 'prompts', 'review.md'), 'utf8')).toBe('# keep\n');
   });
 
@@ -295,19 +290,15 @@ exit 0
     await writeFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), '#!/bin/sh\nexit 0\n', 'utf8');
     await chmod(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 0o755);
 
-    await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--init-json', targetDir],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--mode', 'existing', '--init-json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
 
     const activeHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
     expect(activeHook).toContain('BEGIN PI HARNESS WORKTREE HOOK');
-    expect(activeHook).toContain('.codex/scripts/bootstrap-worktree.sh');
+    expect(activeHook).toContain('scripts/bootstrap-worktree.sh');
   });
 
   it('normalizes legacy ai-harness post-checkout blocks during existing-repo adoption', async () => {
@@ -335,8 +326,8 @@ fi
 # safe to invoke even when worktree bootstrap already ran earlier in checkout
 # or worktree creation.
 repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
-if [ -n "$repo_root" ] && [ -x "$repo_root/.codex/scripts/bootstrap-worktree.sh" ]; then
-  "$repo_root/.codex/scripts/bootstrap-worktree.sh" --quiet || true
+if [ -n "$repo_root" ] && [ -x "$repo_root/scripts/bootstrap-worktree.sh" ]; then
+  "$repo_root/scripts/bootstrap-worktree.sh" --quiet || true
 fi
 if [ "$_bd_exit" -ne 0 ]; then
   exit "$_bd_exit"
@@ -347,14 +338,10 @@ fi
     );
     await chmod(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 0o755);
 
-    await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', '--init-json', targetDir],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8'
-      }
-    );
+    await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--mode', 'existing', '--init-json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
 
     const activeHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
 
@@ -363,7 +350,6 @@ fi
     expect(activeHook.match(/BEGIN PI HARNESS WORKTREE HOOK/g)?.length ?? 0).toBe(1);
     expect(activeHook).toContain('The Pi Harness bootstrap runs after the Beads hook');
   });
-
 
   it('falls back to a direct post-checkout hook when an existing pre-commit config lacks bootstrap wiring', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
@@ -390,18 +376,14 @@ exit 0
     );
     await chmod(path.join(binDir, 'pre-commit'), 0o755);
 
-    const result = await execFile(
-      process.execPath,
-      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--assistant', 'codex', targetDir],
-      {
-        cwd: repoRoot,
-        encoding: 'utf8',
-        env: {
-          ...process.env,
-          PATH: `${binDir}:${process.env.PATH ?? ''}`
-        }
+    const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--mode', 'existing', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        PATH: `${binDir}:${process.env.PATH ?? ''}`
       }
-    );
+    });
 
     const preCommitCalls = await readFile(preCommitLog, 'utf8');
     const directHook = await readFile(path.join(targetDir, '.git', 'hooks', 'post-checkout'), 'utf8');
