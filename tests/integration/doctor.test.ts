@@ -135,6 +135,26 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the old /harness setup skill alias is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-bake-alias');
+
+    await mkdir(path.join(targetDir, '.pi', 'skills', 'harness'), { recursive: true });
+    await writeFile(path.join(targetDir, '.pi', 'skills', 'harness', 'SKILL.md'), '# stale alias\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/skills/harness/SKILL.md',
+          reason: 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'
+        })
+      ])
+    );
+  });
+
   it('fails when the Beads post-checkout hook loses the worktree bootstrap fallback', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-hook-seam');
@@ -456,7 +476,7 @@ describe('runDoctor', () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-assistant-guidance');
 
-    const skillPath = path.join(targetDir, '.pi', 'skills', 'harness', 'SKILL.md');
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'bake', 'SKILL.md');
     const skill = await readFile(skillPath, 'utf8');
     await writeFile(skillPath, `${skill}\nLegacy command: pi-harness --assistant codex\n`, 'utf8');
 
@@ -466,7 +486,7 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: '.pi/skills/harness/SKILL.md',
+          path: '.pi/skills/bake/SKILL.md',
           reason: 'contains stale workflow reference: --assistant codex'
         })
       ])

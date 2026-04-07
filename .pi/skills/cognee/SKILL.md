@@ -18,7 +18,7 @@ It is not the canonical source of truth; repository files, tests, Beads issues, 
 2. Record whether the brief succeeded, was empty, or was unavailable.
 3. Pull only the relevant takeaways into `context.md`, `plan.md`, or `wave.md`.
 4. Continue only when local repository evidence remains sufficient if Cognee is unavailable.
-5. When briefs are empty because datasets are missing, use the documented seeding flow in `docs/harness-usage.md` instead of inventing ad hoc sync scripts.
+5. When briefs are empty because datasets are missing, use the documented seeding flow in `docs/bake-usage.md` instead of inventing ad hoc sync scripts.
 
 ## Role guidance
 

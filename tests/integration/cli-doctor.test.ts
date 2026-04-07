@@ -75,7 +75,7 @@ describe('CLI doctor', () => {
         'AGENTS.md',
         '.pi/extensions/repo-workflows.ts',
         '.pi/prompts/land.md',
-        '.pi/skills/harness/SKILL.md',
+        '.pi/skills/bake/SKILL.md',
         'scripts/bootstrap-worktree.sh',
         'docker/Dockerfile.cognee'
       ])

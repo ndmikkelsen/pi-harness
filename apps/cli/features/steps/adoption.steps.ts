@@ -108,7 +108,7 @@ export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): vo
       'AGENTS.md',
       '.pi/settings.json',
       '.pi/prompts/adopt.md',
-      '.pi/skills/harness/SKILL.md',
+      '.pi/skills/bake/SKILL.md',
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh'
     ])

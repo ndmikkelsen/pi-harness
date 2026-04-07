@@ -1,9 +1,9 @@
 ---
-name: harness
+name: bake
 description: Use the pi-harness CLI to scaffold new and existing repositories for Codex with Beads, Cognee, and the shared `.codex/` runtime surface. For existing repositories, gather project context first and then customize only newly created scaffold files.
 ---
 
-# Harness
+# Bake
 
 Use this skill when the user wants to bootstrap a repository with `pi-harness`, adopt an existing codebase into the scaffold, or tailor newly created AI workflow files to the project's real history and stack.
 

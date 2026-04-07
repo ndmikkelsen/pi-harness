@@ -1,4 +1,4 @@
-# Using the `harness` workflow
+# Using the `bake` workflow
 
 ## What it is
 

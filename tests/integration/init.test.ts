@@ -33,7 +33,7 @@ const requiredRuntimePaths = [
   '.pi/skills/beads/SKILL.md',
   '.pi/skills/cognee/SKILL.md',
   '.pi/skills/red-green-refactor/SKILL.md',
-  '.pi/skills/harness/SKILL.md',
+  '.pi/skills/bake/SKILL.md',
   '.pi/skills/parallel-wave-design/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
@@ -52,7 +52,7 @@ const existingModeBaselinePaths = [
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
   '.pi/prompts/plan-change.md',
-  '.pi/skills/harness/SKILL.md',
+  '.pi/skills/bake/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
   'scripts/sync-artifacts-to-cognee.sh'
@@ -142,7 +142,7 @@ describe('runInit', () => {
     const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
     const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
-    const harnessSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'harness', 'SKILL.md'), 'utf8');
+    const bakeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(agentsGuide).toContain('.pi/extensions/*');
@@ -171,12 +171,12 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
-    expect(harnessSkill).toContain('.pi/settings.json');
-    expect(harnessSkill).toContain('.pi/extensions/role-workflow.ts');
-    expect(harnessSkill).toContain('.pi/agents/*.md');
-    expect(harnessSkill).toContain('.pi/agents/*.chain.md');
-    expect(harnessSkill).toContain('.pi/extensions/repo-workflows.ts');
-    expect(harnessSkill).toContain('.pi/prompts/land.md');
+    expect(bakeSkill).toContain('.pi/settings.json');
+    expect(bakeSkill).toContain('.pi/extensions/role-workflow.ts');
+    expect(bakeSkill).toContain('.pi/agents/*.md');
+    expect(bakeSkill).toContain('.pi/agents/*.chain.md');
+    expect(bakeSkill).toContain('.pi/extensions/repo-workflows.ts');
+    expect(bakeSkill).toContain('.pi/prompts/land.md');
     const cogneeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'cognee', 'SKILL.md'), 'utf8');
     const redGreenRefactorSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'), 'utf8');
     expect(cogneeSkill).toContain('./scripts/cognee-brief.sh');

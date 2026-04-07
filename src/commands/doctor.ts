@@ -216,6 +216,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     ['.rules/patterns/cognee-gsd-integration.md', 'stale GSD alignment artifact present'],
     ['.rules/patterns/omo-agent-contract.md', 'stale OMO artifact present'],
     ['.opencode/worktree.jsonc', 'stale OpenCode artifact present'],
+    ['.pi/skills/harness/SKILL.md', 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'],
   ]);
   const staleWorkflowMarkers = [
     '.codex/',
@@ -254,10 +255,10 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/beads/SKILL.md',
     '.pi/skills/cognee/SKILL.md',
     '.pi/skills/red-green-refactor/SKILL.md',
-    '.pi/skills/harness/SKILL.md',
-    '.pi/skills/harness/references/pi-harness-command-matrix.md',
-    '.pi/skills/harness/references/scaffold-customization-map.md',
-    '.pi/skills/harness/references/existing-repo-context-checklist.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
     'scripts/bootstrap-worktree.sh',
@@ -291,10 +292,10 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/beads/SKILL.md',
     '.pi/skills/cognee/SKILL.md',
     '.pi/skills/red-green-refactor/SKILL.md',
-    '.pi/skills/harness/SKILL.md',
-    '.pi/skills/harness/references/pi-harness-command-matrix.md',
-    '.pi/skills/harness/references/scaffold-customization-map.md',
-    '.pi/skills/harness/references/existing-repo-context-checklist.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
     'scripts/bootstrap-worktree.sh',
@@ -493,17 +494,17 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
-  const harnessSkill = await readFileIfPresent(targetDir, '.pi/skills/harness/SKILL.md');
-  if (harnessSkill !== null) {
-    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/harness/SKILL.md', harnessSkill, 'harness');
-    if (!harnessSkill.includes('pi-harness --mode existing . --init-json')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing existing-repo adoption command');
+  const bakeSkill = await readFileIfPresent(targetDir, '.pi/skills/bake/SKILL.md');
+  if (bakeSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/bake/SKILL.md', bakeSkill, 'bake');
+    if (!bakeSkill.includes('pi-harness --mode existing . --init-json')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing existing-repo adoption command');
     }
-    if (!harnessSkill.includes('pi-harness doctor <target>')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing doctor follow-up guidance');
+    if (!bakeSkill.includes('pi-harness doctor <target>')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing doctor follow-up guidance');
     }
-    if (!harnessSkill.includes('.pi/extensions/role-workflow.ts')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing role workflow extension guidance');
+    if (!bakeSkill.includes('.pi/extensions/role-workflow.ts')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing role workflow extension guidance');
     }
   }
 

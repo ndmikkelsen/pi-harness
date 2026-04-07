@@ -102,8 +102,8 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'skills', 'red-green-refactor', 'SKILL.md'],
       },
       {
-        sourcePath: ['src', 'templates', 'pi', 'skills', 'harness', 'SKILL.md'],
-        targetPath: ['.pi', 'skills', 'harness', 'SKILL.md'],
+        sourcePath: ['src', 'templates', 'pi', 'skills', 'bake', 'SKILL.md'],
+        targetPath: ['.pi', 'skills', 'bake', 'SKILL.md'],
       },
       {
         sourcePath: ['src', 'templates', 'pi', 'skills', 'parallel-wave-design', 'SKILL.md'],
@@ -151,7 +151,7 @@ describe('workflow docs alignment', () => {
   it('keeps repo-facing docs aligned to the Pi-native baseline', async () => {
     const rootReadme = normalizeDoc(await readRepoFile('README.md'));
     const templateRootReadme = normalizeDoc(await readRepoFile('src', 'templates', 'root', 'README.md'));
-    const harnessUsage = normalizeDoc(await readRepoFile('docs', 'harness-usage.md'));
+    const bakeUsage = normalizeDoc(await readRepoFile('docs', 'bake-usage.md'));
     const agentsGuide = normalizeDoc(await readRepoFile('AGENTS.md'));
     const piSystem = normalizeDoc(await readRepoFile('.pi', 'SYSTEM.md'));
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
@@ -162,7 +162,7 @@ describe('workflow docs alignment', () => {
     const beadsSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'beads', 'SKILL.md'));
     const cogneeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'cognee', 'SKILL.md'));
     const redGreenRefactorSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'red-green-refactor', 'SKILL.md'));
-    const harnessSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'harness', 'SKILL.md'));
+    const bakeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'bake', 'SKILL.md'));
     const parallelSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'parallel-wave-design', 'SKILL.md'));
     const subagentWorkflowSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'subagent-workflow', 'SKILL.md'));
 
@@ -182,7 +182,7 @@ describe('workflow docs alignment', () => {
     const migratedDocs = [
       rootReadme,
       templateRootReadme,
-      harnessUsage,
+      bakeUsage,
       agentsGuide,
       piSystem,
       leadAgent,
@@ -193,7 +193,7 @@ describe('workflow docs alignment', () => {
       beadsSkill,
       cogneeSkill,
       redGreenRefactorSkill,
-      harnessSkill,
+      bakeSkill,
       parallelSkill,
       subagentWorkflowSkill,
     ];
@@ -206,22 +206,22 @@ describe('workflow docs alignment', () => {
     expect(templateRootReadme).toContain('native `bd` with `.beads/**`');
     expect(rootReadme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
     expect(rootReadme).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(rootReadme).toContain('Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(rootReadme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(rootReadme).toContain('pnpm test:bdd');
     expect(rootReadme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(rootReadme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.');
-    expect(harnessUsage).toContain(
+    expect(bakeUsage).toContain(
       'The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.',
     );
-    expect(harnessUsage).toContain('What gets created:');
-    expect(harnessUsage).toContain('- `AGENTS.md`');
-    expect(harnessUsage).toContain('- `.pi/*`');
-    expect(harnessUsage).toContain('- `scripts/*`');
+    expect(bakeUsage).toContain('What gets created:');
+    expect(bakeUsage).toContain('- `AGENTS.md`');
+    expect(bakeUsage).toContain('- `.pi/*`');
+    expect(bakeUsage).toContain('- `scripts/*`');
     expect(agentsGuide).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(agentsGuide).toContain('.pi/agents/*');
     expect(agentsGuide).toContain('/role <name>');
     expect(agentsGuide).toContain(
-      'Use `.pi/skills/harness/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
+      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
     );
     expect(agentsGuide).toContain('Only execution or autonomous landing lanes should run `./scripts/land.sh`.');
     expect(piSystem).toContain('Use `AGENTS.md` as the primary project instruction file.');
@@ -238,12 +238,12 @@ describe('workflow docs alignment', () => {
     expect(beadsSkill).toContain(
       '5. close the issue only after verification passes: `bd close <id> --reason "Verified: <evidence>" --json`',
     );
-    expect(harnessSkill).toContain(
+    expect(bakeSkill).toContain(
       'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
     );
-    expect(harnessSkill).toContain('3. `.pi/extensions/role-workflow.ts`');
-    expect(harnessSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
-    expect(harnessSkill).toContain('5. `.pi/agents/*.chain.md`');
+    expect(bakeSkill).toContain('3. `.pi/extensions/role-workflow.ts`');
+    expect(bakeSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
+    expect(bakeSkill).toContain('5. `.pi/agents/*.chain.md`');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(leadAgent).toContain('Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");

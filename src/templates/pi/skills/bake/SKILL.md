@@ -1,9 +1,9 @@
 ---
-name: harness
+name: bake
 description: Use the pi-harness CLI to scaffold new and existing repositories for vanilla Pi with Beads, Cognee, and project-local `.pi/*` runtime surfaces.
 ---
 
-# Harness
+# Bake
 
 Use this skill when the user wants to bootstrap a repository with `pi-harness`, adopt an existing codebase into the scaffold, or tailor newly created AI workflow files to the project's real history and stack.
 
@@ -51,7 +51,7 @@ Prefer to tailor newly created files in this order:
 4. `.pi/agents/*.md`
 5. `.pi/agents/*.chain.md`
 6. `.pi/extensions/repo-workflows.ts`
-7. `.pi/skills/harness/SKILL.md`
+7. `.pi/skills/bake/SKILL.md`
 8. `.pi/prompts/land.md`
 9. `STICKYNOTE.example.md`
 

@@ -30,28 +30,28 @@ function cogneeAdvisor(): string {
   return loadTemplate('codex/agents/cognee-advisor.md');
 }
 
-function harnessSkill(): string {
-  return loadTemplate('codex/skills/harness/SKILL.md');
+function bakeSkill(): string {
+  return loadTemplate('codex/skills/bake/SKILL.md');
 }
 
 function piHarnessCommandMatrix(): string {
-  return loadTemplate('codex/skills/harness/references/pi-harness-command-matrix.md');
+  return loadTemplate('codex/skills/bake/references/pi-harness-command-matrix.md');
 }
 
 function existingRepoContextChecklist(): string {
-  return loadTemplate('codex/skills/harness/references/existing-repo-context-checklist.md');
+  return loadTemplate('codex/skills/bake/references/existing-repo-context-checklist.md');
 }
 
 function scaffoldCustomizationMap(): string {
-  return loadTemplate('codex/skills/harness/references/scaffold-customization-map.md');
+  return loadTemplate('codex/skills/bake/references/scaffold-customization-map.md');
 }
 
 function manifestDiscoveryGuide(): string {
-  return loadTemplate('codex/skills/harness/references/manifest-discovery.md');
+  return loadTemplate('codex/skills/bake/references/manifest-discovery.md');
 }
 
 function adoptionNotesTemplate(): string {
-  return loadTemplate('codex/skills/harness/assets/adoption-notes-template.md');
+  return loadTemplate('codex/skills/bake/assets/adoption-notes-template.md');
 }
 
 function phaseExecutionTemplate(): string {
@@ -72,9 +72,9 @@ export function buildCodexEntries(): ManagedEntry[] {
     { kind: 'directory', path: '.codex/agents' },
     { kind: 'directory', path: '.codex/scripts' },
     { kind: 'directory', path: '.codex/skills' },
-    { kind: 'directory', path: '.codex/skills/harness' },
-    { kind: 'directory', path: '.codex/skills/harness/references' },
-    { kind: 'directory', path: '.codex/skills/harness/assets' },
+    { kind: 'directory', path: '.codex/skills/bake' },
+    { kind: 'directory', path: '.codex/skills/bake/references' },
+    { kind: 'directory', path: '.codex/skills/bake/assets' },
     { kind: 'directory', path: '.codex/templates' },
     { kind: 'directory', path: '.codex/workflows' },
     { kind: 'directory', path: '.codex/docker' },
@@ -99,32 +99,32 @@ export function buildCodexEntries(): ManagedEntry[] {
     { kind: 'file', path: '.codex/agents/cognee-advisor.md', content: () => cogneeAdvisor() },
     {
       kind: 'file',
-      path: '.codex/skills/harness/SKILL.md',
-      content: () => harnessSkill()
+      path: '.codex/skills/bake/SKILL.md',
+      content: () => bakeSkill()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/pi-harness-command-matrix.md',
+      path: '.codex/skills/bake/references/pi-harness-command-matrix.md',
       content: () => piHarnessCommandMatrix()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/existing-repo-context-checklist.md',
+      path: '.codex/skills/bake/references/existing-repo-context-checklist.md',
       content: () => existingRepoContextChecklist()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/scaffold-customization-map.md',
+      path: '.codex/skills/bake/references/scaffold-customization-map.md',
       content: () => scaffoldCustomizationMap()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/manifest-discovery.md',
+      path: '.codex/skills/bake/references/manifest-discovery.md',
       content: () => manifestDiscoveryGuide()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/assets/adoption-notes-template.md',
+      path: '.codex/skills/bake/assets/adoption-notes-template.md',
       content: () => adoptionNotesTemplate()
     },
     {

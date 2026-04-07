@@ -39,7 +39,7 @@ async function snapshotForProject(rootDir: string) {
     beadsSkill: await readProjectFile(rootDir, '.pi', 'skills', 'beads', 'SKILL.md'),
     cogneeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'cognee', 'SKILL.md'),
     redGreenRefactorSkill: await readProjectFile(rootDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'),
-    harnessSkill: await readProjectFile(rootDir, '.pi', 'skills', 'harness', 'SKILL.md'),
+    bakeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'bake', 'SKILL.md'),
     parallelSkill: await readProjectFile(rootDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md'),
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
@@ -116,7 +116,7 @@ describe('scaffold snapshots', () => {
         '.pi/skills/beads/SKILL.md',
         '.pi/skills/cognee/SKILL.md',
         '.pi/skills/red-green-refactor/SKILL.md',
-        '.pi/skills/harness/SKILL.md',
+        '.pi/skills/bake/SKILL.md',
         '.pi/skills/parallel-wave-design/SKILL.md',
         '.pi/skills/subagent-workflow/SKILL.md',
         'AGENTS.md',
@@ -154,7 +154,7 @@ describe('scaffold snapshots', () => {
     expect(result.readme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.');
-    expect(result.readme).toContain('Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(result.readme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(result.readme).toContain('pnpm test:bdd');
     expect(result.agents).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(result.agents).toContain('.pi/agents/*');
@@ -181,7 +181,7 @@ describe('scaffold snapshots', () => {
     expect(result.beadsSkill).toContain('1. `bd ready --json`');
     expect(result.cogneeSkill).toContain('knowledge garden');
     expect(result.redGreenRefactorSkill).toContain('RED');
-    expect(result.harnessSkill).toContain(
+    expect(result.bakeSkill).toContain(
       'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
     );
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
@@ -213,7 +213,7 @@ describe('scaffold snapshots', () => {
       result.beadsSkill,
       result.cogneeSkill,
       result.redGreenRefactorSkill,
-      result.harnessSkill,
+      result.bakeSkill,
       result.parallelSkill,
       result.subagentWorkflowSkill,
     ]) {

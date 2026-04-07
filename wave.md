@@ -7,18 +7,19 @@ Direct
 untracked
 
 ## Knowledge
-Cognee skipped for this landing pass because local repo state, README, STICKYNOTE, and the pending diff were sufficient.
+Cognee attempted with `./scripts/cognee-brief.sh "rename /harness bootstrap command to /bake across the pi-harness scaffold"` and was unavailable, so local repo files and tests were used as the source of truth.
 
 ## Test Strategy
-TDD-first. The change is covered by integration tests around scaffold generation, doctor alignment, and landing behavior. RED/GREEN already happened in the existing working tree; landing will re-run the full verification sweep to confirm GREEN and keep REFACTOR safe.
+Hybrid. BDD led the user-visible scaffold rename, backed by targeted integration assertions and a typecheck pass. RED: update the BDD and integration expectations from `.pi/skills/harness` to `.pi/skills/bake` and confirm the old scaffold fails. GREEN: rename the setup skill surfaces, docs, generators, and doctor checks to `bake`. REFACTOR: add a doctor guard for stale `.pi/skills/harness/SKILL.md` so refreshed repos do not silently keep the old alias.
 
 ## Agents / Chains
-Main session only. No subagents needed because the work is already implemented and the remaining task is verify, commit, push, and confirm the PR state.
+Main session only. The change touched coordinated scaffold paths, docs, generators, and verification logic, so direct execution kept the rename consistent.
 
 ## Verification
-`./scripts/land.sh --commit-message "feat: sync Pi artifacts during landing"`
+- `pnpm test:bdd`
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/beads-wrapper.test.ts tests/integration/cli-doctor.test.ts tests/integration/doctor.test.ts`
+- `pnpm typecheck`
 
 ## Risks
-- Cognee sync is best-effort and may report an unavailable skip if the local bridge is not healthy.
-- `.pi/npm/` is a local runtime artifact and should not be landed.
-- No active Beads issue is available in this repository state (`bd ready --json` returned `[]`).
+- Existing repos refreshed from older scaffold versions may still have `.pi/skills/harness/SKILL.md`; `pi-harness doctor` now flags that stale alias for cleanup.
+- No active Beads issue was available in this repo state (`bd ready --json` returned `[]`).

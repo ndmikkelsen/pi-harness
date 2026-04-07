@@ -25,7 +25,7 @@ Workflow authority lives in `.rules/patterns/operator-workflow.md`; Pi-native re
 | Runtime scripts | `.codex/scripts/*.sh` |
 | Compatibility workflow deltas | `.codex/workflows/*.md` |
 | Compatibility agent briefs | `.codex/agents/*.md` |
-| Repo setup skill | `.codex/skills/harness/SKILL.md` |
+| Repo setup skill | `.codex/skills/bake/SKILL.md` |
 | Cognee advisor | `./.codex/scripts/cognee-brief.sh` |
 | Operator runbook | `.rules/patterns/operator-workflow.md` |
 | Landing protocol | `./.codex/scripts/land.sh` |
@@ -40,7 +40,7 @@ Workflow authority lives in `.rules/patterns/operator-workflow.md`; Pi-native re
 - `.codex/workflows/autonomous-execution.md` - Codex-compatible backlog-driven autonomous lane delta
 - `.codex/workflows/parallel-execution.md` - Codex-compatible multi-wave delta aligned to Pi task semantics
 - `.codex/docker/Dockerfile.cognee` - container build source for the Cognee deploy template
-- `.codex/skills/harness/SKILL.md` - reusable setup workflow for new and existing repositories
+- `.codex/skills/bake/SKILL.md` - reusable setup workflow for new and existing repositories
 
 ## Default Workflow
 
@@ -85,4 +85,4 @@ APP_SLUG=<app-slug>
 - Do not create parallel planning systems under `.codex/` or `.omp/`.
 - Keep `.rules/` canonical, `.omp/` Pi-native, and `.codex/` compatibility-only.
 - Keep source templates, generated docs, and built `dist/` artifacts in sync.
-- Prefer `harness` as the reusable setup reference and `pi-harness` as the CLI/package name.
+- Prefer `bake` as the reusable setup reference and `pi-harness` as the CLI/package name.

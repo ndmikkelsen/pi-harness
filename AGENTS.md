@@ -28,7 +28,7 @@ The canonical project surfaces are:
 3. If the repository uses Beads, run `bd ready --json` and claim the active issue with `bd update <id> --claim --json`.
 4. Capture scope, acceptance criteria, and the likely BDD/TDD lane in repo-local context before broad edits.
 5. For planning, research, or autonomous startup work, attempt `./scripts/cognee-brief.sh "<query>"` before broad exploration.
-6. Use `.pi/skills/harness/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.
+6. Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.
 7. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role between `lead`, `explore`, `plan`, `build`, and `review`.
 8. Use project-local agents and chains under `.pi/agents/*` with pi-subagents when the work benefits from narrow delegation, caller-managed parallel waves, or repo-specific role handoffs.
 9. Use `.pi/prompts/adopt.md`, `.pi/prompts/triage.md`, `.pi/prompts/land.md`, `.pi/prompts/plan-change.md`, `.pi/prompts/ship-change.md`, `.pi/prompts/parallel-wave.md`, `.pi/prompts/review-change.md`, and `.pi/prompts/feat-change.md` for reusable slash workflows.

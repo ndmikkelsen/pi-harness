@@ -26,7 +26,7 @@ Use the {{COMPAT_LABEL}} docs under `.codex/` as compatibility maps and maintena
 4. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only for Codex-compatible autonomous or multi-wave deltas.
 5. Use `.codex/README.md` for compatibility maps, self-adoption commands, and scaffold maintenance notes.
 6. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
-7. Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
+7. Use `.codex/skills/bake/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 8. If you are in an execution/autonomous landing lane, land the session with `./.codex/scripts/land.sh`.
 
 ### {{COMPAT_LABEL}} Guardrails
@@ -34,7 +34,7 @@ Use the {{COMPAT_LABEL}} docs under `.codex/` as compatibility maps and maintena
 - Do not create duplicate planning systems or issue trackers under `.codex/` or `.omp/`.
 - Do not mirror repo-local handoff or plan notes into compatibility-specific directories.
 - Treat `.omp/*` as Pi-native runtime assets discovered directly by Pi; treat `.codex/agents/*.md` as compatibility briefs and `.codex/scripts/*.sh` as the executable compatibility surface.
-- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
+- Use `.codex/skills/bake/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 
 ### Landing Authority
