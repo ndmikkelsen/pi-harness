@@ -48,7 +48,7 @@ async function snapshotForProject(rootDir: string) {
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
     postCheckoutHook: await readProjectFile(rootDir, 'scripts', 'hooks', 'post-checkout'),
     landScript: await readProjectFile(rootDir, 'scripts', 'land.sh'),
-    dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
+    dockerfile: await readProjectFile(rootDir, '.docker', 'Dockerfile.cognee'),
     beadsConfig: await readProjectFile(rootDir, '.beads', 'config.yaml'),
   };
 }
@@ -122,9 +122,9 @@ describe('scaffold snapshots', () => {
         'AGENTS.md',
         'README.md',
         'STICKYNOTE.example.md',
-        'config/deploy.cognee.yml',
-        'config/deploy.yml',
-        'docker/Dockerfile.cognee',
+        '.config/deploy.cognee.yml',
+        '.config/deploy.yml',
+        '.docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',

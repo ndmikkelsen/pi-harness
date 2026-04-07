@@ -26,14 +26,14 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an empty target directory', async () => {
-      world = await createWorld('ai-harness-bdd-init-');
+      world = await createWorld('pi-harness-bdd-init-');
       await initSteps.givenEmptyTargetDirectory(world);
     });
 
     When('I initialize a new project named "sample-app"', async () => {
       await initSteps.whenIInitializeNewProject(world, {
         projectName: 'sample-app',
-        assistant: 'codex'
+        
       });
     });
 
@@ -50,14 +50,14 @@ describeFeature(feature, ({ Scenario }) => {
     let world: CliFeatureWorld;
 
     Given('an empty target directory', async () => {
-      world = await createWorld('ai-harness-bdd-init-');
+      world = await createWorld('pi-harness-bdd-init-');
       await initSteps.givenEmptyTargetDirectory(world);
     });
 
     When('I run the initializer for "dry-run-app" with dry-run enabled', async () => {
       await initSteps.whenIInitializeNewProject(world, {
         projectName: 'dry-run-app',
-        assistant: 'codex',
+
         dryRun: true
       });
     });
@@ -71,27 +71,27 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
-  Scenario('Prepare a new project for the Pi + Codex baseline', ({ Given, When, Then, And }) => {
+  Scenario('Prepare a new project for the Pi-native baseline', ({ Given, When, Then, And }) => {
     let world: CliFeatureWorld;
 
     Given('an empty target directory', async () => {
-      world = await createWorld('ai-harness-bdd-init-');
+      world = await createWorld('pi-harness-bdd-init-');
       await initSteps.givenEmptyTargetDirectory(world);
     });
 
-    When('I initialize a new project named "codex-app" for the "codex" assistant', async () => {
+    When('I initialize a new project named "pi-native-app"', async () => {
       await initSteps.whenIInitializeNewProject(world, {
-        projectName: 'codex-app',
-        assistant: 'codex'
+        projectName: 'pi-native-app',
+        
       });
     });
 
-    Then('the CLI creates assistant compatibility files', async () => {
-      await initSteps.thenTheCliCreatesCodexCompatibilityFiles(world);
+    Then('the CLI creates the Pi-native workflow files', async () => {
+      await initSteps.thenTheCliCreatesPiNativeWorkflowFiles(world);
     });
 
-    And('the Codex runtime files are available', async () => {
-      await initSteps.thenTheCodexRuntimeFilesAreAvailable(world);
+    And('the Pi-native runtime files are available', async () => {
+      await initSteps.thenThePiNativeRuntimeFilesAreAvailable(world);
     });
 
     And('no OpenCode compatibility files are created', async () => {

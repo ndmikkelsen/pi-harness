@@ -29,5 +29,6 @@ Use these files to infer stack, tooling, and deployment shape.
 - `Dockerfile*`
 - `docker-compose*.yml`
 - `compose*.yml`
+- `.config/deploy*.yml`
 - `config/deploy*.yml`
 - `.kamal/`

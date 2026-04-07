@@ -120,7 +120,7 @@ describe('workflow docs alignment', () => {
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'cognee-brief.sh'], targetPath: ['scripts', 'cognee-brief.sh'] },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'land.sh'], targetPath: ['scripts', 'land.sh'] },
       { sourcePath: ['src', 'templates', 'root', 'pre-commit.yaml'], targetPath: ['.pre-commit-config.yaml'] },
-      { sourcePath: ['src', 'templates', 'pi', 'docker', 'Dockerfile.cognee'], targetPath: ['docker', 'Dockerfile.cognee'] },
+      { sourcePath: ['src', 'templates', 'pi', '.docker', 'Dockerfile.cognee'], targetPath: ['.docker', 'Dockerfile.cognee'] },
     ] as const;
 
     for (const surface of literalRuntimeSurfaces) {

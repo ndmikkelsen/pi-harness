@@ -16,7 +16,7 @@ The canonical workflow surfaces are:
 - `.pi/skills/*`
 - `scripts/*`
 - native `bd` with `.beads/**`
-- deployment templates in `config/` and `.kamal/`
+- deployment templates in `.config/`, `.docker/`, and `.kamal/`
 
 ## Harness baseline
 

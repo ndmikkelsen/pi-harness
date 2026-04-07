@@ -197,6 +197,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const alignmentInvalid: DoctorIssue[] = [];
   const alignmentWarnings: DoctorIssue[] = [];
 
+  // These legacy maps are intentionally retained for adopted repositories.
+  // They are stale-artifact and migration-boundary checks, not active scaffold sources.
   const failFastDeprecatedPaths = new Map<string, string>([
     ['.planning', 'legacy planning workspace present'],
     ['.omp', 'legacy OMP runtime directory present'],
@@ -265,7 +267,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/sync-artifacts-to-cognee.sh',
     'scripts/land.sh',
     'scripts/hooks/post-checkout',
-    'config/deploy.cognee.yml',
+    '.config/deploy.cognee.yml',
   ];
   const alignmentManagedPaths = new Set([
     'AGENTS.md',
@@ -304,8 +306,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/land.sh',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
-    'docker/Dockerfile.cognee',
-    'config/deploy.cognee.yml',
+    '.docker/Dockerfile.cognee',
+    '.config/deploy.cognee.yml',
   ]);
 
   for (const entry of selectedEntries) {
@@ -594,9 +596,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
-  const cogneeDeployConfig = await readFileIfPresent(targetDir, 'config/deploy.cognee.yml');
-  if (cogneeDeployConfig !== null && !cogneeDeployConfig.includes('docker/Dockerfile.cognee')) {
-    pushAlignmentInvalid(alignmentInvalid, 'config/deploy.cognee.yml', 'missing plain dockerfile path');
+  const cogneeDeployConfig = await readFileIfPresent(targetDir, '.config/deploy.cognee.yml');
+  if (cogneeDeployConfig !== null && !cogneeDeployConfig.includes('.docker/Dockerfile.cognee')) {
+    pushAlignmentInvalid(alignmentInvalid, '.config/deploy.cognee.yml', 'missing plain dockerfile path');
   }
 
   for (const [artifactPath, reason] of staleArtifactReasons) {

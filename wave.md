@@ -1,24 +1,32 @@
 # Execution Approach
 
 ## Mode
-Direct
+Parallel recon -> Direct implementation
 
 ## Work Item
-untracked
+Epic `pi-harness-lz2` with child tasks `pi-harness-lz2.1`, `pi-harness-lz2.2`, and `pi-harness-lz2.3`
 
 ## Knowledge
-Cognee skipped for this landing pass because local repo state, README, STICKYNOTE, and the pending diff were sufficient.
+- Cognee was attempted for both planning lanes and was unavailable.
+- Parallel pi-subagents were used for explore/plan/review recon across the three issue slices.
+- Local repository evidence was sufficient to complete the cleanup and verification work directly.
 
 ## Test Strategy
-TDD-first. The change is covered by integration tests around scaffold generation, doctor alignment, and landing behavior. RED/GREEN already happened in the existing working tree; landing will re-run the full verification sweep to confirm GREEN and keep REFACTOR safe.
+TDD/BDD hybrid.
+- Source-graph cleanup and cleanup-boundary work used narrow regression tests first.
+- CLI workflow wording was kept aligned through the existing BDD lane.
 
 ## Agents / Chains
-Main session only. No subagents needed because the work is already implemented and the remaining task is verify, commit, push, and confirm the PR state.
+- Parallel subagents for recon on issues `pi-harness-lz2.1`, `.2`, and `.3`
+- Main session for the coupled source cleanup, test updates, and verification sweep
 
 ## Verification
-`./scripts/land.sh --commit-message "feat: sync Pi artifacts during landing"`
+- `pnpm test -- tests/unit/scaffold-source-graph.test.ts tests/unit/cleanup.test.ts tests/integration/doctor.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/cli-doctor.test.ts tests/integration/beads-wrapper.test.ts tests/integration/cli-init.test.ts tests/integration/land-script.test.ts`
+- `pnpm test:bdd`
+- `pnpm typecheck`
+- `pnpm build`
+- `pnpm test:smoke:dist`
 
 ## Risks
-- Cognee sync is best-effort and may report an unavailable skip if the local bridge is not healthy.
-- `.pi/npm/` is a local runtime artifact and should not be landed.
-- No active Beads issue is available in this repository state (`bd ready --json` returned `[]`).
+- Legacy cleanup support must remain explicit so future cleanup does not remove adoption-only safeguards.
+- The broad source-template cleanup was coupled enough that direct main-session implementation was safer than parallel editing in the current dirty tree.

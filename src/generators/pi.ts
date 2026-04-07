@@ -20,7 +20,7 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'directory', path: '.pi/skills/red-green-refactor' },
     { kind: 'directory', path: '.pi/skills/parallel-wave-design' },
     { kind: 'directory', path: '.pi/skills/subagent-workflow' },
-    { kind: 'directory', path: 'docker' },
+    { kind: 'directory', path: '.docker' },
     { kind: 'file', path: 'AGENTS.md', content: () => template('pi/AGENTS.md') },
     { kind: 'file', path: '.pi/settings.json', content: () => template('pi/settings.json') },
     { kind: 'file', path: '.pi/SYSTEM.md', content: () => template('pi/SYSTEM.md') },
@@ -120,8 +120,8 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: 'docker/Dockerfile.cognee',
-      content: () => template('pi/docker/Dockerfile.cognee'),
+      path: '.docker/Dockerfile.cognee',
+      content: () => template('pi/.docker/Dockerfile.cognee'),
     },
   ];
 }

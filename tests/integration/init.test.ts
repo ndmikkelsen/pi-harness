@@ -41,8 +41,8 @@ const requiredRuntimePaths = [
   'scripts/cognee-brief.sh',
   'scripts/sync-artifacts-to-cognee.sh',
   'scripts/land.sh',
-  'docker/Dockerfile.cognee',
-  'config/deploy.cognee.yml'
+  '.docker/Dockerfile.cognee',
+  '.config/deploy.cognee.yml'
 ];
 const existingModeBaselinePaths = [
   'AGENTS.md',
@@ -197,8 +197,8 @@ describe('runInit', () => {
     });
 
     const projectDir = path.join(workspace, 'cognee-app');
-    const deployConfig = await readFile(path.join(projectDir, 'config', 'deploy.cognee.yml'), 'utf8');
-    const dockerfile = await readFile(path.join(projectDir, 'docker', 'Dockerfile.cognee'), 'utf8');
+    const deployConfig = await readFile(path.join(projectDir, '.config', 'deploy.cognee.yml'), 'utf8');
+    const dockerfile = await readFile(path.join(projectDir, '.docker', 'Dockerfile.cognee'), 'utf8');
 
     expect(deployConfig).toContain('REQUIRE_AUTHENTICATION: "false"');
     expect(deployConfig).toContain('ENABLE_BACKEND_ACCESS_CONTROL: "false"');
@@ -206,7 +206,7 @@ describe('runInit', () => {
     expect(deployConfig).toContain('VECTOR_DATASET_DATABASE_HANDLER: pgvector');
     expect(deployConfig).toContain('response_timeout: 300');
     expect(deployConfig).toContain('path: /health');
-    expect(deployConfig).toContain('dockerfile: docker/Dockerfile.cognee');
+    expect(deployConfig).toContain('dockerfile: .docker/Dockerfile.cognee');
     expect(dockerfile).toContain('Cognee release tags are not consistently published to Docker Hub.');
     expect(dockerfile).toContain(
       'FROM cognee/cognee:latest@sha256:eba227c33dd7f5eb997a0072f418792fd8aaa8873e9bb12240915d4e69396970'
