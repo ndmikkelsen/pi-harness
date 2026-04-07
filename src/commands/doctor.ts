@@ -262,6 +262,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/subagent-workflow/SKILL.md',
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-brief.sh',
+    'scripts/sync-artifacts-to-cognee.sh',
     'scripts/land.sh',
     'scripts/hooks/post-checkout',
     'config/deploy.cognee.yml',
@@ -299,6 +300,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-bridge.sh',
     'scripts/cognee-brief.sh',
+    'scripts/sync-artifacts-to-cognee.sh',
     'scripts/land.sh',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
@@ -433,6 +435,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (landPrompt !== null && !landPrompt.includes('scripts/land.sh')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/land.md', 'missing landing script guidance');
   }
+  if (landPrompt !== null && !landPrompt.includes('context.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/land.md', 'missing Cognee artifact-sync guidance');
+  }
 
   const triagePrompt = await readFileIfPresent(targetDir, '.pi/prompts/triage.md');
   if (triagePrompt !== null && !triagePrompt.includes('bd ready --json')) {
@@ -557,6 +562,15 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     pushRuntimeInvalid(invalid, 'scripts/cognee-brief.sh', 'missing runtime backend reference');
   }
 
+  const syncArtifactsScript = await readFileIfPresent(targetDir, 'scripts/sync-artifacts-to-cognee.sh');
+  if (syncArtifactsScript !== null) {
+    for (const token of ['scripts/cognee-bridge.sh', 'context.md', 'plan.md', 'progress.md', 'review.md', 'wave.md']) {
+      if (!syncArtifactsScript.includes(token)) {
+        pushRuntimeInvalid(invalid, 'scripts/sync-artifacts-to-cognee.sh', `missing runtime backend reference: ${token}`);
+      }
+    }
+  }
+
   const bootstrapScript = await readFileIfPresent(targetDir, 'scripts/bootstrap-worktree.sh');
   if (bootstrapScript !== null) {
     if (!bootstrapScript.includes('bd ready --json')) {
@@ -574,6 +588,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
     if (!landScript.includes('main" || "$branch" == "dev')) {
       pushAlignmentInvalid(alignmentInvalid, 'scripts/land.sh', 'missing protected branch guardrail');
+    }
+    if (!landScript.includes('sync-artifacts-to-cognee.sh')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/land.sh', 'missing Pi artifact sync hook');
     }
   }
 

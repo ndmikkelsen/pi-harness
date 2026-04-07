@@ -108,6 +108,12 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
+      path: 'scripts/sync-artifacts-to-cognee.sh',
+      content: (context) => template('pi/scripts/sync-artifacts-to-cognee.sh', { APP_SLUG: context.appSlug }),
+      executable: true,
+    },
+    {
+      kind: 'file',
       path: 'scripts/land.sh',
       content: () => template('pi/scripts/land.sh'),
       executable: true,

@@ -138,8 +138,14 @@ describe('workflow docs alignment', () => {
       { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
     );
     const dogfoodCogneeBridge = normalizeDoc(await readRepoFile('scripts', 'cognee-bridge.sh'));
+    const renderedSyncArtifactsScript = renderTemplate(
+      normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'scripts', 'sync-artifacts-to-cognee.sh')),
+      { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
+    );
+    const dogfoodSyncArtifactsScript = normalizeDoc(await readRepoFile('scripts', 'sync-artifacts-to-cognee.sh'));
 
     expect(dogfoodCogneeBridge).toBe(renderedCogneeBridge);
+    expect(dogfoodSyncArtifactsScript).toBe(renderedSyncArtifactsScript);
   });
 
   it('keeps repo-facing docs aligned to the Pi-native baseline', async () => {

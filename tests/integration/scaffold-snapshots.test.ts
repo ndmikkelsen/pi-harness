@@ -45,6 +45,7 @@ async function snapshotForProject(rootDir: string) {
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
+    syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
     postCheckoutHook: await readProjectFile(rootDir, 'scripts', 'hooks', 'post-checkout'),
     landScript: await readProjectFile(rootDir, 'scripts', 'land.sh'),
     dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
@@ -127,6 +128,7 @@ describe('scaffold snapshots', () => {
         'scripts/bootstrap-worktree.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',
+        'scripts/sync-artifacts-to-cognee.sh',
         'scripts/hooks/post-checkout',
         'scripts/land.sh',
       ]),
@@ -193,8 +195,11 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeBridge).toContain('snapshot-pi-native-knowledge');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-patterns');
     expect(result.cogneeBrief).toContain('exec "$BRIDGE" brief "$@"');
+    expect(result.syncArtifactsScript).toContain('context.md');
+    expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
     expect(result.landScript).toContain('run_cmd pnpm test:bdd');
+    expect(result.landScript).toContain('sync-artifacts-to-cognee.sh');
     expect(result.landScript).toContain('gh pr create --base dev --head "$branch" --fill');
     expect(result.dockerfile).toContain('FROM cognee/cognee:latest@sha256:');
     expect(result.beadsConfig.trim()).toBe('backup:\n  enabled: false');

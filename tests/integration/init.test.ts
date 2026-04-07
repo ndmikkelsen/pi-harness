@@ -39,6 +39,7 @@ const requiredRuntimePaths = [
   'scripts/bootstrap-worktree.sh',
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
+  'scripts/sync-artifacts-to-cognee.sh',
   'scripts/land.sh',
   'docker/Dockerfile.cognee',
   'config/deploy.cognee.yml'
@@ -53,7 +54,8 @@ const existingModeBaselinePaths = [
   '.pi/prompts/plan-change.md',
   '.pi/skills/harness/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
-  'scripts/bootstrap-worktree.sh'
+  'scripts/bootstrap-worktree.sh',
+  'scripts/sync-artifacts-to-cognee.sh'
 ];
 
 describe('runInit', () => {
@@ -138,6 +140,7 @@ describe('runInit', () => {
     const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
     const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
     const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
+    const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const harnessSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'harness', 'SKILL.md'), 'utf8');
 
@@ -163,6 +166,8 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
     expect(landPrompt).toContain('scripts/land.sh');
+    expect(syncArtifactsScript).toContain('context.md');
+    expect(syncArtifactsScript).toContain('progress.md');
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');

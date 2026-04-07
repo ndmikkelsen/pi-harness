@@ -391,6 +391,27 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when land.sh loses the Pi artifact sync hook', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-land-sync-hook');
+
+    const landPath = path.join(targetDir, 'scripts', 'land.sh');
+    const landScript = await readFile(landPath, 'utf8');
+    await writeFile(landPath, landScript.replace('sync-artifacts-to-cognee.sh', 'sync-artifacts'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/land.sh',
+          reason: 'missing Pi artifact sync hook'
+        })
+      ])
+    );
+  });
+
   it('fails when a stale GSD alignment artifact is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-gsd-file');
