@@ -175,13 +175,83 @@ describe('runDoctor', () => {
     );
   });
 
-  it('fails when the parallel-wave skill loses isolated task guidance', async () => {
+  it('fails when the triage prompt loses Cognee guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-triage-cognee');
+
+    const triagePath = path.join(targetDir, '.pi', 'prompts', 'triage.md');
+    const triage = await readFile(triagePath, 'utf8');
+    await writeFile(triagePath, triage.replace('./scripts/cognee-brief.sh', './scripts/cognee-brief'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/triage.md',
+          reason: 'missing Cognee triage guidance'
+        })
+      ])
+    );
+  });
+
+  it('fails when the feat-change prompt loses feature-routing guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-feat-change-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'feat-change.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replace('explicit RED command', 'explicit red command'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/feat-change.md',
+          reason: 'missing feature-routing guidance: explicit RED command'
+        })
+      ])
+    );
+  });
+
+  it('fails when a skill loses required frontmatter description metadata', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-skill-frontmatter');
+
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'beads', 'SKILL.md');
+    const skill = await readFile(skillPath, 'utf8');
+    await writeFile(
+      skillPath,
+      skill.replace(
+        'description: Use this skill when the repository tracks work in Beads and you need the project-local operating loop.\n',
+        '',
+      ),
+      'utf8',
+    );
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/skills/beads/SKILL.md',
+          reason: 'missing skill frontmatter description'
+        })
+      ])
+    );
+  });
+
+  it('fails when the parallel-wave skill loses worktree guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-parallel-guidance');
 
     const skillPath = path.join(targetDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md');
     const skill = await readFile(skillPath, 'utf8');
-    await writeFile(skillPath, skill.replace('isolated: true', 'isolated true'), 'utf8');
+    await writeFile(skillPath, skill.replace('worktree: true', 'worktree true'), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -190,7 +260,108 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.pi/skills/parallel-wave-design/SKILL.md',
-          reason: 'missing Pi task guidance: isolated: true'
+          reason: 'missing Pi subagent guidance: worktree: true'
+        })
+      ])
+    );
+  });
+
+  it('fails when the red-green-refactor skill loses BDD guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-red-green-guidance');
+
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md');
+    const skill = await readFile(skillPath, 'utf8');
+    await writeFile(skillPath, skill.replace('pnpm test:bdd', 'pnpm test-bdd'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/skills/red-green-refactor/SKILL.md',
+          reason: 'missing red-green-refactor guidance: pnpm test:bdd'
+        })
+      ])
+    );
+  });
+
+  it('fails when project settings lose pi-subagents package registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-subagents-package');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = await readFile(settingsPath, 'utf8');
+    await writeFile(settingsPath, settings.replace('"npm:pi-subagents"', '"npm:missing-package"'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing package registration for npm:pi-subagents'
+        })
+      ])
+    );
+  });
+
+  it('fails when the role workflow extension loses role cycling shortcuts', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow');
+
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    await writeFile(extensionPath, extension.replace("registerShortcut('ctrl+.'", "registerShortcut('alt+/'"), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/extensions/role-workflow.ts',
+          reason: "missing role workflow glue: registerShortcut('ctrl+.'"
+        })
+      ])
+    );
+  });
+
+  it('fails when a stale taskplane marker is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-taskplane-marker');
+
+    await writeFile(path.join(targetDir, '.pi', 'taskplane.json'), '{"migrations":{"applied":{}}}\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/taskplane.json',
+          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+        })
+      ])
+    );
+  });
+
+  it('fails when a stale mythic role file is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-legacy-role-file');
+
+    await writeFile(path.join(targetDir, '.pi', 'agents', 'sisyphus.md'), '---\nname: sisyphus\n---\nlegacy\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/sisyphus.md',
+          reason: expect.stringContaining('stale legacy role file present')
         })
       ])
     );

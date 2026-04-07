@@ -16,6 +16,7 @@ Use this skill when the user wants to bootstrap a repository with `pi-harness`, 
 - Only use `--cleanup-manifest legacy-ai-frameworks-v1` when the user explicitly wants curated legacy AI-framework files removed.
 - Only use `--merge-root-files` when the user explicitly wants `.gitignore` and `.env.example` merged.
 - Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `scripts/cognee-brief.sh` exists, and continue only when local repo evidence remains sufficient if Cognee is unavailable.
+- Prefer shared Pi packages in `.pi/settings.json` over machine-specific absolute extension install paths.
 - Customize only files that `pi-harness` just created unless the user explicitly asks to rewrite existing scaffold files.
 
 ## Workflow
@@ -35,7 +36,7 @@ Before editing scaffold files in an existing project, gather:
 - git status, branch, remotes, and recent commits
 - Beads state if `bd` or `.beads/` is available
 - Cognee brief if `scripts/cognee-brief.sh` already exists
-- project docs like `README*`, `docs/**/*.md`, repo-local handoff docs when present, `AGENTS.md`, and any existing `.pi/**/*` runtime files
+- project docs like `README*`, `docs/**/*.md`, repo-local handoff docs when present, `AGENTS.md`, and any existing `.pi/**/*` runtime files, especially `.pi/settings.json`, `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts`
 - manifest files using `references/manifest-discovery.md`
 
 Use `assets/adoption-notes-template.md` as a scratch document if the repo is large or the context is noisy.
@@ -45,9 +46,13 @@ Use `assets/adoption-notes-template.md` as a scratch document if the repo is lar
 Prefer to tailor newly created files in this order:
 
 1. `AGENTS.md`
-2. `.pi/extensions/repo-workflows.ts`
-3. `.pi/skills/harness/SKILL.md`
-4. `.pi/prompts/land.md`
-5. `STICKYNOTE.example.md`
+2. `.pi/settings.json`
+3. `.pi/extensions/role-workflow.ts`
+4. `.pi/agents/*.md`
+5. `.pi/agents/*.chain.md`
+6. `.pi/extensions/repo-workflows.ts`
+7. `.pi/skills/harness/SKILL.md`
+8. `.pi/prompts/land.md`
+9. `STICKYNOTE.example.md`
 
 Do not add secrets to `.env.example`; keep placeholder values only.

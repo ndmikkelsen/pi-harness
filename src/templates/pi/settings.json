@@ -1,4 +1,7 @@
 {
+  "packages": [
+    "npm:pi-subagents"
+  ],
   "extensions": [
     ".pi/extensions/repo-workflows.ts"
   ]

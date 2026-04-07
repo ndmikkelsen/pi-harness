@@ -13,13 +13,29 @@ const requiredRuntimePaths = [
   'AGENTS.md',
   '.pi/settings.json',
   '.pi/SYSTEM.md',
+  '.pi/agents/lead.md',
+  '.pi/agents/explore.md',
+  '.pi/agents/plan.md',
+  '.pi/agents/build.md',
+  '.pi/agents/review.md',
+  '.pi/agents/plan-change.chain.md',
+  '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
+  '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
   '.pi/prompts/land.md',
   '.pi/prompts/triage.md',
+  '.pi/prompts/plan-change.md',
+  '.pi/prompts/ship-change.md',
+  '.pi/prompts/parallel-wave.md',
+  '.pi/prompts/review-change.md',
+  '.pi/prompts/feat-change.md',
   '.pi/skills/beads/SKILL.md',
+  '.pi/skills/cognee/SKILL.md',
+  '.pi/skills/red-green-refactor/SKILL.md',
   '.pi/skills/harness/SKILL.md',
   '.pi/skills/parallel-wave-design/SKILL.md',
+  '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
@@ -30,9 +46,13 @@ const requiredRuntimePaths = [
 const existingModeBaselinePaths = [
   'AGENTS.md',
   '.pi/settings.json',
+  '.pi/agents/lead.md',
   '.pi/extensions/repo-workflows.ts',
+  '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
+  '.pi/prompts/plan-change.md',
   '.pi/skills/harness/SKILL.md',
+  '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh'
 ];
 
@@ -116,7 +136,9 @@ describe('runInit', () => {
     const systemPrompt = await readFile(path.join(projectDir, '.pi', 'SYSTEM.md'), 'utf8');
     const settings = await readFile(path.join(projectDir, '.pi', 'settings.json'), 'utf8');
     const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
+    const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
     const landPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'land.md'), 'utf8');
+    const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const harnessSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'harness', 'SKILL.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
@@ -127,7 +149,8 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh');
     expect(agentsGuide).toContain('./scripts/land.sh');
     expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
-    expect(systemPrompt).toContain('Prefer project-local `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
+    expect(systemPrompt).toContain('Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
+    expect(settings).toContain('npm:pi-subagents');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
     expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
     expect(workflowExtension).toContain("registerCommand('cognee-brief'");
@@ -135,9 +158,24 @@ describe('runInit', () => {
     expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
     expect(workflowExtension).toContain('scripts/cognee-brief.sh');
     expect(workflowExtension).toContain('scripts/land.sh');
+    expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
+    expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
+    expect(roleWorkflowExtension).toContain("registerCommand('role'");
+    expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
     expect(landPrompt).toContain('scripts/land.sh');
+    expect(featChangePrompt).toContain('project-local `lead` role');
+    expect(featChangePrompt).toContain('plan-change');
+    expect(featChangePrompt).toContain('explicit RED command');
+    expect(harnessSkill).toContain('.pi/settings.json');
+    expect(harnessSkill).toContain('.pi/extensions/role-workflow.ts');
+    expect(harnessSkill).toContain('.pi/agents/*.md');
+    expect(harnessSkill).toContain('.pi/agents/*.chain.md');
     expect(harnessSkill).toContain('.pi/extensions/repo-workflows.ts');
     expect(harnessSkill).toContain('.pi/prompts/land.md');
+    const cogneeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'cognee', 'SKILL.md'), 'utf8');
+    const redGreenRefactorSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'), 'utf8');
+    expect(cogneeSkill).toContain('./scripts/cognee-brief.sh');
+    expect(redGreenRefactorSkill).toContain('pnpm test:bdd');
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {

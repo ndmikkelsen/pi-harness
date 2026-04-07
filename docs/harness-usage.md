@@ -4,6 +4,7 @@
 
 `pi-harness` is the local CLI that scaffolds and refreshes repositories for vanilla Pi.
 The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.
+Project-local subagent support is typically shared through `.pi/settings.json` with `npm:pi-subagents` plus repo-local agent files under `.pi/agents/*`.
 
 ## Install once on your machine
 
@@ -23,8 +24,11 @@ That gives you a local `pi-harness` command backed by this checkout.
 2. Run `pi-harness doctor <target>`.
 3. Run `bd init` once in the target repo if Beads has not been initialized yet.
 4. Use `AGENTS.md` as the canonical runtime instruction file.
-5. Use `.pi/skills/*.md` for reusable guidance, `.pi/prompts/*.md` for reusable slash workflows, and `.pi/extensions/*` for native workflow commands.
-6. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+5. Use `.pi/agents/*.md` and `.pi/agents/*.chain.md` for the project-local role workflow, `.pi/skills/*.md` for reusable guidance, `.pi/prompts/*.md` for reusable slash workflows, and `.pi/extensions/*` for native workflow commands.
+6. The active main-session role should be easy to switch with `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role`.
+7. Keep shared Pi packages in `.pi/settings.json`; use package specs like `npm:pi-subagents` instead of machine-specific absolute extension paths.
+8. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+9. Use BDD for user-visible behavior and TDD for lower-level logic; implementation plans should carry explicit RED -> GREEN -> REFACTOR checkpoints.
 
 ## New repository walkthrough
 
@@ -46,6 +50,9 @@ What to do next:
 2. Run `pi-harness doctor .`.
 3. Run `bd init` once before using Beads.
 4. Use `AGENTS.md`, `.pi/*`, and `scripts/*` for daily work.
+5. Let Pi auto-install project packages from `.pi/settings.json`, including `npm:pi-subagents`, or run `pi install -l npm:pi-subagents` if needed.
+6. Use the project-local role workflow from `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts` so users can switch roles quickly without leaving the main session.
+7. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
 
 ## Existing repository walkthrough
 

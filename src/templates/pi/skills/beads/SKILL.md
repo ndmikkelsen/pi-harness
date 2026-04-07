@@ -1,3 +1,8 @@
+---
+name: beads
+description: Use this skill when the repository tracks work in Beads and you need the project-local operating loop.
+---
+
 # Beads Workflow
 
 Use this skill when the repository tracks work in Beads and you need the project-local operating loop.

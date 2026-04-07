@@ -1,11 +1,11 @@
 ---
 name: parallel-wave-design
-description: Repo-local guidance for shaping safe Pi task batches in pi-harness without duplicating workflow authority.
+description: Repo-local guidance for shaping safe Pi subagent batches in pi-harness without duplicating workflow authority.
 ---
 
 # Parallel Wave Design
 
-Use this skill when you need to split feature or refactor work into Pi `task` batches for repositories scaffolded by `pi-harness`.
+Use this skill when you need to split feature or refactor work into Pi subagent batches for repositories scaffolded by `pi-harness`.
 
 ## Goal
 
@@ -14,10 +14,11 @@ Keep Pi-native parallel work aligned with repo policy while avoiding a second or
 ## Non-negotiables
 
 - `AGENTS.md` stays the canonical runtime instruction file.
-- Each task owns at most 3-5 files.
-- Shared constraints go in the task `context`.
+- Each delegated task owns at most 3-5 files.
+- Shared constraints go in the parent request or once in the delegated task text.
+- Prefer builtin `scout`, `planner`, `worker`, and `reviewer` agents unless a repo-local `.pi/agents/*` role is clearly better.
 - Subagents do not run project-wide build, test, or lint commands.
-- Use `isolated: true` when tasks would otherwise touch overlapping files.
+- Use `worktree: true` when parallel tasks would otherwise overlap or need isolated patches.
 - Sequence type, schema, or contract changes before consumer tasks.
 - The caller verifies the whole wave and handles landing after edits return.
 
@@ -38,8 +39,8 @@ What this batch must not touch.
 
 ## Constraints
 - Active Beads issue: bd-...
-- No project-wide verification inside subtasks
-- Verification command run by caller after merge: `...`
+- No project-wide verification inside subagents
+- Verification command run by caller after the wave: `...`
 
 ## Acceptance
 Caller can verify the whole wave with one scoped command.

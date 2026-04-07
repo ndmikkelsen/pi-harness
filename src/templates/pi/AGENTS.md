@@ -7,11 +7,13 @@
 This repository uses vanilla Pi as its native runtime.
 Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.
 The scaffold is provider-agnostic: choose providers and models inside Pi with `/login`, `/model`, `.pi/settings.json`, or `~/.pi/agent/models.json` instead of changing the scaffold shape.
+Project-local subagents live in `.pi/agents/*` and are discovered through the `pi-subagents` package declared in `.pi/settings.json`. They run on demand through Pi tools and slash commands; they do not run persistently in the background. The active workflow role in the main session can be switched with `Ctrl+.`, `Ctrl+,`, `/role`, `/next-role`, or `/prev-role`.
 
 ## Runtime surfaces
 
 The canonical project surfaces are:
 - `AGENTS.md`
+- `.pi/agents/*`
 - `.pi/extensions/*`
 - `.pi/prompts/*`
 - `.pi/skills/*`
@@ -24,18 +26,22 @@ The canonical project surfaces are:
 1. Read `README.md`, relevant repo docs, and any active handoff notes before broad edits.
 2. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
 3. If the repository uses Beads, run `bd ready --json` and claim the active issue with `bd update <id> --claim --json`.
-4. Capture scope and acceptance criteria in repo-local context before broad edits.
+4. Capture scope, acceptance criteria, and the likely BDD/TDD lane in repo-local context before broad edits.
 5. For planning, research, or autonomous startup work, attempt `./scripts/cognee-brief.sh "<query>"` before broad exploration.
-6. Use `.pi/skills/harness/SKILL.md`, `.pi/skills/beads/SKILL.md`, and `.pi/skills/parallel-wave-design/SKILL.md` when the task matches.
-7. Use `.pi/prompts/adopt.md`, `.pi/prompts/triage.md`, and `.pi/prompts/land.md` for reusable slash workflows.
-8. Use the commands registered by `.pi/extensions/repo-workflows.ts` when native slash-command execution is the cleanest path.
-9. If you are in an execution or autonomous landing lane, finish with `./scripts/land.sh`.
+6. Use `.pi/skills/harness/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.
+7. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role between `lead`, `explore`, `plan`, `build`, and `review`.
+8. Use project-local agents and chains under `.pi/agents/*` with pi-subagents when the work benefits from narrow delegation, caller-managed parallel waves, or repo-specific role handoffs.
+9. Use `.pi/prompts/adopt.md`, `.pi/prompts/triage.md`, `.pi/prompts/land.md`, `.pi/prompts/plan-change.md`, `.pi/prompts/ship-change.md`, `.pi/prompts/parallel-wave.md`, `.pi/prompts/review-change.md`, and `.pi/prompts/feat-change.md` for reusable slash workflows.
+10. Use the commands and shortcuts registered by project-local `.pi/extensions/*` files when native slash-command execution is the cleanest path.
+11. If you are in an execution or autonomous landing lane, finish with `./scripts/land.sh`.
 
 ## Guardrails
 
 - Do not create duplicate planning systems or issue trackers.
 - Do not mirror repo-local handoff or plan notes into runtime-specific directories.
 - Keep provider and model choice out of the scaffold contract; configure Pi runtime instead.
+- Keep shared Pi packages in `.pi/settings.json`; do not hardcode machine-specific extension install paths.
+- Observe a real RED -> GREEN -> REFACTOR loop before broad production changes when the task requires implementation.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 
 ## Issue tracking with bd
