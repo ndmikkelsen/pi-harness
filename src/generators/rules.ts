@@ -15,24 +15,13 @@ function operatorWorkflow(): string {
   return loadTemplate('rules/patterns/operator-workflow.md');
 }
 
-function gsdWorkflow(): string {
-  return loadTemplate('rules/patterns/gsd-workflow.md');
-}
-
 function beadsIntegration(): string {
   return loadTemplate('rules/patterns/beads-integration.md');
 }
 
-function omoAgentContract(): string {
-  return loadTemplate('rules/patterns/omo-agent-contract.md');
-}
 
 function envSecurity(): string {
   return loadTemplate('rules/patterns/env-security.md');
-}
-
-function gsdCogneeIntegration(): string {
-  return loadTemplate('rules/patterns/cognee-gsd-integration.md');
 }
 
 function deploymentPatterns(): string {
@@ -65,16 +54,6 @@ export function buildRuleEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.rules/patterns/gsd-workflow.md',
-      content: () => gsdWorkflow()
-    },
-    {
-      kind: 'file',
-      path: '.rules/patterns/cognee-gsd-integration.md',
-      content: () => gsdCogneeIntegration()
-    },
-    {
-      kind: 'file',
       path: '.rules/patterns/env-security.md',
       content: () => envSecurity()
     },
@@ -93,10 +72,5 @@ export function buildRuleEntries(): ManagedEntry[] {
       path: '.rules/patterns/beads-integration.md',
       content: () => beadsIntegration()
     },
-    {
-      kind: 'file',
-      path: '.rules/patterns/omo-agent-contract.md',
-      content: () => omoAgentContract()
-    }
   ];
 }

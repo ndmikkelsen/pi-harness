@@ -1,26 +1,28 @@
-# Migration Notes
+# Pi baseline migration status
 
 ## Completed changes
 
-- renamed the project from `scaiff` to `ai-harness`
-- renamed the global OpenCode skill from `scaiff-repo-setup` to `harness`
-- updated package metadata, CLI help, launcher naming, templates, docs, and tests to match the new names
-- added a dedicated `install-skill` command and global skill bundle installer
-- applied the scaffold back onto this repository in preserve-by-default existing mode
+- collapsed the scaffold contract to vanilla Pi instead of an assistant-specific target
+- introduced `AGENTS.md`, `.pi/*`, and `scripts/*` as the supported runtime baseline
+- kept Beads as the canonical backlog system through native `bd`
+- kept Cognee as the optional knowledge brief surface through plain repo scripts
+- moved bootstrap, landing, and Cognee helpers to `scripts/*`
+- updated cleanup and doctor logic toward the Pi-native baseline
 
-## Behavior that stayed stable
+## Current baseline
 
-- new-project scaffolding and existing-repo adoption share the same generator pipeline
-- existing repositories preserve pre-existing managed files by default
-- curated cleanup remains opt-in via `--cleanup-manifest legacy-ai-frameworks-v1`
-- Codex and OpenCode continue to share one `.codex/` runtime surface
-- local verification still centers on `pnpm typecheck`, `pnpm test`, and `pnpm test:smoke:dist`
+The supported local workflow is now:
 
-## Current migration follow-up
+```bash
+pnpm install
+pnpm build
+pnpm install:local
+pi-harness --mode existing <path> --init-json
+pi-harness doctor <path>
+```
 
-- current supported install path is local checkout based: `pnpm install`, `pnpm build`, `pnpm install:local`, and `ai-harness install-skill --assistant opencode`
-- `ai-harness` is intentionally a local-use tool for developer machines; there is no package-manager or registry publication path planned
-- downstream repos should treat each scaffold or refresh as pinned to the `ai-harness` version and source commit used for that run
-- generated repos now start with a scaffold baseline note in `.planning/STATE.md`; refresh PRs should record the old and new `ai-harness` versions as part of the handoff
-- there is no separate `scaiff` compatibility alias; older references should move to `ai-harness` and the `harness` skill directly
-- keep source templates, self-scaffolded repo files, and built `dist/` assets aligned as the product evolves
+## Follow-up areas
+
+- keep source templates, dogfooded outputs, and `dist/` aligned as the cutover finishes
+- continue simplifying docs and tests around the Pi-native baseline
+- add more Pi extensions only when prompts, skills, and scripts are no longer enough

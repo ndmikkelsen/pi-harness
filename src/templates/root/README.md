@@ -1,42 +1,60 @@
 # {{APP_TITLE}}
 
-This project is scaffolded for the local AI workflow used across {{ASSISTANT_LABEL}}, GSD, Beads, and Cognee.
+This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.
+Provider and model choice stay inside Pi runtime configuration, not in the scaffold identity.
+Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.
 
-## What was added
+## Runtime surfaces
 
-- Planning artifacts in .planning/
-- Codex/OpenCode runtime files in .codex/
-- Repo setup skill in .codex/skills/harness/
-- Beads workflow guidance using native `bd`
-- Deployment templates in config/ and .kamal/
-{{CODEx_BULLET}}
+The canonical workflow surfaces are:
+- `AGENTS.md`
+- `.pi/settings.json`
+- `.pi/SYSTEM.md`
+- `.pi/agents/*`
+- `.pi/extensions/*`
+- `.pi/prompts/*`
+- `.pi/skills/*`
+- `scripts/*`
+- native `bd` with `.beads/**`
+- deployment templates in `config/` and `.kamal/`
 
-## Harness baseline
+## Bake baseline
 
-- Scaffolded with `ai-harness` v{{HARNESS_VERSION}} on {{GENERATED_ON}}
-- Record the `ai-harness` version and source commit in the PR or handoff note each time you refresh this scaffold
-- Supported update flow today is checkout-based: pull the `ai-harness` checkout forward, rebuild `dist/`, rerun `ai-harness --mode existing <path> --assistant <codex|opencode> --init-json`, then customize only `createdPaths`
-- This scaffold assumes `ai-harness` is used locally to set up and refresh repos, not consumed as a registry-published package
-- Finish updates with `ai-harness doctor <path> --assistant <codex|opencode>`
+- Scaffolded with `pi-harness` v{{HARNESS_VERSION}} on {{GENERATED_ON}}.
+- Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
+- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `pi-harness --mode existing <path> --init-json`, then customize only `createdPaths`.
+- Finish updates with `pi-harness doctor <path>`.
+- This scaffold assumes `pi-harness` is used locally to set up and refresh repos, not consumed as a registry-published package.
 
 ## If you are migrating from scaiff
 
-- `ai-harness` is the renamed successor to `scaiff`
-- use `ai-harness` for installs and updates; there is no separate `scaiff` binary or package alias
-- the old global OpenCode skill name `scaiff-repo-setup` is replaced by `harness`
-- use `--cleanup-manifest legacy-ai-frameworks-v1` only when you intentionally want curated legacy workflow leftovers removed
+- `pi-harness` is the renamed successor to `scaiff`.
+- Use `pi-harness` for installs and updates; there is no separate `scaiff` binary or package alias.
+- Use `--cleanup-manifest legacy-ai-frameworks-v1` only when you intentionally want curated legacy workflow leftovers removed.
+
+## Pi setup
+
+1. Install Pi locally: `npm install -g @mariozechner/pi-coding-agent`
+2. Start Pi in the repository so it can install any project packages declared in `.pi/settings.json`.
+3. Run `/login` to configure the provider credentials you want Pi to use.
+4. Run `/model` to select the current model.
+5. This scaffold declares `npm:pi-subagents` in `.pi/settings.json`; if Pi does not auto-install it on startup, run `pi install -l npm:pi-subagents`.
+6. Use `.pi/settings.json` for project-local overrides and package sources, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
 
 ## Next steps
 
-1. Update .planning/PROJECT.md with the real product definition.
-2. {{WORKFLOW_GUIDE_LINE}}
-3. Copy .env.example to .env and fill in local values.
-4. If you use OpenCode worktrees, install `kdco/worktree` with `ocx add kdco/worktree --from https://registry.kdco.dev`; this scaffold includes `.opencode/worktree.jsonc` and reuses `./.codex/scripts/bootstrap-worktree.sh` as the post-create hook.
-5. If `pre-commit` is installed locally, ai-harness already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
-6. Run `bd init` once in the repository before using Beads.
-7. Use `bd ready --json`, `bd update <id> --claim --json`, and `/gsd-next` as the default work loop.
-8. Create a feature branch before your first commit.
-9. If you use OpenCode, rerun `ai-harness install-skill --assistant opencode` after harness updates to refresh the managed `harness` skill, `~/.config/opencode/oh-my-opencode.json`, `~/.config/opencode/get-shit-done/workflows/autonomous.md`, and `~/.gsd/defaults.json`.
-10. Use `.codex/skills/harness/SKILL.md` when adopting or bootstrapping another repository.
-11. If you are adopting a repo with legacy AI framework files, use `ai-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
-12. Let an execution/autonomous landing lane run `./.codex/scripts/land.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+1. Read `AGENTS.md`.
+2. Review `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.
+3. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.
+4. Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.
+5. Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.
+6. Copy `.env.example` to `.env` and fill in local values.
+7. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
+8. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
+9. Run `bd init` once in the repository before using Beads.
+10. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+11. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
+12. Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.
+13. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+14. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+15. When `dev` is ready for release, run `/promote` or `./scripts/promote.sh` from `dev`; it pushes `dev` upstream and ensures a PR to `main` exists or is refreshed.

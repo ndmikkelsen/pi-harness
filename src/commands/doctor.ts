@@ -1,22 +1,21 @@
 import { access, readFile, stat } from 'node:fs/promises';
-import fs from 'node:fs';
 import path from 'node:path';
 import { constants as fsConstants } from 'node:fs';
 
 import type {
-  AssistantTarget,
   DoctorCommandOptions,
   DoctorGroupResult,
   DoctorIssue,
   DoctorResult,
   ManagedFile,
-  ScaffoldContext
+  ScaffoldContext,
 } from '../core/types.js';
 import { getCleanupManifest } from '../core/cleanup-manifests.js';
 import { DEFAULT_POLICY } from '../core/policy.js';
+import { SCAFFOLD_BASELINE } from '../core/runtime.js';
 import { buildManagedEntries } from '../generators/index.js';
 
-function createDoctorContext(targetDir: string, assistant: AssistantTarget): ScaffoldContext {
+function createDoctorContext(targetDir: string): ScaffoldContext {
   return {
     appName: 'doctor-app',
     appSlug: 'doctor-app',
@@ -24,32 +23,20 @@ function createDoctorContext(targetDir: string, assistant: AssistantTarget): Sca
     appVar: 'DOCTOR_APP',
     targetDir,
     mode: 'existing',
-    assistant,
     doltPort: DEFAULT_POLICY.defaultDoltPort,
     cogneeDbPort: DEFAULT_POLICY.defaultCogneeDbPort,
     computeHost: DEFAULT_POLICY.computeHost,
     computeUser: DEFAULT_POLICY.computeUser,
     sshKeyPath: DEFAULT_POLICY.sshKeyPath,
     registryHost: DEFAULT_POLICY.registryHost,
-    generatedOn: '1970-01-01'
+    generatedOn: '1970-01-01',
   };
 }
 
-function fileEntriesForAssistant(targetDir: string, assistant: AssistantTarget): ManagedFile[] {
-  return buildManagedEntries(createDoctorContext(targetDir, assistant)).filter(
-    (entry): entry is ManagedFile => entry.kind === 'file'
+function managedFileEntries(targetDir: string): ManagedFile[] {
+  return buildManagedEntries(createDoctorContext(targetDir)).filter(
+    (entry): entry is ManagedFile => entry.kind === 'file',
   );
-}
-
-function inferAssistant(targetDir: string): AssistantTarget {
-  if (fs.existsSync(path.join(targetDir, 'AGENTS.md'))) {
-    const agentsGuide = fs.readFileSync(path.join(targetDir, 'AGENTS.md'), 'utf8');
-    if (agentsGuide.includes('OpenCode Workflow')) {
-      return 'opencode';
-    }
-  }
-
-  return 'codex';
 }
 
 async function fileExists(targetDir: string, relativePath: string): Promise<boolean> {
@@ -99,26 +86,26 @@ function buildGroupStatus(name: string, issues: { missing?: number; invalid?: nu
 
 function buildRecommendations(
   targetLabel: string,
-  assistant: AssistantTarget,
   warnings: {
     rootWarnings: DoctorIssue[];
+    deprecatedInvalid: DoctorIssue[];
     deprecatedWarnings: DoctorIssue[];
     executableWarnings: DoctorIssue[];
     alignmentWarnings: DoctorIssue[];
     alignmentInvalid: DoctorIssue[];
-  }
+  },
 ): string[] {
   const recommendations: string[] = [];
 
   if (warnings.rootWarnings.length > 0) {
     recommendations.push(
-      `Preserved root files are missing scaffold hints. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --merge-root-files --init-json\` or add the reported entries manually.`
+      `Preserved root files are missing scaffold hints. Rerun \`pi-harness --mode existing ${targetLabel} --merge-root-files --init-json\` or add the reported entries manually.`,
     );
   }
 
-  if (warnings.deprecatedWarnings.length > 0) {
+  if (warnings.deprecatedInvalid.length > 0 || warnings.deprecatedWarnings.length > 0) {
     recommendations.push(
-      `Deprecated curated artifacts are still present. Rerun \`ai-harness --mode existing ${targetLabel} --assistant ${assistant} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`
+      `Deprecated curated artifacts are still present. Rerun \`pi-harness --mode existing ${targetLabel} --cleanup-manifest legacy-ai-frameworks-v1 --init-json\` and review the cleanup results.`,
     );
   }
 
@@ -129,72 +116,210 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh OMO alignment wiring in ${targetLabel}: restore canonical references to \`.rules/patterns/omo-agent-contract.md\`, keep worktree/bootstrap seams intact, and rerun \`ai-harness doctor ${targetLabel} --assistant ${assistant}\`.`
+      `Refresh the scaffold workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --force --init-json\`, restore the expected Pi-native workflow assets, remove stale legacy runtime artifacts, and rerun \`pi-harness doctor ${targetLabel}\`.`,
     );
   }
 
   return recommendations;
 }
 
+function pushAlignmentInvalid(invalid: DoctorIssue[], pathValue: string, reason: string): void {
+  invalid.push({ path: pathValue, reason, category: 'alignment', severity: 'fail' });
+}
+
+function pushRuntimeInvalid(invalid: DoctorIssue[], pathValue: string, reason: string): void {
+  invalid.push({ path: pathValue, reason, category: 'runtime', severity: 'fail' });
+}
+
+function validateSkillFrontmatter(
+  alignmentInvalid: DoctorIssue[],
+  pathValue: string,
+  content: string,
+  expectedName: string,
+): void {
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+
+  if (frontmatterMatch === null) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, 'missing skill frontmatter');
+    return;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+
+  if (!frontmatter.includes(`name: ${expectedName}`)) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, `missing skill frontmatter name: ${expectedName}`);
+  }
+
+  const descriptionMatch = frontmatter.match(/^description:\s*(.+)$/m);
+  if (descriptionMatch === null || descriptionMatch[1].trim().length === 0) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, 'missing skill frontmatter description');
+  }
+}
+
+function validateAgentFrontmatter(
+  alignmentInvalid: DoctorIssue[],
+  pathValue: string,
+  content: string,
+  expectedName: string,
+): void {
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+
+  if (frontmatterMatch === null) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, 'missing agent frontmatter');
+    return;
+  }
+
+  const frontmatter = frontmatterMatch[1];
+
+  if (!frontmatter.includes(`name: ${expectedName}`)) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, `missing agent frontmatter name: ${expectedName}`);
+  }
+
+  const descriptionMatch = frontmatter.match(/^description:\s*(.+)$/m);
+  if (descriptionMatch === null || descriptionMatch[1].trim().length === 0) {
+    pushAlignmentInvalid(alignmentInvalid, pathValue, 'missing agent frontmatter description');
+  }
+}
+
 export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorResult> {
   const targetDir = path.resolve(options.cwd, options.targetArg ?? '.');
-  const assistant = options.assistant === 'auto' ? inferAssistant(targetDir) : options.assistant;
   const targetLabel = path.relative(options.cwd, targetDir) || '.';
 
-  const selectedEntries = fileEntriesForAssistant(targetDir, assistant);
+  const selectedEntries = managedFileEntries(targetDir);
   const cleanupManifest = getCleanupManifest('legacy-ai-frameworks-v1');
 
   const missing: string[] = [];
   const invalid: DoctorIssue[] = [];
   const rootWarnings: DoctorIssue[] = [];
+  const deprecatedInvalid: DoctorIssue[] = [];
   const deprecatedWarnings: DoctorIssue[] = [];
   const executableWarnings: DoctorIssue[] = [];
   const alignmentInvalid: DoctorIssue[] = [];
   const alignmentWarnings: DoctorIssue[] = [];
 
-  const omoContractPath = '.rules/patterns/omo-agent-contract.md';
-  const requiredContractSections = [
-    '## Source of Truth',
-    '## OMO Agent Matrix',
-    '## Handoff Schema',
-    '## Integration Seam Inventory',
-    '## Landing Authority'
+  const failFastDeprecatedPaths = new Map<string, string>([
+    ['.planning', 'legacy planning workspace present'],
+    ['.omp', 'legacy OMP runtime directory present'],
+    ['.codex', 'legacy Codex runtime directory present'],
+    ['.rules', 'legacy rules runtime directory present'],
+    ['.pi/taskplane.json', 'stale taskplane project marker present'],
+    ['.pi/agents/sisyphus.md', 'stale legacy role file present'],
+    ['.pi/agents/prometheus.md', 'stale legacy role file present'],
+    ['.pi/agents/hephaestus.md', 'stale legacy role file present'],
+    ['.pi/agents/oracle.md', 'stale legacy role file present'],
+    ['.codex/scripts/cognee-sync-planning.sh', 'legacy planning sync script present'],
+    ['.codex/scripts/sync-planning-to-cognee.sh', 'legacy planning sync script present'],
+    ['.codex/templates/session-handoff.md', 'legacy planning handoff template present'],
+  ]);
+  const staleArtifactReasons = new Map<string, string>([
+    ['.rules/patterns/gsd-workflow.md', 'stale GSD alignment artifact present'],
+    ['.rules/patterns/cognee-gsd-integration.md', 'stale GSD alignment artifact present'],
+    ['.rules/patterns/omo-agent-contract.md', 'stale OMO artifact present'],
+    ['.opencode/worktree.jsonc', 'stale OpenCode artifact present'],
+    ['.pi/prompts/land.md', 'stale landing prompt alias present; renamed to `.pi/prompts/serve.md`'],
+    ['scripts/land.sh', 'stale landing script alias present; renamed to `scripts/serve.sh`'],
+    ['.pi/skills/harness/SKILL.md', 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'],
+  ]);
+  const staleWorkflowMarkers = [
+    '.codex/',
+    '.omp/',
+    '.rules/',
+    '--assistant codex',
+    'Pi-operated Codex',
+    'Codex Compatibility Layer',
+    'install-skill --assistant opencode',
+    '.planning/STATE.md',
+    '.codex/scripts/cognee-sync-planning.sh',
+    '.codex/scripts/sync-planning-to-cognee.sh',
   ];
-  const requiredHandoffFields = [
-    'source_lane',
-    'target_lane',
-    'scope_summary',
-    'changed_paths',
-    'verify_command',
-    'evidence_path',
-    'issue_ref',
-    'planning_ref',
-    'status',
-    'open_risks'
+  const staleWorkflowScanPaths = [
+    'AGENTS.md',
+    'README.md',
+    '.pi/settings.json',
+    '.pi/SYSTEM.md',
+    '.pi/agents/lead.md',
+    '.pi/agents/explore.md',
+    '.pi/agents/plan.md',
+    '.pi/agents/build.md',
+    '.pi/agents/review.md',
+    '.pi/agents/plan-change.chain.md',
+    '.pi/agents/ship-change.chain.md',
+    '.pi/extensions/repo-workflows.ts',
+    '.pi/extensions/role-workflow.ts',
+    '.pi/prompts/adopt.md',
+    '.pi/prompts/serve.md',
+    '.pi/prompts/promote.md',
+    '.pi/prompts/triage.md',
+    '.pi/prompts/plan-change.md',
+    '.pi/prompts/ship-change.md',
+    '.pi/prompts/parallel-wave.md',
+    '.pi/prompts/review-change.md',
+    '.pi/prompts/feat-change.md',
+    '.pi/skills/beads/SKILL.md',
+    '.pi/skills/cognee/SKILL.md',
+    '.pi/skills/red-green-refactor/SKILL.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
+    '.pi/skills/parallel-wave-design/SKILL.md',
+    '.pi/skills/subagent-workflow/SKILL.md',
+    'scripts/bootstrap-worktree.sh',
+    'scripts/cognee-brief.sh',
+    'scripts/sync-artifacts-to-cognee.sh',
+    'scripts/serve.sh',
+    'scripts/promote.sh',
+    'scripts/hooks/post-checkout',
+    'config/deploy.cognee.yml',
   ];
   const alignmentManagedPaths = new Set([
     'AGENTS.md',
-    '.codex/README.md',
-    '.codex/workflows/autonomous-execution.md',
-    '.rules/patterns/omo-agent-contract.md',
-    '.rules/patterns/operator-workflow.md',
-    '.rules/patterns/gsd-workflow.md',
-    '.rules/patterns/cognee-gsd-integration.md',
-    '.opencode/worktree.jsonc',
+    '.pi/settings.json',
+    '.pi/SYSTEM.md',
+    '.pi/agents/lead.md',
+    '.pi/agents/explore.md',
+    '.pi/agents/plan.md',
+    '.pi/agents/build.md',
+    '.pi/agents/review.md',
+    '.pi/agents/plan-change.chain.md',
+    '.pi/agents/ship-change.chain.md',
+    '.pi/extensions/repo-workflows.ts',
+    '.pi/extensions/role-workflow.ts',
+    '.pi/prompts/adopt.md',
+    '.pi/prompts/serve.md',
+    '.pi/prompts/promote.md',
+    '.pi/prompts/triage.md',
+    '.pi/prompts/plan-change.md',
+    '.pi/prompts/ship-change.md',
+    '.pi/prompts/parallel-wave.md',
+    '.pi/prompts/review-change.md',
+    '.pi/prompts/feat-change.md',
+    '.pi/skills/beads/SKILL.md',
+    '.pi/skills/cognee/SKILL.md',
+    '.pi/skills/red-green-refactor/SKILL.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
+    '.pi/skills/parallel-wave-design/SKILL.md',
+    '.pi/skills/subagent-workflow/SKILL.md',
+    'scripts/bootstrap-worktree.sh',
+    'scripts/cognee-bridge.sh',
+    'scripts/cognee-brief.sh',
+    'scripts/sync-artifacts-to-cognee.sh',
+    'scripts/serve.sh',
+    'scripts/promote.sh',
     '.beads/hooks/post-checkout',
-    'scripts/hooks/post-checkout'
+    'scripts/hooks/post-checkout',
+    'docker/Dockerfile.cognee',
+    'config/deploy.cognee.yml',
   ]);
 
   for (const entry of selectedEntries) {
     if (!(await fileExists(targetDir, entry.path))) {
       missing.push(entry.path);
       if (alignmentManagedPaths.has(entry.path)) {
-        alignmentInvalid.push({
-          path: entry.path,
-          reason: 'missing required OMO alignment artifact',
-          category: 'alignment',
-          severity: 'fail'
-        });
+        pushAlignmentInvalid(alignmentInvalid, entry.path, 'missing required workflow artifact');
       }
     }
   }
@@ -218,122 +343,347 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
+  const beadsConfig = await readFileIfPresent(targetDir, '.beads/config.yaml');
+  if (beadsConfig !== null && !beadsConfig.includes('backup:\n  enabled: false')) {
+    pushAlignmentInvalid(alignmentInvalid, '.beads/config.yaml', 'Beads backups must be disabled by default');
+  }
+
   for (const entry of cleanupManifest.entries) {
     const presentKind = await pathKind(targetDir, entry.path);
     if (presentKind === 'missing') {
       continue;
     }
 
-    const mismatchSuffix =
-      presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
+    const mismatchSuffix = presentKind === entry.kind ? '' : `; expected ${entry.kind} but found ${presentKind}`;
+    const cleanupCommand = `pi-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`;
+    const failFastReason = failFastDeprecatedPaths.get(entry.path);
+
+    if (failFastReason) {
+      deprecatedInvalid.push({
+        path: entry.path,
+        reason: `${failFastReason}; ${entry.reason}${mismatchSuffix}; remove with ${cleanupCommand}`,
+        category: 'deprecated-artifact',
+        severity: 'fail',
+      });
+      continue;
+    }
 
     deprecatedWarnings.push({
       path: entry.path,
-      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ai-harness --mode existing <path> --cleanup-manifest ${cleanupManifest.id} --init-json`,
+      reason: `deprecated curated artifact present; ${entry.reason}${mismatchSuffix}; review and remove with ${cleanupCommand}`,
       category: 'deprecated-artifact',
-      severity: 'warn'
+      severity: 'warn',
     });
   }
 
-  const codexBrief = await readFileIfPresent(targetDir, '.codex/scripts/cognee-brief.sh');
-  if (codexBrief !== null && !codexBrief.includes('.codex/scripts/cognee-bridge.sh')) {
-    invalid.push({ path: '.codex/scripts/cognee-brief.sh', reason: 'missing runtime backend reference', category: 'runtime', severity: 'fail' });
+  const settings = await readFileIfPresent(targetDir, '.pi/settings.json');
+  if (settings !== null) {
+    if (!settings.includes('repo-workflows.ts')) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing extension registration for repo-workflows.ts');
+    }
+    if (!settings.includes('npm:pi-subagents')) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-subagents');
+    }
   }
 
-  const codexSync = await readFileIfPresent(targetDir, '.codex/scripts/sync-planning-to-cognee.sh');
-  if (codexSync !== null && !codexSync.includes('.codex/scripts/cognee-sync-planning.sh')) {
-    invalid.push({ path: '.codex/scripts/sync-planning-to-cognee.sh', reason: 'missing runtime backend reference', category: 'runtime', severity: 'fail' });
+  const systemGuide = await readFileIfPresent(targetDir, '.pi/SYSTEM.md');
+  if (systemGuide !== null) {
+    if (!systemGuide.includes('AGENTS.md')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing AGENTS.md runtime reference');
+    }
+    if (!systemGuide.includes('.pi/agents/*')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing .pi/agents runtime reference');
+    }
   }
 
-  const codexReadme = await readFileIfPresent(targetDir, '.codex/README.md');
-  if (codexReadme !== null && !codexReadme.includes('.codex/scripts/cognee-bridge.sh')) {
-    invalid.push({ path: '.codex/README.md', reason: 'missing runtime backend guidance', category: 'runtime', severity: 'fail' });
+  const leadAgent = await readFileIfPresent(targetDir, '.pi/agents/lead.md');
+  if (leadAgent !== null) {
+    validateAgentFrontmatter(alignmentInvalid, '.pi/agents/lead.md', leadAgent, 'lead');
+    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid']) {
+      if (!leadAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/lead.md', `missing Pi role guidance: ${token}`);
+      }
+    }
   }
-  if (codexReadme !== null && !codexReadme.includes(omoContractPath)) {
-    alignmentInvalid.push({
-      path: '.codex/README.md',
-      reason: 'missing canonical OMO contract reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
+
+  const roleWorkflowExtension = await readFileIfPresent(targetDir, '.pi/extensions/role-workflow.ts');
+  if (roleWorkflowExtension !== null) {
+    for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES']) {
+      if (!roleWorkflowExtension.includes(token)) {
+        pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', `missing role workflow glue: ${token}`);
+      }
+    }
+  }
+
+  const extension = await readFileIfPresent(targetDir, '.pi/extensions/repo-workflows.ts');
+  if (extension !== null) {
+    for (const token of ["registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
+      if (!extension.includes(token)) {
+        pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', `missing native workflow command glue: ${token}`);
+      }
+    }
+    if (extension.includes("registerCommand('serve'")) {
+      pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', 'shadowing `/serve` extension command present; keep `/serve` prompt-native');
+    }
   }
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
-  if (agentsGuide !== null && !agentsGuide.includes('.codex/scripts/')) {
-    invalid.push({ path: 'AGENTS.md', reason: 'missing runtime backend guidance', category: 'runtime', severity: 'fail' });
-  }
-  if (agentsGuide !== null && !agentsGuide.includes(omoContractPath)) {
-    alignmentInvalid.push({
-      path: 'AGENTS.md',
-      reason: 'missing canonical OMO contract reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
-  }
-
-  const omoContract = await readFileIfPresent(targetDir, omoContractPath);
-  if (omoContract !== null) {
-    for (const section of requiredContractSections) {
-      if (!omoContract.includes(section)) {
-        alignmentInvalid.push({
-          path: omoContractPath,
-          reason: `missing contract section ${section}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
-      }
-    }
-
-    for (const field of requiredHandoffFields) {
-      if (!omoContract.includes(field)) {
-        alignmentInvalid.push({
-          path: omoContractPath,
-          reason: `missing handoff schema field ${field}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
+  if (agentsGuide !== null) {
+    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh']) {
+      if (!agentsGuide.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
       }
     }
   }
 
-  const operatorWorkflow = await readFileIfPresent(targetDir, '.rules/patterns/operator-workflow.md');
-  if (operatorWorkflow !== null && !operatorWorkflow.includes(omoContractPath)) {
-    alignmentInvalid.push({
-      path: '.rules/patterns/operator-workflow.md',
-      reason: 'missing canonical OMO contract reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
+  const adoptPrompt = await readFileIfPresent(targetDir, '.pi/prompts/adopt.md');
+  if (adoptPrompt !== null && !adoptPrompt.includes('pi-harness --mode existing . --init-json')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/adopt.md', 'missing existing-repo adoption command');
   }
 
-  const autonomousWorkflow = await readFileIfPresent(targetDir, '.codex/workflows/autonomous-execution.md');
-  if (autonomousWorkflow !== null && !autonomousWorkflow.includes(omoContractPath)) {
-    alignmentInvalid.push({
-      path: '.codex/workflows/autonomous-execution.md',
-      reason: 'missing canonical OMO contract reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
+  const servePrompt = await readFileIfPresent(targetDir, '.pi/prompts/serve.md');
+  if (servePrompt !== null && !servePrompt.includes('scripts/serve.sh')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing serve workflow script guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('context.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing Cognee artifact-sync guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('STICKYNOTE.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing local handoff note guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('completed-work summary')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing completed-work summary guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('refreshes the PR body')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing explicit PR body refresh guidance');
   }
 
-  const worktreeConfig = await readFileIfPresent(targetDir, '.opencode/worktree.jsonc');
-  if (worktreeConfig !== null && !worktreeConfig.includes('bootstrap-worktree.sh --quiet')) {
-    alignmentInvalid.push({
-      path: '.opencode/worktree.jsonc',
-      reason: 'missing worktree bootstrap hook reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
+  const promotePrompt = await readFileIfPresent(targetDir, '.pi/prompts/promote.md');
+  if (promotePrompt !== null && !promotePrompt.includes('scripts/promote.sh')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing promote workflow script guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('`dev`')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing dev-branch promotion guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('PR to `main`')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing main pull request guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('refreshes the PR body')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing explicit promotion PR refresh guidance');
+  }
+
+  const triagePrompt = await readFileIfPresent(targetDir, '.pi/prompts/triage.md');
+  if (triagePrompt !== null && !triagePrompt.includes('bd ready --json')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/triage.md', 'missing Beads ready-work guidance');
+  }
+  if (triagePrompt !== null && !triagePrompt.includes('./scripts/cognee-brief.sh')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/triage.md', 'missing Cognee triage guidance');
+  }
+
+  const planChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/plan-change.md');
+  if (planChangePrompt !== null && !planChangePrompt.includes('explore -> plan')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing plan role handoff guidance');
+  }
+  if (planChangePrompt !== null && !planChangePrompt.includes('RED -> GREEN -> REFACTOR')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing test-first planning guidance');
+  }
+
+  const shipChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/ship-change.md');
+  if (shipChangePrompt !== null && !shipChangePrompt.includes('explore -> plan -> build -> review')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing ship role handoff guidance');
+  }
+  if (shipChangePrompt !== null && !shipChangePrompt.includes('RED -> GREEN -> REFACTOR')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing test-first execution guidance');
+  }
+
+  const parallelWavePrompt = await readFileIfPresent(targetDir, '.pi/prompts/parallel-wave.md');
+  if (parallelWavePrompt !== null && !parallelWavePrompt.includes('worktree: true')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing isolated parallel-wave guidance');
+  }
+
+  const reviewChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/review-change.md');
+  if (reviewChangePrompt !== null && !reviewChangePrompt.includes('`review`')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/review-change.md', 'missing review role guidance');
+  }
+
+  const featChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/feat-change.md');
+  if (featChangePrompt !== null) {
+    for (const token of ['`lead`', 'plan-change', 'ship-change', 'parallel-wave', 'BDD, TDD, or hybrid', 'explicit RED command']) {
+      if (!featChangePrompt.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/feat-change.md', `missing feature-routing guidance: ${token}`);
+      }
+    }
+  }
+
+  const beadsSkill = await readFileIfPresent(targetDir, '.pi/skills/beads/SKILL.md');
+  if (beadsSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/beads/SKILL.md', beadsSkill, 'beads');
+    if (!beadsSkill.includes('bd ready --json')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/beads/SKILL.md', 'missing Beads claim-first guidance');
+    }
+    if (!beadsSkill.includes('scripts/serve.sh')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/beads/SKILL.md', 'missing serving script guidance');
+    }
+  }
+
+  const bakeSkill = await readFileIfPresent(targetDir, '.pi/skills/bake/SKILL.md');
+  if (bakeSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/bake/SKILL.md', bakeSkill, 'bake');
+    if (!bakeSkill.includes('pi-harness --mode existing . --init-json')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing existing-repo adoption command');
+    }
+    if (!bakeSkill.includes('pi-harness doctor <target>')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing doctor follow-up guidance');
+    }
+    if (!bakeSkill.includes('.pi/extensions/role-workflow.ts')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing role workflow extension guidance');
+    }
+  }
+
+  const cogneeSkill = await readFileIfPresent(targetDir, '.pi/skills/cognee/SKILL.md');
+  if (cogneeSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/cognee/SKILL.md', cogneeSkill, 'cognee');
+    for (const token of ['./scripts/cognee-brief.sh', 'knowledge garden', 'local repository evidence remains sufficient']) {
+      if (!cogneeSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/cognee/SKILL.md', `missing Cognee workflow guidance: ${token}`);
+      }
+    }
+  }
+
+  const redGreenRefactorSkill = await readFileIfPresent(targetDir, '.pi/skills/red-green-refactor/SKILL.md');
+  if (redGreenRefactorSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', redGreenRefactorSkill, 'red-green-refactor');
+    for (const token of ['apps/cli/features/', 'pnpm test:bdd', 'RED', 'GREEN', 'REFACTOR']) {
+      if (!redGreenRefactorSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', `missing red-green-refactor guidance: ${token}`);
+      }
+    }
+  }
+
+  const parallelWaveSkill = await readFileIfPresent(targetDir, '.pi/skills/parallel-wave-design/SKILL.md');
+  if (parallelWaveSkill !== null) {
+    validateSkillFrontmatter(
+      alignmentInvalid,
+      '.pi/skills/parallel-wave-design/SKILL.md',
+      parallelWaveSkill,
+      'parallel-wave-design',
+    );
+    for (const token of ['3-5 files', 'project-wide build, test, or lint', 'worktree: true']) {
+      if (!parallelWaveSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/parallel-wave-design/SKILL.md', `missing Pi subagent guidance: ${token}`);
+      }
+    }
+  }
+
+  const subagentWorkflowSkill = await readFileIfPresent(targetDir, '.pi/skills/subagent-workflow/SKILL.md');
+  if (subagentWorkflowSkill !== null) {
+    validateSkillFrontmatter(
+      alignmentInvalid,
+      '.pi/skills/subagent-workflow/SKILL.md',
+      subagentWorkflowSkill,
+      'subagent-workflow',
+    );
+    for (const token of ['lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR']) {
+      if (!subagentWorkflowSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', `missing role workflow guidance: ${token}`);
+      }
+    }
+  }
+
+  const cogneeBrief = await readFileIfPresent(targetDir, 'scripts/cognee-brief.sh');
+  if (cogneeBrief !== null && !cogneeBrief.includes('scripts/cognee-bridge.sh')) {
+    pushRuntimeInvalid(invalid, 'scripts/cognee-brief.sh', 'missing runtime backend reference');
+  }
+
+  const syncArtifactsScript = await readFileIfPresent(targetDir, 'scripts/sync-artifacts-to-cognee.sh');
+  if (syncArtifactsScript !== null) {
+    for (const token of ['scripts/cognee-bridge.sh', 'context.md', 'plan.md', 'progress.md', 'review.md', 'wave.md']) {
+      if (!syncArtifactsScript.includes(token)) {
+        pushRuntimeInvalid(invalid, 'scripts/sync-artifacts-to-cognee.sh', `missing runtime backend reference: ${token}`);
+      }
+    }
+  }
+
+  const bootstrapScript = await readFileIfPresent(targetDir, 'scripts/bootstrap-worktree.sh');
+  if (bootstrapScript !== null) {
+    if (!bootstrapScript.includes('bd ready --json')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/bootstrap-worktree.sh', 'missing Beads ready-work guidance');
+    }
+    if (!bootstrapScript.includes('AGENTS.md')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/bootstrap-worktree.sh', 'missing AGENTS guidance reference');
+    }
+  }
+
+  const serveScript = await readFileIfPresent(targetDir, 'scripts/serve.sh');
+  if (serveScript !== null) {
+    if (!serveScript.includes('--base dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing dev pull request target');
+    }
+    if (!serveScript.includes('main" || "$branch" == "dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing protected branch guardrail');
+    }
+    if (!serveScript.includes('sync-artifacts-to-cognee.sh')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing Pi artifact sync hook');
+    }
+    if (!serveScript.includes('validate_sticky_note')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing STICKYNOTE validation guardrail');
+    }
+    if (!serveScript.includes('gh pr edit')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing explicit PR refresh path');
+    }
+    if (!serveScript.includes('Post-serve branch summary:')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing post-serve summary output');
+    }
+  }
+
+
+  const promoteScript = await readFileIfPresent(targetDir, 'scripts/promote.sh');
+  if (promoteScript !== null) {
+    if (!promoteScript.includes('--base main')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing main pull request target');
+    }
+    if (!promoteScript.includes('branch" != "dev"')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing dev-branch guardrail');
+    }
+    if (!promoteScript.includes('gh pr edit')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing explicit promotion PR refresh path');
+    }
+    if (!promoteScript.includes('clean working tree on dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing clean-dev-worktree guardrail');
+    }
+    if (!promoteScript.includes('Post-promotion summary:')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing post-promotion summary output');
+    }
+  }
+
+  const cogneeDeployConfig = await readFileIfPresent(targetDir, 'config/deploy.cognee.yml');
+  if (cogneeDeployConfig !== null && !cogneeDeployConfig.includes('docker/Dockerfile.cognee')) {
+    pushAlignmentInvalid(alignmentInvalid, 'config/deploy.cognee.yml', 'missing plain dockerfile path');
+  }
+
+  for (const [artifactPath, reason] of staleArtifactReasons) {
+    if (await fileExists(targetDir, artifactPath)) {
+      pushAlignmentInvalid(alignmentInvalid, artifactPath, reason);
+    }
+  }
+
+  for (const scanPath of staleWorkflowScanPaths) {
+    const content = await readFileIfPresent(targetDir, scanPath);
+    if (content === null) {
+      continue;
+    }
+
+    const marker = staleWorkflowMarkers.find((candidate) => content.includes(candidate));
+    if (!marker) {
+      continue;
+    }
+
+    pushAlignmentInvalid(alignmentInvalid, scanPath, `contains stale workflow reference: ${marker}`);
   }
 
   const beadsPostCheckout = await readFileIfPresent(targetDir, '.beads/hooks/post-checkout');
   if (beadsPostCheckout !== null && !beadsPostCheckout.includes('bootstrap-worktree.sh')) {
-    alignmentInvalid.push({
-      path: '.beads/hooks/post-checkout',
-      reason: 'missing worktree bootstrap fallback reference',
-      category: 'alignment',
-      severity: 'fail'
-    });
+    pushAlignmentInvalid(alignmentInvalid, '.beads/hooks/post-checkout', 'missing worktree bootstrap fallback reference');
   }
 
   const fallbackPostCheckout = await readFileIfPresent(targetDir, 'scripts/hooks/post-checkout');
@@ -342,97 +692,69 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       path: 'scripts/hooks/post-checkout',
       reason: 'missing worktree bootstrap fallback reference',
       category: 'alignment',
-      severity: 'warn'
+      severity: 'warn',
     });
   }
 
-  const handoffWorkflowDocs = [
-    { path: '.rules/patterns/gsd-workflow.md', content: await readFileIfPresent(targetDir, '.rules/patterns/gsd-workflow.md') },
-    {
-      path: '.codex/workflows/autonomous-execution.md',
-      content: await readFileIfPresent(targetDir, '.codex/workflows/autonomous-execution.md')
-    }
-  ];
-
-  for (const doc of handoffWorkflowDocs) {
-    if (doc.content === null) {
-      continue;
-    }
-
-    for (const field of requiredHandoffFields) {
-      if (!doc.content.includes(field)) {
-        alignmentInvalid.push({
-          path: doc.path,
-          reason: `missing handoff workflow field ${field}`,
-          category: 'alignment',
-          severity: 'fail'
-        });
-      }
-    }
-  }
-
   for (const entry of selectedEntries.filter((candidate) => candidate.executable)) {
-    if (await fileExists(targetDir, entry.path)) {
-      if (!(await isExecutable(targetDir, entry.path))) {
-        executableWarnings.push({ path: entry.path, reason: 'not executable', category: 'executable', severity: 'warn' });
-      }
+    if (await fileExists(targetDir, entry.path) && !(await isExecutable(targetDir, entry.path))) {
+      executableWarnings.push({ path: entry.path, reason: 'not executable', category: 'executable', severity: 'warn' });
     }
   }
 
+  invalid.push(...deprecatedInvalid);
   invalid.push(...alignmentInvalid);
 
   const warnings = [...rootWarnings, ...deprecatedWarnings, ...executableWarnings, ...alignmentWarnings];
-
   const alignmentMissingCount = missing.filter((issuePath) => alignmentManagedPaths.has(issuePath)).length;
   const runtimeMissingCount = missing.length - alignmentMissingCount;
-  const invalidCodexCount = invalid.filter(
-    (issue) => issue.category === 'runtime' && (issue.path.startsWith('.codex/') || issue.path === 'AGENTS.md')
-  ).length;
+  const invalidRuntimeCount = invalid.filter((issue) => issue.category === 'runtime').length;
   const invalidAlignmentCount = invalid.filter((issue) => issue.category === 'alignment').length;
+  const invalidDeprecatedCount = invalid.filter((issue) => issue.category === 'deprecated-artifact').length;
 
   const groups: DoctorGroupResult[] = [
-    buildGroupStatus('codex-runtime', { missing: runtimeMissingCount, invalid: invalidCodexCount }),
-    buildGroupStatus('omo-alignment', { missing: alignmentMissingCount, invalid: invalidAlignmentCount, warnings: alignmentWarnings.length }),
+    buildGroupStatus('runtime-baseline', { missing: runtimeMissingCount, invalid: invalidRuntimeCount }),
+    buildGroupStatus('workflow-alignment', { missing: alignmentMissingCount, invalid: invalidAlignmentCount, warnings: alignmentWarnings.length }),
     buildGroupStatus('root-scaffold-hints', { warnings: rootWarnings.length }),
-    buildGroupStatus('deprecated-artifacts', { warnings: deprecatedWarnings.length }),
-    buildGroupStatus('executables', { warnings: executableWarnings.length })
+    buildGroupStatus('deprecated-artifacts', { invalid: invalidDeprecatedCount, warnings: deprecatedWarnings.length }),
+    buildGroupStatus('executables', { warnings: executableWarnings.length }),
   ];
 
   const status = missing.length > 0 || invalid.length > 0 ? 'fail' : warnings.length > 0 ? 'warn' : 'pass';
-  const recommendations = buildRecommendations(targetLabel, assistant, {
+  const recommendations = buildRecommendations(targetLabel, {
     rootWarnings,
+    deprecatedInvalid,
     deprecatedWarnings,
     executableWarnings,
     alignmentWarnings,
-    alignmentInvalid
+    alignmentInvalid,
   });
 
   return {
     targetDir,
-    assistant,
     status,
     summary: {
       passed: groups.filter((group) => group.status === 'pass').length,
       warnings: warnings.length,
       missing: missing.length,
-      invalid: invalid.length
+      invalid: invalid.length,
     },
     groups,
     missing,
     invalid,
     warnings,
-    recommendations
+    recommendations,
   };
 }
 
 export function formatDoctorReport(result: DoctorResult): string {
   const targetLabel = path.relative(process.cwd(), result.targetDir) || '.';
   const lines = [
-    `Scaffold doctor: ${result.assistant}`,
+    `Scaffold doctor: ${SCAFFOLD_BASELINE}`,
     `Target: ${targetLabel}`,
     `Status: ${result.status}`,
     '',
-    'Checks:'
+    'Checks:',
   ];
 
   for (const group of result.groups) {
@@ -470,7 +792,7 @@ export function formatDoctorReport(result: DoctorResult): string {
   lines.push(
     '',
     'Guidance:',
-    '- `ai-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.'
+    '- `pi-harness` is a local-use tool for scaffolding projects on your machine; the documented setup path is a checkout plus `pnpm build` and `pnpm install:local`, not a registry-published package.',
   );
 
   return `${lines.join('\n')}\n`;

@@ -127,7 +127,7 @@ Bootstrapped worktree-local AI workflow state.
 
 Next:
 1. Run \`bd init\` once if Beads has not been initialized in this repository yet
-2. If you are resuming in-flight work, run \`/gsd-resume-work\`
-3. If Beads is available, run \`bd ready --json\`, claim the active issue, and continue with \`/gsd-next\`
-4. Review \`.planning/STATE.md\` before implementation
+2. If you are resuming in-flight work, review `STICKYNOTE.md`, the active Beads issue, and any repo-local handoff or plan context first
+3. If Beads is available, run \`bd ready --json\`, claim the active issue, and continue from the repo's documented workflow
+4. Review `.rules/patterns/operator-workflow.md` and the repo's current handoff notes before implementation
 EOF

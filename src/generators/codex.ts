@@ -1,4 +1,4 @@
-import { codexCompatibilityLabel } from '../core/assistant.js';
+import { SCAFFOLD_DISPLAY_NAME } from '../core/runtime.js';
 import type { ManagedEntry } from '../core/types.js';
 import { loadTemplate } from '../core/template-loader.js';
 
@@ -26,32 +26,32 @@ function reviewer(): string {
   return loadTemplate('codex/agents/reviewer.md');
 }
 
-function gsdCogneeAdvisor(): string {
-  return loadTemplate('codex/agents/gsd-cognee-advisor.md');
+function cogneeAdvisor(): string {
+  return loadTemplate('codex/agents/cognee-advisor.md');
 }
 
-function harnessSkill(): string {
-  return loadTemplate('codex/skills/harness/SKILL.md');
+function bakeSkill(): string {
+  return loadTemplate('codex/skills/bake/SKILL.md');
 }
 
-function aiHarnessCommandMatrix(): string {
-  return loadTemplate('codex/skills/harness/references/ai-harness-command-matrix.md');
+function piHarnessCommandMatrix(): string {
+  return loadTemplate('codex/skills/bake/references/pi-harness-command-matrix.md');
 }
 
 function existingRepoContextChecklist(): string {
-  return loadTemplate('codex/skills/harness/references/existing-repo-context-checklist.md');
+  return loadTemplate('codex/skills/bake/references/existing-repo-context-checklist.md');
 }
 
 function scaffoldCustomizationMap(): string {
-  return loadTemplate('codex/skills/harness/references/scaffold-customization-map.md');
+  return loadTemplate('codex/skills/bake/references/scaffold-customization-map.md');
 }
 
 function manifestDiscoveryGuide(): string {
-  return loadTemplate('codex/skills/harness/references/manifest-discovery.md');
+  return loadTemplate('codex/skills/bake/references/manifest-discovery.md');
 }
 
 function adoptionNotesTemplate(): string {
-  return loadTemplate('codex/skills/harness/assets/adoption-notes-template.md');
+  return loadTemplate('codex/skills/bake/assets/adoption-notes-template.md');
 }
 
 function phaseExecutionTemplate(): string {
@@ -72,16 +72,16 @@ export function buildCodexEntries(): ManagedEntry[] {
     { kind: 'directory', path: '.codex/agents' },
     { kind: 'directory', path: '.codex/scripts' },
     { kind: 'directory', path: '.codex/skills' },
-    { kind: 'directory', path: '.codex/skills/harness' },
-    { kind: 'directory', path: '.codex/skills/harness/references' },
-    { kind: 'directory', path: '.codex/skills/harness/assets' },
+    { kind: 'directory', path: '.codex/skills/bake' },
+    { kind: 'directory', path: '.codex/skills/bake/references' },
+    { kind: 'directory', path: '.codex/skills/bake/assets' },
     { kind: 'directory', path: '.codex/templates' },
     { kind: 'directory', path: '.codex/workflows' },
     { kind: 'directory', path: '.codex/docker' },
     {
       kind: 'file',
       path: '.codex/README.md',
-      content: (context) => codexReadme(codexCompatibilityLabel(context.assistant))
+      content: () => codexReadme(SCAFFOLD_DISPLAY_NAME)
     },
     {
       kind: 'file',
@@ -96,35 +96,35 @@ export function buildCodexEntries(): ManagedEntry[] {
     { kind: 'file', path: '.codex/agents/orchestrator.md', content: () => orchestrator() },
     { kind: 'file', path: '.codex/agents/implementer.md', content: () => implementer() },
     { kind: 'file', path: '.codex/agents/reviewer.md', content: () => reviewer() },
-    { kind: 'file', path: '.codex/agents/gsd-cognee-advisor.md', content: () => gsdCogneeAdvisor() },
+    { kind: 'file', path: '.codex/agents/cognee-advisor.md', content: () => cogneeAdvisor() },
     {
       kind: 'file',
-      path: '.codex/skills/harness/SKILL.md',
-      content: () => harnessSkill()
+      path: '.codex/skills/bake/SKILL.md',
+      content: () => bakeSkill()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/ai-harness-command-matrix.md',
-      content: () => aiHarnessCommandMatrix()
+      path: '.codex/skills/bake/references/pi-harness-command-matrix.md',
+      content: () => piHarnessCommandMatrix()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/existing-repo-context-checklist.md',
+      path: '.codex/skills/bake/references/existing-repo-context-checklist.md',
       content: () => existingRepoContextChecklist()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/scaffold-customization-map.md',
+      path: '.codex/skills/bake/references/scaffold-customization-map.md',
       content: () => scaffoldCustomizationMap()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/references/manifest-discovery.md',
+      path: '.codex/skills/bake/references/manifest-discovery.md',
       content: () => manifestDiscoveryGuide()
     },
     {
       kind: 'file',
-      path: '.codex/skills/harness/assets/adoption-notes-template.md',
+      path: '.codex/skills/bake/assets/adoption-notes-template.md',
       content: () => adoptionNotesTemplate()
     },
     {
@@ -140,20 +140,8 @@ export function buildCodexEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: '.codex/scripts/cognee-sync-planning.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-sync-planning.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
       path: '.codex/scripts/cognee-brief.sh',
       content: (context) => codexTemplate(context.appSlug, 'codex/scripts/cognee-brief.sh'),
-      executable: true
-    },
-    {
-      kind: 'file',
-      path: '.codex/scripts/sync-planning-to-cognee.sh',
-      content: (context) => codexTemplate(context.appSlug, 'codex/scripts/sync-planning-to-cognee.sh'),
       executable: true
     },
     {
@@ -176,7 +164,7 @@ export function buildCodexEntries(): ManagedEntry[] {
     {
       kind: 'file',
       path: 'AGENTS.md',
-      content: (context) => agentsGuide(codexCompatibilityLabel(context.assistant))
+      content: () => agentsGuide(SCAFFOLD_DISPLAY_NAME)
     }
   ];
 }

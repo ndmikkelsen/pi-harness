@@ -2,7 +2,7 @@ import path from 'node:path';
 
 import { runCleanup } from '../core/cleanup.js';
 import { ensureGitRepository } from '../core/git.js';
-import { AI_HARNESS_VERSION } from '../core/harness-release.js';
+import { AI_HARNESS_VERSION as PI_HARNESS_VERSION } from '../core/harness-release.js';
 import { applyManagedEntries } from '../core/filesystem.js';
 import { DEFAULT_POLICY } from '../core/policy.js';
 import { resolvePorts } from '../core/port-detection.js';
@@ -29,8 +29,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 
   const context: ScaffoldContext = {
     ...input,
-    assistant: options.assistant,
-    harnessVersion: AI_HARNESS_VERSION,
+    harnessVersion: PI_HARNESS_VERSION,
     doltPort: portSettings.doltPort,
     cogneeDbPort: portSettings.cogneeDbPort,
     computeHost: options.computeHost ?? DEFAULT_POLICY.computeHost,
@@ -61,7 +60,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 
   const notes = [...portSettings.notes];
   notes.push(
-    'Use `ai-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.'
+    'Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.'
   );
   if (!options.skipGit && !options.dryRun) {
     notes.push(...ensureGitRepository(context.targetDir));
@@ -69,7 +68,6 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 
   return {
     ...entryResult,
-    assistant: context.assistant,
     mode: context.mode,
     targetDir: context.targetDir,
     appName: context.appName,
@@ -81,7 +79,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
 export function formatInitReport(result: InitResult): string {
   const targetLabel = path.relative(process.cwd(), result.targetDir) || '.';
   const lines = [
-    `Scaffolded ${result.appName} (${result.mode}, ${result.assistant}) in ${targetLabel}`,
+    `Scaffolded ${result.appName} (${result.mode}) in ${targetLabel}`,
     `Created: ${result.createdPaths.length}`,
     `Skipped: ${result.skippedPaths.length}`
   ];

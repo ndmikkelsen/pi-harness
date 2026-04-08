@@ -9,8 +9,7 @@ paths = [
   '''\\.env\\.example$''',
   '''\\.kamal/secrets\\.example$''',
   '''node_modules/''',
-  '''\\.beads/''',
-  '''\\.planning/'''
+  '''\\.beads/'''
 ]
 
 regexes = [

@@ -4,26 +4,23 @@ import path from 'node:path';
 import { expect } from 'vitest';
 
 import { formatInitReport, runInit } from '../../../../src/commands/init.js';
-import type { AssistantTarget } from '../../../../src/core/types.js';
 import type { CliFeatureWorld } from '../support/world.js';
 import { readTargetFile, requireResult, requireTargetDir } from '../support/world.js';
+
+type NewProjectOptions = {
+  projectName: string;
+  dryRun?: boolean;
+  [key: string]: unknown;
+};
 
 export async function givenEmptyTargetDirectory(world: CliFeatureWorld): Promise<void> {
   expect(world.workspace).toBeTruthy();
 }
 
-export async function whenIInitializeNewProject(
-  world: CliFeatureWorld,
-  options: {
-    projectName: string;
-    assistant: AssistantTarget;
-    dryRun?: boolean;
-  }
-): Promise<void> {
+export async function whenIInitializeNewProject(world: CliFeatureWorld, options: NewProjectOptions): Promise<void> {
   world.result = await runInit({
     cwd: world.workspace,
     projectArg: options.projectName,
-    assistant: options.assistant,
     mode: 'auto',
     dryRun: options.dryRun ?? false,
     force: false,
@@ -39,20 +36,34 @@ export function thenTheCliCreatesTheAiWorkflowScaffoldFiles(world: CliFeatureWor
 
   expect(result.mode).toBe('new');
   expect(result.createdPaths).toEqual(
-    expect.arrayContaining(['.planning/config.json', '.codex/README.md', 'STICKYNOTE.example.md'])
+    expect.arrayContaining([
+      'AGENTS.md',
+      '.pi/settings.json',
+      '.pi/SYSTEM.md',
+      '.pi/extensions/repo-workflows.ts',
+      '.pi/prompts/adopt.md',
+      '.pi/prompts/serve.md',
+      '.pi/skills/bake/SKILL.md',
+      'scripts/bootstrap-worktree.sh',
+      'scripts/cognee-brief.sh',
+      'scripts/serve.sh',
+      'docker/Dockerfile.cognee',
+      'STICKYNOTE.example.md'
+    ])
   );
 }
 
 export function thenTheCliReportsCreatedFilesInItsSummary(world: CliFeatureWorld): void {
   expect(world.report).toContain('Created files:');
-  expect(world.report).toContain('scripts/hooks/post-checkout');
+  expect(world.report).toContain('AGENTS.md');
+  expect(world.report).toContain('.pi/settings.json');
 }
 
 export function thenTheCliReportsPlannedChanges(world: CliFeatureWorld): void {
   const result = requireResult(world);
 
   expect(result.createdPaths.length).toBeGreaterThan(0);
-  expect(world.report).toContain(`Scaffolded ${result.appName}`);
+  expect(world.report).toContain(`Scaffolded ${result.appName} (${result.mode})`);
 }
 
 export async function thenNoFilesAreWrittenToDisk(world: CliFeatureWorld): Promise<void> {
@@ -63,17 +74,44 @@ export async function thenTheCliCreatesCodexCompatibilityFiles(world: CliFeature
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
-    expect.arrayContaining(['.codex/README.md', '.codex/workflows/autonomous-execution.md', 'AGENTS.md'])
+    expect.arrayContaining([
+      'AGENTS.md',
+      '.pi/settings.json',
+      '.pi/extensions/repo-workflows.ts',
+      '.pi/prompts/serve.md',
+      '.pi/skills/bake/SKILL.md',
+      'scripts/bootstrap-worktree.sh',
+      'scripts/cognee-brief.sh',
+      'scripts/serve.sh',
+      'docker/Dockerfile.cognee'
+    ])
   );
-
-  const codexReadme = await readTargetFile(world, '.codex/README.md');
-  expect(codexReadme).toContain('Compatibility Layer');
 }
 
-export async function thenTheCodexOpencodeRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
+export async function thenTheCodexRuntimeFilesAreAvailable(world: CliFeatureWorld): Promise<void> {
   const agentsGuide = await readTargetFile(world, 'AGENTS.md');
-  const autonomousWorkflow = await readTargetFile(world, '.codex/workflows/autonomous-execution.md');
+  const bootstrapScript = await readTargetFile(world, 'scripts/bootstrap-worktree.sh');
+  const workflowExtension = await readTargetFile(world, '.pi/extensions/repo-workflows.ts');
+  const servePrompt = await readTargetFile(world, '.pi/prompts/serve.md');
 
-  expect(agentsGuide).toContain('.rules/patterns/operator-workflow.md');
-  expect(autonomousWorkflow).toContain('/gsd-next');
+  expect(agentsGuide).toContain('.pi/extensions/*');
+  expect(agentsGuide).toContain('.pi/prompts/*');
+  expect(agentsGuide).toContain('.pi/skills/*');
+  expect(agentsGuide).toContain('./scripts/bootstrap-worktree.sh');
+  expect(agentsGuide).toContain('./scripts/serve.sh');
+  expect(bootstrapScript).toContain('bd ready --json');
+  expect(bootstrapScript).toContain('AGENTS.md');
+  expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
+  expect(workflowExtension).toContain("registerCommand('cognee-brief'");
+  expect(workflowExtension).not.toContain("registerCommand('serve'");
+  expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
+  expect(workflowExtension).toContain('scripts/cognee-brief.sh');
+  expect(servePrompt).toContain('/serve');
+  expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
+  expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
+}
+
+export async function thenNoOpenCodeCompatibilityFilesAreCreated(world: CliFeatureWorld): Promise<void> {
+  await expect(access(path.join(requireTargetDir(world), '.opencode', 'worktree.jsonc'))).rejects.toThrow();
+  await expect(access(path.join(requireTargetDir(world), '.rules', 'patterns', 'omo-agent-contract.md'))).rejects.toThrow();
 }

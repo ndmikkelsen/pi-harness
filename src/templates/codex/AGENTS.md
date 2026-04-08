@@ -4,37 +4,37 @@
 
 ## Overview
 
-This repository is prepared for {{COMPAT_LABEL}} through a focused runtime layer while keeping .rules/ and .planning/ as the canonical project systems.
+This repository is prepared for {{COMPAT_LABEL}} inside Pi through a thin compatibility layer. Workflow authority remains in `.rules/` and repo-local process notes. Pi-native reusable orchestration lives in `.omp/` when the repo scaffolds it, while `.codex/` stays a compatibility and maintenance surface.
 
 ## {{COMPAT_LABEL}} Workflow
 
-{{COMPAT_LABEL}} works in this repository through a focused runtime layer. The canonical systems remain:
+{{COMPAT_LABEL}} works in this repository through Pi-native project context plus a focused compatibility layer. The canonical systems are:
 
-- .rules/ for architecture and workflow rules
-- .planning/ for GSD planning, execution, and handoff artifacts
-- .codex/scripts/ for working Cognee and planning sync backends
+- `.rules/` for architecture and workflow rules
+- native `bd` for Beads backlog tracking
+- `.omp/` for Pi-native custom agents and skills that should be discovered directly by Pi
+- `.codex/scripts/` for Cognee and compatibility automation
+- repo-local handoff or plan notes when they already exist
 
-Use the {{COMPAT_LABEL}} compatibility docs and scripts under .codex/ as entrypoints, not as a separate source of truth.
-For OMO lane and tool policy, treat `.rules/patterns/omo-agent-contract.md` as the normative source and keep this file adapter-only.
+Use the {{COMPAT_LABEL}} docs under `.codex/` as compatibility maps and maintenance notes, not as a second source of workflow authority.
 
 ### {{COMPAT_LABEL}} Operating Sequence
 
-1. Read the relevant .rules/ documents before changing code or infrastructure.
-2. Inspect .planning/STATE.md and any active phase docs in .planning/.
-3. Use native `bd` for task tracking after the repository is initialized with `bd init`.
-4. For planning, research, or autonomous startup work, query Cognee with ./.codex/scripts/cognee-brief.sh "<query>".
-5. If you use OpenCode worktrees, prefer the scaffolded `.opencode/worktree.jsonc` with `kdco/worktree`; otherwise run ./.codex/scripts/bootstrap-worktree.sh on a fresh worktree.
-6. Use `.rules/patterns/operator-workflow.md` and `/gsd-next` as the default interactive work loop.
-7. If you are in an execution/autonomous landing lane, land the session with ./.codex/scripts/land.sh.
+1. Read the relevant `.rules/` documents before changing code or infrastructure.
+2. Use `.rules/patterns/operator-workflow.md` as the canonical day-to-day runbook for Beads claim-first work, verification, and landing-lane decisions.
+3. Use `.omp/agents/*.md` and `.omp/skills/*/SKILL.md` when Pi-native project orchestration or reusable task-shaping help is needed.
+4. Use `.codex/workflows/autonomous-execution.md` or `.codex/workflows/parallel-execution.md` only for Codex-compatible autonomous or multi-wave deltas.
+5. Use `.codex/README.md` for compatibility maps, self-adoption commands, and scaffold maintenance notes.
+6. On a fresh checkout or worktree, run `./.codex/scripts/bootstrap-worktree.sh`.
+7. Use `.codex/skills/bake/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
+8. If you are in an execution/autonomous landing lane, land the session with `./.codex/scripts/land.sh`.
 
 ### {{COMPAT_LABEL}} Guardrails
 
-- Do not create duplicate planning systems or issue trackers under .codex/.
-- Do not mirror .planning/ into .codex-specific directories.
-- Do not redefine OMO doctrine here; reference `.rules/patterns/omo-agent-contract.md` when policy decisions are needed.
-- Follow `.rules/patterns/omo-agent-contract.md` for Cognee-required lanes and deterministic fallback or blocked outcomes.
-- Treat .codex/agents/*.md as reusable role briefs and .codex/scripts/*.sh as the executable surface.
-- Use `.codex/skills/harness/SKILL.md` when bootstrapping or adopting another repository with ai-harness.
+- Do not create duplicate planning systems or issue trackers under `.codex/` or `.omp/`.
+- Do not mirror repo-local handoff or plan notes into compatibility-specific directories.
+- Treat `.omp/*` as Pi-native runtime assets discovered directly by Pi; treat `.codex/agents/*.md` as compatibility briefs and `.codex/scripts/*.sh` as the executable compatibility surface.
+- Use `.codex/skills/bake/SKILL.md` when bootstrapping or adopting another repository with `pi-harness`.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 
 ### Landing Authority
@@ -42,12 +42,10 @@ For OMO lane and tool policy, treat `.rules/patterns/omo-agent-contract.md` as t
 - Only execution/autonomous landing lanes should run `./.codex/scripts/land.sh`.
 - Planning, research, and review lanes must hand off instead of publishing.
 
-### Beads + GSD Loop
+### Beads + Cognee Loop
 
-- When Beads is available, use `bd ready --json` and `bd update <id> --claim --json` before phase work.
-- Use `.codex/workflows/autonomous-execution.md` for one-agent phase execution, or `.codex/workflows/parallel-execution.md` for multi-wave work.
-- Carry the active Beads issue ID through phase notes, execution context, and handoff docs.
-- Use `/gsd-next` first, then `/gsd-discuss-phase <n>`, `/gsd-plan-phase <n>`, `/gsd-execute-phase <n>`, and `/gsd-verify-work <n>` when phase work is required.
-- Close Beads issues only after verification passes.
+- `.rules/patterns/operator-workflow.md` owns the daily Beads + Cognee loop, including claim-first work selection, Cognee brief timing, verification, and closeout.
+- `.omp/agents/` and `.omp/skills/` hold Pi-native reusable orchestration helpers; `.codex/workflows/*.md` documents Codex-compatible lane deltas when those lanes are explicitly chosen.
+- Carry the active Beads issue ID through notes, execution context, and handoff docs when Beads is available.
 - If verification finds gaps, create follow-up Beads bug issues instead of closing the parent work early.
-- If `.beads/` or `bd` is unavailable, continue the GSD workflow without blocking on issue tracking.
+- If Cognee or Beads is unavailable, follow the fallback rules documented in `.rules/patterns/operator-workflow.md` and the relevant autonomous workflow doc instead of inventing a parallel process.

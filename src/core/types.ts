@@ -1,8 +1,5 @@
 import type { ProjectMode } from './policy.js';
 
-export type AssistantTarget = 'codex' | 'opencode';
-export type AssistantSelection = AssistantTarget | 'auto';
-
 export interface ResolveProjectInputOptions {
   cwd: string;
   projectArg?: string;
@@ -29,7 +26,6 @@ export interface InitCommandOptions {
   cwd: string;
   projectArg?: string;
   targetArg?: string;
-  assistant: AssistantTarget;
   mode: ProjectMode;
   dryRun: boolean;
   force: boolean;
@@ -91,7 +87,6 @@ export interface CleanupResult {
 export type CleanupConfirmer = (entry: CleanupManifestEntry) => Promise<boolean>;
 
 export interface ScaffoldContext extends ResolvedProjectInput {
-  assistant: AssistantTarget;
   harnessVersion?: string;
   doltPort: number;
   cogneeDbPort: number;
@@ -131,7 +126,6 @@ export interface ApplyManagedEntriesResult {
 }
 
 export interface InitResult extends ApplyManagedEntriesResult {
-  assistant: AssistantTarget;
   mode: Exclude<ProjectMode, 'auto'>;
   targetDir: string;
   appName: string;
@@ -139,51 +133,9 @@ export interface InitResult extends ApplyManagedEntriesResult {
   cleanup: CleanupResult;
 }
 
-export interface InstallSkillTemplateEntry {
-  path: string;
-  content: () => string;
-  merge?: (existingContent: string, generatedContent: string) => string | null;
-}
-
-export type OpenCodeSkillEntry = InstallSkillTemplateEntry;
-export type OpenCodeWorkflowEntry = InstallSkillTemplateEntry;
-export type OpenCodeConfigEntry = InstallSkillTemplateEntry;
-export type GsdDefaultsEntry = InstallSkillTemplateEntry;
-
-export interface InstallSkillCommandOptions {
-  cwd: string;
-  assistant: AssistantTarget;
-  targetRoot?: string;
-  configRoot?: string;
-  gsdRoot?: string;
-}
-
-export interface InstallSkillResult {
-  assistant: AssistantTarget;
-  skillName: string;
-  targetRoot: string;
-  configRoot: string;
-  gsdRoot: string;
-  installDir: string;
-  workflowDir: string;
-  workflowFilePath: string;
-  openCodeDefaultsFilePath: string;
-  gsdDefaultsFilePath: string;
-  writtenPaths: string[];
-  unchangedPaths: string[];
-  writtenConfigPaths: string[];
-  unchangedConfigPaths: string[];
-  writtenWorkflowPaths: string[];
-  unchangedWorkflowPaths: string[];
-  writtenDefaultsPaths: string[];
-  unchangedDefaultsPaths: string[];
-  notes: string[];
-}
-
 export interface DoctorCommandOptions {
   cwd: string;
   targetArg?: string;
-  assistant: AssistantSelection;
   json: boolean;
 }
 
@@ -202,7 +154,6 @@ export interface DoctorGroupResult {
 
 export interface DoctorResult {
   targetDir: string;
-  assistant: AssistantTarget;
   status: 'pass' | 'warn' | 'fail';
   summary: {
     passed: number;

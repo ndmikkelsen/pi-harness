@@ -102,7 +102,7 @@ describeFeature(feature, ({ Scenario }) => {
     });
   });
 
-  Scenario('Add Codex compatibility files to an existing project', ({ Given, When, Then }) => {
+  Scenario('Add the Pi + Codex compatibility files to an existing project', ({ Given, When, Then, And }) => {
     let world: CliFeatureWorld;
 
     Given('an existing project directory without Codex files', async () => {
@@ -117,22 +117,9 @@ describeFeature(feature, ({ Scenario }) => {
     Then('assistant compatibility files are created', () => {
       adoptionSteps.thenCodexCompatibilityFilesAreCreated(world);
     });
-  });
 
-  Scenario('Add OpenCode compatibility files to an existing project', ({ Given, When, Then }) => {
-    let world: CliFeatureWorld;
-
-    Given('an existing project directory without Codex files', async () => {
-      world = await createWorld('ai-harness-bdd-adoption-');
-      await adoptionSteps.givenExistingProjectDirectoryWithoutCodexFiles(world);
-    });
-
-    When('I apply the scaffold in existing-project mode for the "opencode" assistant', async () => {
-      await adoptionSteps.whenIApplyTheScaffoldInExistingProjectModeForAssistant(world, 'opencode');
-    });
-
-    Then('assistant compatibility files are created', () => {
-      adoptionSteps.thenCodexCompatibilityFilesAreCreated(world);
+    And('no OpenCode compatibility files are created', async () => {
+      await adoptionSteps.thenNoOpenCodeCompatibilityFilesAreCreated(world);
     });
   });
 });

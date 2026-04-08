@@ -1,27 +1,17 @@
-# Initialize A New AI Workflow Project Implementation Plan
+# Init feature plan
 
-## Goals
+## Goal
 
-- Keep the greenfield scaffold flow behavior-first and executable.
-- Prove that new-project setup still creates the expected runtime, planning, and assistant compatibility files.
-- Keep the executable BDD layer focused on user-visible setup behavior while leaving deep regression coverage in `tests/`.
+Prove that new-project setup creates the expected Codex + Beads + Cognee workflow files.
 
-## Scenarios Covered
+## Scenarios covered
 
-- Create a new project scaffold into a new directory.
-- Show a dry run without writing files.
-- Prepare a new project for Codex.
-- Prepare a new project for OpenCode.
+- create a new scaffold in a new directory
+- show a dry run without writing files
+- prepare a new project for the Pi + Codex baseline
 
-## Execution Notes
+## Key assertions
 
-- Drive the behavior through `runInit(...)` plus `formatInitReport(...)`.
-- Keep Codex and OpenCode compatibility assertions at the scenario level.
-- Leave deep file-count and migration edge cases in `tests/integration/init.test.ts`.
-
-## Definition Of Done
-
-- `apps/cli/features/init/init.feature` remains the behavior contract.
-- `apps/cli/features/init/init.spec.ts` executes every scenario.
-- `pnpm test:bdd` passes.
-- Existing integration coverage in `tests/` stays green.
+- scaffold files are created under `.codex/`, `.rules/`, and root setup files
+- no OpenCode or OMO compatibility files are generated
+- the resulting runtime docs point at the Codex baseline and Beads/Cognee workflow

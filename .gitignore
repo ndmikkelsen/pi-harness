@@ -1,29 +1,26 @@
-node_modules/
-dist/
-coverage/
-.DS_Store
-*.log
-
 .env
 .env.local
 .env.*.local
+node_modules/
+dist/
+coverage/
 .turbo/
 __pycache__/
 *.pyc
 .pytest_cache/
 .coverage
 .venv/
+*.log
 .vscode/
 .idea/
+.DS_Store
 /STICKYNOTE.md
 .beads/.sync.lock
 .beads/dolt-server.port
-.beads/dolt-monitor.pid
-.beads/dolt-server.activity
 .beads/sync_base.jsonl
 .beads/*.db
+.beads/backup/
 .beads/export/
-.beads/.gitignore
 .beads/README.md
 .beads/interactions.jsonl
 .kamal/secrets
@@ -31,8 +28,6 @@ __pycache__/
 .kamal/secrets-common
 !.kamal/secrets.example
 cognee_data/
-
-.beads/backup/
 
 # Dolt database files (added by bd init)
 .dolt/

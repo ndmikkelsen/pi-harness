@@ -1,5 +1,4 @@
 import type { ManagedEntry, ScaffoldContext } from '../core/types.js';
-import { assistantDisplayName } from '../core/assistant.js';
 import { AI_HARNESS_VERSION } from '../core/harness-release.js';
 import { loadTemplate } from '../core/template-loader.js';
 
@@ -43,9 +42,6 @@ function postCheckoutHook(): string {
   return loadTemplate('root/scripts/hooks/post-checkout');
 }
 
-function opencodeWorktreeConfig(): string {
-  return loadTemplate('root/opencode-worktree.jsonc');
-}
 
 function envExample(context: ScaffoldContext): string {
   return loadTemplate('root/env.example', {
@@ -71,15 +67,8 @@ function envrc(context: ScaffoldContext): string {
 }
 
 function readme(context: ScaffoldContext): string {
-  const assistantLabel = assistantDisplayName(context.assistant);
-  const codexBullet = `- ${context.assistant === 'opencode' ? 'OpenCode' : 'Codex'} runtime files in .codex/ and AGENTS.md`;
-  const workflowGuideLine = 'Review .rules/patterns/operator-workflow.md, AGENTS.md, and .codex/README.md.';
-
   return loadTemplate('root/README.md', {
     APP_TITLE: context.appTitle,
-    ASSISTANT_LABEL: assistantLabel,
-    CODEx_BULLET: codexBullet,
-    WORKFLOW_GUIDE_LINE: workflowGuideLine,
     GENERATED_ON: context.generatedOn,
     HARNESS_VERSION: context.harnessVersion ?? AI_HARNESS_VERSION
   });
@@ -91,7 +80,6 @@ export function buildRootEntries(): ManagedEntry[] {
     { kind: 'directory', path: 'scripts/hooks' },
     { kind: 'directory', path: '.beads' },
     { kind: 'directory', path: '.beads/hooks' },
-    { kind: 'directory', path: '.opencode' },
     {
       kind: 'file',
       path: '.gitignore',
@@ -118,7 +106,6 @@ export function buildRootEntries(): ManagedEntry[] {
         }
       },
     { kind: 'file', path: '.envrc', content: (context) => envrc(context) },
-    { kind: 'file', path: '.opencode/worktree.jsonc', content: () => opencodeWorktreeConfig() },
     { kind: 'file', path: 'scripts/hooks/post-checkout', content: () => postCheckoutHook(), executable: true },
     { kind: 'file', path: 'README.md', content: (context) => readme(context) }
   ];
