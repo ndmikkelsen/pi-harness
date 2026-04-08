@@ -214,6 +214,27 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the promote prompt loses main PR guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-promote-prompt-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'promote.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('PR to `main`', 'pull request to main'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/promote.md',
+          reason: 'missing main pull request guidance'
+        })
+      ])
+    );
+  });
+
   it('fails when the serve prompt loses completed-work guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-serve-prompt-guidance');
@@ -496,6 +517,27 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
           reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when promote.sh loses the main pull request target', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-promote-target');
+
+    const promotePath = path.join(targetDir, 'scripts', 'promote.sh');
+    const promoteScript = await readFile(promotePath, 'utf8');
+    await writeFile(promotePath, promoteScript.replace('--base main', '--base release'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/promote.sh',
+          reason: 'missing main pull request target'
         })
       ])
     );

@@ -88,13 +88,14 @@ pi-harness doctor <path>
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
-## Serve and STICKYNOTE contract
+## Serve, promote, and STICKYNOTE contract
 
 - `./scripts/bootstrap-worktree.sh` seeds `STICKYNOTE.md` from `STICKYNOTE.example.md` only when needed, then keeps linked worktrees pointed at the main worktree copy so local handoff context survives across worktrees.
 - `STICKYNOTE.md` is intentionally local-only and must remain untracked; the scaffold only ships `STICKYNOTE.example.md`.
 - `/serve` stays prompt-native, but plain-language publish requests such as `serve this branch` or `ship it` should route through the same serve workflow.
 - Serving now requires a refreshed `STICKYNOTE.md` with a non-empty `## Completed This Session` section. That completed-work summary becomes the basis for the PR body.
 - `scripts/serve.sh` creates or refreshes the PR body explicitly for both new and existing PRs and prints a short post-serve branch summary after pushing.
+- `/promote` and `scripts/promote.sh` are the separate release step for `dev` -> `main`; they require a clean `dev` branch, push `dev` upstream, and create or refresh an explicit PR body to `main` from the commit summary.
 
 ## Muninn comparison and curated knowledge-sync decision
 

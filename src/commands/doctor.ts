@@ -248,6 +248,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/extensions/role-workflow.ts',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
+    '.pi/prompts/promote.md',
     '.pi/prompts/triage.md',
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
@@ -267,6 +268,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
     'scripts/serve.sh',
+    'scripts/promote.sh',
     'scripts/hooks/post-checkout',
     'config/deploy.cognee.yml',
   ];
@@ -285,6 +287,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/extensions/role-workflow.ts',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
+    '.pi/prompts/promote.md',
     '.pi/prompts/triage.md',
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
@@ -305,6 +308,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
     'scripts/serve.sh',
+    'scripts/promote.sh',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
     'docker/Dockerfile.cognee',
@@ -425,7 +429,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
   if (agentsGuide !== null) {
-    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh']) {
+    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh']) {
       if (!agentsGuide.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
       }
@@ -452,6 +456,20 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   }
   if (servePrompt !== null && !servePrompt.includes('refreshes the PR body')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing explicit PR body refresh guidance');
+  }
+
+  const promotePrompt = await readFileIfPresent(targetDir, '.pi/prompts/promote.md');
+  if (promotePrompt !== null && !promotePrompt.includes('scripts/promote.sh')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing promote workflow script guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('`dev`')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing dev-branch promotion guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('PR to `main`')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing main pull request guidance');
+  }
+  if (promotePrompt !== null && !promotePrompt.includes('refreshes the PR body')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/promote.md', 'missing explicit promotion PR refresh guidance');
   }
 
   const triagePrompt = await readFileIfPresent(targetDir, '.pi/prompts/triage.md');
@@ -615,6 +633,26 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
     if (!serveScript.includes('Post-serve branch summary:')) {
       pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing post-serve summary output');
+    }
+  }
+
+
+  const promoteScript = await readFileIfPresent(targetDir, 'scripts/promote.sh');
+  if (promoteScript !== null) {
+    if (!promoteScript.includes('--base main')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing main pull request target');
+    }
+    if (!promoteScript.includes('branch" != "dev"')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing dev-branch guardrail');
+    }
+    if (!promoteScript.includes('gh pr edit')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing explicit promotion PR refresh path');
+    }
+    if (!promoteScript.includes('clean working tree on dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing clean-dev-worktree guardrail');
+    }
+    if (!promoteScript.includes('Post-promotion summary:')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/promote.sh', 'missing post-promotion summary output');
     }
   }
 

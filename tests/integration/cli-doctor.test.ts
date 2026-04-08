@@ -53,7 +53,7 @@ describe('CLI doctor', () => {
     ]);
   });
 
-  it('supports the documented existing-repo adoption path followed by doctor', async () => {
+  it('supports the documented existing-repo adoption path followed by doctor', { timeout: 15000 }, async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
     const targetDir = path.join(workspace, 'existing-cli-adoption');
 

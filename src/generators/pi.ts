@@ -43,6 +43,7 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     { kind: 'file', path: '.pi/prompts/adopt.md', content: () => template('pi/prompts/adopt.md') },
     { kind: 'file', path: '.pi/prompts/serve.md', content: () => template('pi/prompts/serve.md') },
+    { kind: 'file', path: '.pi/prompts/promote.md', content: () => template('pi/prompts/promote.md') },
     { kind: 'file', path: '.pi/prompts/triage.md', content: () => template('pi/prompts/triage.md') },
     { kind: 'file', path: '.pi/prompts/plan-change.md', content: () => template('pi/prompts/plan-change.md') },
     { kind: 'file', path: '.pi/prompts/ship-change.md', content: () => template('pi/prompts/ship-change.md') },
@@ -116,6 +117,12 @@ export function buildPiEntries(): ManagedEntry[] {
       kind: 'file',
       path: 'scripts/serve.sh',
       content: () => template('pi/scripts/serve.sh'),
+      executable: true,
+    },
+    {
+      kind: 'file',
+      path: 'scripts/promote.sh',
+      content: () => template('pi/scripts/promote.sh'),
       executable: true,
     },
     {

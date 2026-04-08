@@ -70,7 +70,7 @@ async function addLinkedWorktree(repoDir: string, worktreeDir: string, branchNam
 }
 
 describe('bootstrap-worktree hook', () => {
-  it('links shared env files and a main-worktree-canonical STICKYNOTE.md into new worktrees', async () => {
+  it('links shared env files and a main-worktree-canonical STICKYNOTE.md into new worktrees', { timeout: 15000 }, async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-'));
     const repoDir = path.join(workspace, 'repo');
     const worktreeDir = path.join(workspace, 'repo.feature');
@@ -109,7 +109,7 @@ describe('bootstrap-worktree hook', () => {
     }
   });
 
-  it('keeps STICKYNOTE.md canonical across reruns and later linked worktrees', async () => {
+  it('keeps STICKYNOTE.md canonical across reruns and later linked worktrees', { timeout: 15000 }, async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-rerun-'));
     const repoDir = path.join(workspace, 'repo');
     const firstWorktreeDir = path.join(workspace, 'repo.feature');

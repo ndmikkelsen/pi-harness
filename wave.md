@@ -4,28 +4,31 @@
 Direct
 
 ## Work Item
-untracked
+`pi-harness-edk` — Add a separate dev-to-main promotion workflow
+
+Child tasks:
+- `pi-harness-edk.2` — Lock RED coverage for dev-to-main promotion
+- `pi-harness-edk.1` — Implement the promotion runtime and scaffold template
+- `pi-harness-edk.3` — Align docs, doctor, and scaffold parity for promotion
 
 ## Knowledge
-`bd ready --json` returned no ready issues. Cognee was attempted with `./scripts/cognee-brief.sh "serve workflow PR description completed work summary STICKYNOTE bootstrap worktree sync coverage"`; the result was generic, so local repo files remained the source of truth.
+Cognee was attempted with `./scripts/cognee-brief.sh "dev to main promotion workflow release step ensure local changes land upstream dev main"`, but the brief was stale and still referenced legacy `land.sh` guidance. Local repository files, tests, and branch policy remained authoritative.
 
 ## Test Strategy
 Hybrid, integration-led.
-- RED for serve behavior: tighten `tests/integration/serve-script.test.ts` around PR body/summary and post-serve output.
-- RED for STICKYNOTE flow: tighten `tests/integration/bootstrap-worktree.test.ts` around shared/main-worktree handoff behavior.
-- REFACTOR safety net: use `tests/integration/doctor.test.ts` and `tests/integration/docs-alignment.test.ts` only after the runtime contract is explicit.
+- RED: add `tests/integration/promote-script.test.ts` before runtime changes and confirm it fails because `scripts/promote.sh` does not exist yet.
+- GREEN: add a dedicated `dev` -> `main` promotion script/prompt pair plus scaffold wiring and explicit PR-body refresh behavior.
+- REFACTOR: align doctor, docs, init, and scaffold snapshot coverage so the new release-step contract stays stable without weakening `/serve`.
 
 ## Agents / Chains
-Main session only. The task was scoped repo recon across prompt, script, worktree, doctor, and Cognee seams; no parallel wave needed.
+Main session only. The work crossed one release contract spanning runtime docs, scaffold templates, doctor checks, and integration coverage, so parallel delegation would have increased overlap risk.
 
 ## Verification
-Likely caller-side RED commands:
-- `pnpm test -- tests/integration/serve-script.test.ts`
-- `pnpm test -- tests/integration/bootstrap-worktree.test.ts`
-- optional contract/parity follow-up: `pnpm test -- tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts`
+Caller-side verification completed with:
+- `pnpm typecheck`
+- `pnpm test -- tests/integration/serve-script.test.ts tests/integration/promote-script.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts`
 
 ## Risks
-- `/serve` is deliberately prompt-native, so plain-language serve intent is documented today but not executable outside prompt/lane behavior.
-- `scripts/serve.sh` currently relies on `gh pr create --fill`; requiring a guaranteed PR description/summary likely needs explicit body generation and probably an existing-PR update path too.
-- `STICKYNOTE.md` is local-only and ignored today; making it “flow back” to future worktrees requires a decision between shared symlink behavior and copy/sync behavior.
-- Current automatic Cognee sync only covers Pi artifacts (`context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md`), not `STICKYNOTE.md` or PR metadata.
+- `scripts/promote.sh` intentionally opens or refreshes a PR to `main`; it never merges or pushes directly to `main`, so release completion still depends on the normal GitHub review/merge path.
+- Promotion summaries are commit-driven, not `STICKYNOTE.md`-driven, so the release PR body is explicit but intentionally higher-level than feature-branch serve summaries.
+- Existing plain-language publish intent still maps to `/serve`; callers should invoke `/promote` explicitly for the separate `dev` -> `main` release step.
