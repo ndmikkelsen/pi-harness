@@ -7,7 +7,7 @@
 The repo owns one scaffold and dogfoods it in place:
 - `src/templates/**` is the scaffold source of truth
 - `src/generators/**` maps those templates into managed output paths
-- the repository root, `.pi/`, `scripts/`, `.config/`, `.docker/`, and `STICKYNOTE.example.md` are the dogfooded outputs of that scaffold
+- the repository root, `.pi/`, `scripts/`, `config/`, and `STICKYNOTE.example.md` are the dogfooded outputs of that scaffold
 - `dist/` is the built runtime copy used by the local launcher and smoke checks
 
 ## What the scaffold is trying to provide
@@ -34,7 +34,7 @@ The repo owns one scaffold and dogfoods it in place:
 | Backlog tracking | native `bd` with `.beads/**` |
 | Knowledge brief | `./scripts/cognee-brief.sh` |
 | Local handoff | `STICKYNOTE.example.md` |
-| Deployment templates | `.config/**`, `.docker/**`, `.kamal/**` |
+| Deployment templates | `config/**`, `.kamal/**`, `docker/**` |
 
 ## Operating principles
 

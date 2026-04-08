@@ -43,7 +43,7 @@ Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable 
 - Require explicit RED -> GREEN -> REFACTOR checkpoints in implementation plans.
 - Use `worktree: true` when parallel tasks could overlap or need isolated patches.
 - Sequence contract, schema, and type changes before downstream consumers.
-- The caller owns final verification, Beads closure, and `./scripts/land.sh`.
+- The caller owns final verification, Beads closure, and `./scripts/serve.sh`.
 
 ## Output format
 

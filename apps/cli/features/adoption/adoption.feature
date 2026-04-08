@@ -23,8 +23,8 @@ Feature: Adopt an existing project into the AI workflow scaffold
     Then ambiguous cleanup entries are reported for confirmation
     And ambiguous files are left unchanged
 
-  Scenario: Add the Pi-native workflow files to an existing project
-    Given an existing project directory without Pi-native workflow files
-    When I apply the scaffold in existing-project mode for the Pi-native baseline
-    Then Pi-native workflow files are created
+  Scenario: Add the Pi + Codex compatibility files to an existing project
+    Given an existing project directory without Codex files
+    When I apply the scaffold in existing-project mode for the "codex" assistant
+    Then assistant compatibility files are created
     And no OpenCode compatibility files are created

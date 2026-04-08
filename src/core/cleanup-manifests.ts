@@ -3,8 +3,6 @@ import type { CleanupManifest } from './types.js';
 const LEGACY_RUNTIME_DIR = `.${['cl', 'aude'].join('')}`;
 const LEGACY_RUNTIME_GUIDE = ['CL', 'AUDE.md'].join('');
 
-// This manifest is adoption-only cleanup support for repositories that still carry pre-Pi runtime artifacts.
-// The active scaffold is Pi-native; keep these entries so existing repos can be migrated safely and explicitly.
 const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
   id: 'legacy-ai-frameworks-v1',
   version: 1,

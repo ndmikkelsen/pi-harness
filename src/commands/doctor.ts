@@ -197,8 +197,6 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const alignmentInvalid: DoctorIssue[] = [];
   const alignmentWarnings: DoctorIssue[] = [];
 
-  // These legacy maps are intentionally retained for adopted repositories.
-  // They are stale-artifact and migration-boundary checks, not active scaffold sources.
   const failFastDeprecatedPaths = new Map<string, string>([
     ['.planning', 'legacy planning workspace present'],
     ['.omp', 'legacy OMP runtime directory present'],
@@ -218,6 +216,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     ['.rules/patterns/cognee-gsd-integration.md', 'stale GSD alignment artifact present'],
     ['.rules/patterns/omo-agent-contract.md', 'stale OMO artifact present'],
     ['.opencode/worktree.jsonc', 'stale OpenCode artifact present'],
+    ['.pi/prompts/land.md', 'stale landing prompt alias present; renamed to `.pi/prompts/serve.md`'],
+    ['scripts/land.sh', 'stale landing script alias present; renamed to `scripts/serve.sh`'],
+    ['.pi/skills/harness/SKILL.md', 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'],
   ]);
   const staleWorkflowMarkers = [
     '.codex/',
@@ -246,7 +247,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
     '.pi/prompts/adopt.md',
-    '.pi/prompts/land.md',
+    '.pi/prompts/serve.md',
     '.pi/prompts/triage.md',
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
@@ -256,19 +257,18 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/beads/SKILL.md',
     '.pi/skills/cognee/SKILL.md',
     '.pi/skills/red-green-refactor/SKILL.md',
-    '.pi/skills/harness/SKILL.md',
-    '.pi/skills/harness/references/pi-harness-command-matrix.md',
-    '.pi/skills/harness/references/scaffold-customization-map.md',
-    '.pi/skills/harness/references/existing-repo-context-checklist.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
-    'scripts/seed-cognee-garden.sh',
-    'scripts/land.sh',
+    'scripts/serve.sh',
     'scripts/hooks/post-checkout',
-    '.config/deploy.cognee.yml',
+    'config/deploy.cognee.yml',
   ];
   const alignmentManagedPaths = new Set([
     'AGENTS.md',
@@ -284,7 +284,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
     '.pi/prompts/adopt.md',
-    '.pi/prompts/land.md',
+    '.pi/prompts/serve.md',
     '.pi/prompts/triage.md',
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
@@ -294,22 +294,21 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/beads/SKILL.md',
     '.pi/skills/cognee/SKILL.md',
     '.pi/skills/red-green-refactor/SKILL.md',
-    '.pi/skills/harness/SKILL.md',
-    '.pi/skills/harness/references/pi-harness-command-matrix.md',
-    '.pi/skills/harness/references/scaffold-customization-map.md',
-    '.pi/skills/harness/references/existing-repo-context-checklist.md',
+    '.pi/skills/bake/SKILL.md',
+    '.pi/skills/bake/references/pi-harness-command-matrix.md',
+    '.pi/skills/bake/references/scaffold-customization-map.md',
+    '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-bridge.sh',
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
-    'scripts/seed-cognee-garden.sh',
-    'scripts/land.sh',
+    'scripts/serve.sh',
     '.beads/hooks/post-checkout',
     'scripts/hooks/post-checkout',
-    '.docker/Dockerfile.cognee',
-    '.config/deploy.cognee.yml',
+    'docker/Dockerfile.cognee',
+    'config/deploy.cognee.yml',
   ]);
 
   for (const entry of selectedEntries) {
@@ -414,16 +413,19 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const extension = await readFileIfPresent(targetDir, '.pi/extensions/repo-workflows.ts');
   if (extension !== null) {
-    for (const token of ["registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", "registerCommand('land'", 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh', 'scripts/land.sh']) {
+    for (const token of ["registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
       if (!extension.includes(token)) {
         pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', `missing native workflow command glue: ${token}`);
       }
+    }
+    if (extension.includes("registerCommand('serve'")) {
+      pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', 'shadowing `/serve` extension command present; keep `/serve` prompt-native');
     }
   }
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
   if (agentsGuide !== null) {
-    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/land.sh']) {
+    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh']) {
       if (!agentsGuide.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
       }
@@ -435,12 +437,21 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/adopt.md', 'missing existing-repo adoption command');
   }
 
-  const landPrompt = await readFileIfPresent(targetDir, '.pi/prompts/land.md');
-  if (landPrompt !== null && !landPrompt.includes('scripts/land.sh')) {
-    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/land.md', 'missing landing script guidance');
+  const servePrompt = await readFileIfPresent(targetDir, '.pi/prompts/serve.md');
+  if (servePrompt !== null && !servePrompt.includes('scripts/serve.sh')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing serve workflow script guidance');
   }
-  if (landPrompt !== null && !landPrompt.includes('context.md')) {
-    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/land.md', 'missing Cognee artifact-sync guidance');
+  if (servePrompt !== null && !servePrompt.includes('context.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing Cognee artifact-sync guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('STICKYNOTE.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing local handoff note guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('completed-work summary')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing completed-work summary guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('refreshes the PR body')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing explicit PR body refresh guidance');
   }
 
   const triagePrompt = await readFileIfPresent(targetDir, '.pi/prompts/triage.md');
@@ -492,22 +503,22 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!beadsSkill.includes('bd ready --json')) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/skills/beads/SKILL.md', 'missing Beads claim-first guidance');
     }
-    if (!beadsSkill.includes('scripts/land.sh')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/beads/SKILL.md', 'missing landing script guidance');
+    if (!beadsSkill.includes('scripts/serve.sh')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/beads/SKILL.md', 'missing serving script guidance');
     }
   }
 
-  const harnessSkill = await readFileIfPresent(targetDir, '.pi/skills/harness/SKILL.md');
-  if (harnessSkill !== null) {
-    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/harness/SKILL.md', harnessSkill, 'harness');
-    if (!harnessSkill.includes('pi-harness --mode existing . --init-json')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing existing-repo adoption command');
+  const bakeSkill = await readFileIfPresent(targetDir, '.pi/skills/bake/SKILL.md');
+  if (bakeSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/bake/SKILL.md', bakeSkill, 'bake');
+    if (!bakeSkill.includes('pi-harness --mode existing . --init-json')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing existing-repo adoption command');
     }
-    if (!harnessSkill.includes('pi-harness doctor <target>')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing doctor follow-up guidance');
+    if (!bakeSkill.includes('pi-harness doctor <target>')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing doctor follow-up guidance');
     }
-    if (!harnessSkill.includes('.pi/extensions/role-workflow.ts')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/harness/SKILL.md', 'missing role workflow extension guidance');
+    if (!bakeSkill.includes('.pi/extensions/role-workflow.ts')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing role workflow extension guidance');
     }
   }
 
@@ -566,29 +577,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     pushRuntimeInvalid(invalid, 'scripts/cognee-brief.sh', 'missing runtime backend reference');
   }
 
-  const cogneeBridge = await readFileIfPresent(targetDir, 'scripts/cognee-bridge.sh');
-  if (cogneeBridge !== null) {
-    for (const token of ['COGNEE_BRIEF_DATASETS', 'ls-files -z --cached --others --exclude-standard', 'find "$dir" -type f', 'grep -Iq']) {
-      if (!cogneeBridge.includes(token)) {
-        pushRuntimeInvalid(invalid, 'scripts/cognee-bridge.sh', `missing runtime backend reference: ${token}`);
-      }
-    }
-  }
-
   const syncArtifactsScript = await readFileIfPresent(targetDir, 'scripts/sync-artifacts-to-cognee.sh');
   if (syncArtifactsScript !== null) {
     for (const token of ['scripts/cognee-bridge.sh', 'context.md', 'plan.md', 'progress.md', 'review.md', 'wave.md']) {
       if (!syncArtifactsScript.includes(token)) {
         pushRuntimeInvalid(invalid, 'scripts/sync-artifacts-to-cognee.sh', `missing runtime backend reference: ${token}`);
-      }
-    }
-  }
-
-  const seedCogneeGardenScript = await readFileIfPresent(targetDir, 'scripts/seed-cognee-garden.sh');
-  if (seedCogneeGardenScript !== null) {
-    for (const token of ['scripts/cognee-bridge.sh', 'scripts/sync-artifacts-to-cognee.sh', 'docs', '.pi', 'apps/cli/features', 'src', 'tests']) {
-      if (!seedCogneeGardenScript.includes(token)) {
-        pushRuntimeInvalid(invalid, 'scripts/seed-cognee-garden.sh', `missing runtime backend reference: ${token}`);
       }
     }
   }
@@ -603,22 +596,31 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
-  const landScript = await readFileIfPresent(targetDir, 'scripts/land.sh');
-  if (landScript !== null) {
-    if (!landScript.includes('--base dev')) {
-      pushAlignmentInvalid(alignmentInvalid, 'scripts/land.sh', 'missing dev pull request target');
+  const serveScript = await readFileIfPresent(targetDir, 'scripts/serve.sh');
+  if (serveScript !== null) {
+    if (!serveScript.includes('--base dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing dev pull request target');
     }
-    if (!landScript.includes('main" || "$branch" == "dev')) {
-      pushAlignmentInvalid(alignmentInvalid, 'scripts/land.sh', 'missing protected branch guardrail');
+    if (!serveScript.includes('main" || "$branch" == "dev')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing protected branch guardrail');
     }
-    if (!landScript.includes('sync-artifacts-to-cognee.sh')) {
-      pushAlignmentInvalid(alignmentInvalid, 'scripts/land.sh', 'missing Pi artifact sync hook');
+    if (!serveScript.includes('sync-artifacts-to-cognee.sh')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing Pi artifact sync hook');
+    }
+    if (!serveScript.includes('validate_sticky_note')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing STICKYNOTE validation guardrail');
+    }
+    if (!serveScript.includes('gh pr edit')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing explicit PR refresh path');
+    }
+    if (!serveScript.includes('Post-serve branch summary:')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing post-serve summary output');
     }
   }
 
-  const cogneeDeployConfig = await readFileIfPresent(targetDir, '.config/deploy.cognee.yml');
-  if (cogneeDeployConfig !== null && !cogneeDeployConfig.includes('.docker/Dockerfile.cognee')) {
-    pushAlignmentInvalid(alignmentInvalid, '.config/deploy.cognee.yml', 'missing plain dockerfile path');
+  const cogneeDeployConfig = await readFileIfPresent(targetDir, 'config/deploy.cognee.yml');
+  if (cogneeDeployConfig !== null && !cogneeDeployConfig.includes('docker/Dockerfile.cognee')) {
+    pushAlignmentInvalid(alignmentInvalid, 'config/deploy.cognee.yml', 'missing plain dockerfile path');
   }
 
   for (const [artifactPath, reason] of staleArtifactReasons) {

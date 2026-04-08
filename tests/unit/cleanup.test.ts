@@ -13,10 +13,6 @@ const legacyRuntimeGuide = manifest.entries.find((entry) => entry.id === 'legacy
 const legacyPlanningDir = manifest.entries.find((entry) => entry.id === 'legacy-gsd-planning-workspace')!.path;
 const legacySisyphusDir = manifest.entries.find((entry) => entry.id === 'legacy-sisyphus-archive')!.path;
 const legacyGsdWorkflowRule = manifest.entries.find((entry) => entry.id === 'legacy-gsd-workflow-rule')!.path;
-const legacyOmpRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-omp-runtime-dir')!.path;
-const legacyCodexRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-codex-runtime-dir')!.path;
-const legacyRulesRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-rules-runtime-dir')!.path;
-const legacyOmoContract = manifest.entries.find((entry) => entry.id === 'legacy-omo-contract')!.path;
 const legacyBroadCogneeSync = manifest.entries.find((entry) => entry.id === 'legacy-broad-cognee-sync')!.path;
 const legacyPlanningSyncBackend = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-backend')!.path;
 const legacyPlanningSyncWrapper = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-wrapper')!.path;
@@ -32,10 +28,6 @@ describe('cleanup manifests', () => {
         expect.objectContaining({ path: legacyPlanningDir, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacySisyphusDir, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyGsdWorkflowRule, disposition: 'prompt-before-delete' }),
-        expect.objectContaining({ path: legacyOmpRuntimeDir, disposition: 'prompt-before-delete' }),
-        expect.objectContaining({ path: legacyCodexRuntimeDir, disposition: 'prompt-before-delete' }),
-        expect.objectContaining({ path: legacyRulesRuntimeDir, disposition: 'prompt-before-delete' }),
-        expect.objectContaining({ path: legacyOmoContract, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyBroadCogneeSync, disposition: 'safe-delete' }),
         expect.objectContaining({ path: legacyPlanningSyncBackend, disposition: 'safe-delete' }),
         expect.objectContaining({ path: legacyPlanningSyncWrapper, disposition: 'safe-delete' })

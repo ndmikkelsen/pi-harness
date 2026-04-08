@@ -36,20 +36,21 @@ async function snapshotForProject(rootDir: string) {
     leadAgent: await readProjectFile(rootDir, '.pi', 'agents', 'lead.md'),
     roleWorkflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'role-workflow.ts'),
     workflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'repo-workflows.ts'),
+    servePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'serve.md'),
     beadsSkill: await readProjectFile(rootDir, '.pi', 'skills', 'beads', 'SKILL.md'),
     cogneeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'cognee', 'SKILL.md'),
     redGreenRefactorSkill: await readProjectFile(rootDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'),
-    harnessSkill: await readProjectFile(rootDir, '.pi', 'skills', 'harness', 'SKILL.md'),
+    bakeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'bake', 'SKILL.md'),
     parallelSkill: await readProjectFile(rootDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md'),
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
+    stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
-    seedCogneeGardenScript: await readProjectFile(rootDir, 'scripts', 'seed-cognee-garden.sh'),
     postCheckoutHook: await readProjectFile(rootDir, 'scripts', 'hooks', 'post-checkout'),
-    landScript: await readProjectFile(rootDir, 'scripts', 'land.sh'),
-    dockerfile: await readProjectFile(rootDir, '.docker', 'Dockerfile.cognee'),
+    serveScript: await readProjectFile(rootDir, 'scripts', 'serve.sh'),
+    dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
     beadsConfig: await readProjectFile(rootDir, '.beads', 'config.yaml'),
   };
 }
@@ -106,7 +107,7 @@ describe('scaffold snapshots', () => {
         '.pi/extensions/repo-workflows.ts',
         '.pi/extensions/role-workflow.ts',
         '.pi/prompts/adopt.md',
-        '.pi/prompts/land.md',
+        '.pi/prompts/serve.md',
         '.pi/prompts/triage.md',
         '.pi/prompts/plan-change.md',
         '.pi/prompts/ship-change.md',
@@ -117,22 +118,21 @@ describe('scaffold snapshots', () => {
         '.pi/skills/beads/SKILL.md',
         '.pi/skills/cognee/SKILL.md',
         '.pi/skills/red-green-refactor/SKILL.md',
-        '.pi/skills/harness/SKILL.md',
+        '.pi/skills/bake/SKILL.md',
         '.pi/skills/parallel-wave-design/SKILL.md',
         '.pi/skills/subagent-workflow/SKILL.md',
         'AGENTS.md',
         'README.md',
         'STICKYNOTE.example.md',
-        '.config/deploy.cognee.yml',
-        '.config/deploy.yml',
-        '.docker/Dockerfile.cognee',
+        'config/deploy.cognee.yml',
+        'config/deploy.yml',
+        'docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',
         'scripts/sync-artifacts-to-cognee.sh',
-        'scripts/seed-cognee-garden.sh',
         'scripts/hooks/post-checkout',
-        'scripts/land.sh',
+        'scripts/serve.sh',
       ]),
     );
     expect(
@@ -156,7 +156,7 @@ describe('scaffold snapshots', () => {
     expect(result.readme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.');
-    expect(result.readme).toContain('Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(result.readme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(result.readme).toContain('pnpm test:bdd');
     expect(result.agents).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(result.agents).toContain('.pi/agents/*');
@@ -164,6 +164,7 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain(
       'Use the commands and shortcuts registered by project-local `.pi/extensions/*` files when native slash-command execution is the cleanest path.',
     );
+    expect(result.agents).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(JSON.parse(result.settings)).toEqual({
       packages: ['npm:pi-subagents'],
@@ -173,17 +174,21 @@ describe('scaffold snapshots', () => {
     expect(result.system).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
+    expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
-    expect(result.workflowExtension).toContain("pi.registerCommand('land'");
+    expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(result.roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(result.servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked');
+    expect(result.servePrompt).toContain('Confirm the explicit PR description/body that serving will create or refresh from `STICKYNOTE.md`');
+    expect(result.servePrompt).toContain('Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.');
     expect(result.beadsSkill).toContain('1. `bd ready --json`');
     expect(result.cogneeSkill).toContain('knowledge garden');
     expect(result.redGreenRefactorSkill).toContain('RED');
-    expect(result.harnessSkill).toContain(
+    expect(result.bakeSkill).toContain(
       'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
     );
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
@@ -191,25 +196,24 @@ describe('scaffold snapshots', () => {
     expect(result.leadAgent).toContain('worktree: true');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
+    expect(result.stickyNoteExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
+    expect(result.stickyNoteExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
+    expect(result.stickyNoteExample).toContain('- Checks still needed before serving:');
     expect(result.bootstrapScript).toContain('Bootstrapped worktree-local Pi workflow state.');
     expect(result.bootstrapScript).toContain('the relevant `.pi/*` runtime files before implementation');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-cognee.apps.compute.lan');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-knowledge');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-patterns');
-    expect(result.cogneeBridge).toContain('snapshot-pi-native-behavior');
-    expect(result.cogneeBridge).toContain('snapshot-pi-native-implementation');
-    expect(result.cogneeBridge).toContain('snapshot-pi-native-regressions');
-    expect(result.cogneeBridge).toContain('grep -Iq');
-    expect(result.cogneeBridge).toContain('ls-files -z --cached --others --exclude-standard');
     expect(result.cogneeBrief).toContain('exec "$BRIDGE" brief "$@"');
     expect(result.syncArtifactsScript).toContain('context.md');
     expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
-    expect(result.seedCogneeGardenScript).toContain('IMPLEMENTATION_DATASET');
-    expect(result.seedCogneeGardenScript).toContain('scripts/sync-artifacts-to-cognee.sh');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
-    expect(result.landScript).toContain('run_cmd pnpm test:bdd');
-    expect(result.landScript).toContain('sync-artifacts-to-cognee.sh');
-    expect(result.landScript).toContain('gh pr create --base dev --head "$branch" --fill');
+    expect(result.serveScript).toContain('run_cmd pnpm test:bdd');
+    expect(result.serveScript).toContain('sync-artifacts-to-cognee.sh');
+    expect(result.serveScript).toContain('validate_sticky_note');
+    expect(result.serveScript).toContain('gh pr create --base dev --head "$branch" --title "$pr_title" --body-file "$PR_BODY_FILE"');
+    expect(result.serveScript).toContain('gh pr edit "$existing_pr_number" --body-file "$PR_BODY_FILE"');
+    expect(result.serveScript).toContain('Post-serve branch summary:');
     expect(result.dockerfile).toContain('FROM cognee/cognee:latest@sha256:');
     expect(result.beadsConfig.trim()).toBe('backup:\n  enabled: false');
 
@@ -222,7 +226,7 @@ describe('scaffold snapshots', () => {
       result.beadsSkill,
       result.cogneeSkill,
       result.redGreenRefactorSkill,
-      result.harnessSkill,
+      result.bakeSkill,
       result.parallelSkill,
       result.subagentWorkflowSkill,
     ]) {

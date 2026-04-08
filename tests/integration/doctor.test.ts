@@ -135,13 +135,12 @@ describe('runDoctor', () => {
     );
   });
 
-  it('fails when an adopted repo still contains legacy codex, omp, and rules runtime directories', async () => {
+  it('fails when the old /land prompt alias is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
-    const targetDir = await scaffoldProject(workspace, 'doctor-legacy-runtime-dirs');
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-serve-alias');
 
-    await mkdir(path.join(targetDir, '.codex'), { recursive: true });
-    await mkdir(path.join(targetDir, '.omp'), { recursive: true });
-    await mkdir(path.join(targetDir, '.rules'), { recursive: true });
+    await mkdir(path.join(targetDir, '.pi', 'prompts'), { recursive: true });
+    await writeFile(path.join(targetDir, '.pi', 'prompts', 'land.md'), '# stale alias\n', 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -149,16 +148,48 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: '.codex',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
-        }),
+          path: '.pi/prompts/land.md',
+          reason: 'stale landing prompt alias present; renamed to `.pi/prompts/serve.md`'
+        })
+      ])
+    );
+  });
+
+  it('fails when the old landing script alias is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-serve-script-alias');
+
+    await mkdir(path.join(targetDir, 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, 'scripts', 'land.sh'), '# stale alias\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
-          path: '.omp',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
-        }),
+          path: 'scripts/land.sh',
+          reason: 'stale landing script alias present; renamed to `scripts/serve.sh`'
+        })
+      ])
+    );
+  });
+
+  it('fails when the old /harness setup skill alias is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-bake-alias');
+
+    await mkdir(path.join(targetDir, '.pi', 'skills', 'harness'), { recursive: true });
+    await writeFile(path.join(targetDir, '.pi', 'skills', 'harness', 'SKILL.md'), '# stale alias\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
-          path: '.rules',
-          reason: expect.stringContaining('--cleanup-manifest legacy-ai-frameworks-v1 --init-json')
+          path: '.pi/skills/harness/SKILL.md',
+          reason: 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'
         })
       ])
     );
@@ -178,6 +209,27 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.beads/hooks/post-checkout',
           reason: 'missing worktree bootstrap fallback reference'
+        })
+      ])
+    );
+  });
+
+  it('fails when the serve prompt loses completed-work guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-prompt-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'serve.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('completed-work summary', 'completed work summary'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/serve.md',
+          reason: 'missing completed-work summary guidance'
         })
       ])
     );
@@ -396,13 +448,13 @@ describe('runDoctor', () => {
     );
   });
 
-  it('fails when the Pi-native extension loses workflow command glue', async () => {
+  it('fails when the Pi-native extension loses cognee-brief workflow command glue', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-runtime-glue');
 
     const extensionPath = path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts');
     const extension = await readFile(extensionPath, 'utf8');
-    await writeFile(extensionPath, extension.replaceAll('scripts/land.sh', 'scripts/landing.sh'), 'utf8');
+    await writeFile(extensionPath, extension.replaceAll('scripts/cognee-brief.sh', 'scripts/cognee-brief'), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -414,19 +466,27 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
-          reason: 'missing native workflow command glue: scripts/land.sh'
+          reason: 'missing native workflow command glue: scripts/cognee-brief.sh'
         })
       ])
     );
   });
 
-  it('fails when land.sh loses the Pi artifact sync hook', async () => {
+  it('fails when the repo workflow extension shadows the prompt-native /serve flow', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
-    const targetDir = await scaffoldProject(workspace, 'doctor-land-sync-hook');
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-shadow');
 
-    const landPath = path.join(targetDir, 'scripts', 'land.sh');
-    const landScript = await readFile(landPath, 'utf8');
-    await writeFile(landPath, landScript.replace('sync-artifacts-to-cognee.sh', 'sync-artifacts'), 'utf8');
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    const shadow = `
+  pi.registerCommand('serve', {
+    description: 'shadow',
+    handler: async (_args: string, ctx: CommandContext) => {
+      ctx.ui.notify('shadow');
+    },
+  });
+`;
+    await writeFile(extensionPath, extension.replace('\n}\n', `${shadow}}\n`), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -434,7 +494,49 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: 'scripts/land.sh',
+          path: '.pi/extensions/repo-workflows.ts',
+          reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when serve.sh loses the explicit PR refresh path', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-refresh');
+
+    const servePath = path.join(targetDir, 'scripts', 'serve.sh');
+    const serveScript = await readFile(servePath, 'utf8');
+    await writeFile(servePath, serveScript.replace('gh pr edit', 'gh pr refresh'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/serve.sh',
+          reason: 'missing explicit PR refresh path'
+        })
+      ])
+    );
+  });
+
+  it('fails when serve.sh loses the Pi artifact sync hook', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-land-sync-hook');
+
+    const servePath = path.join(targetDir, 'scripts', 'serve.sh');
+    const serveScript = await readFile(servePath, 'utf8');
+    await writeFile(servePath, serveScript.replace('sync-artifacts-to-cognee.sh', 'sync-artifacts'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/serve.sh',
           reason: 'missing Pi artifact sync hook'
         })
       ])
@@ -485,7 +587,7 @@ describe('runDoctor', () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-assistant-guidance');
 
-    const skillPath = path.join(targetDir, '.pi', 'skills', 'harness', 'SKILL.md');
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'bake', 'SKILL.md');
     const skill = await readFile(skillPath, 'utf8');
     await writeFile(skillPath, `${skill}\nLegacy command: pi-harness --assistant codex\n`, 'utf8');
 
@@ -495,7 +597,7 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: '.pi/skills/harness/SKILL.md',
+          path: '.pi/skills/bake/SKILL.md',
           reason: 'contains stale workflow reference: --assistant codex'
         })
       ])
@@ -506,9 +608,9 @@ describe('runDoctor', () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-legacy-docker-path');
 
-    const deployPath = path.join(targetDir, '.config', 'deploy.cognee.yml');
+    const deployPath = path.join(targetDir, 'config', 'deploy.cognee.yml');
     const deployConfig = await readFile(deployPath, 'utf8');
-    await writeFile(deployPath, deployConfig.replace('.docker/Dockerfile.cognee', '.codex/Dockerfile.cognee'), 'utf8');
+    await writeFile(deployPath, deployConfig.replace('docker/Dockerfile.cognee', '.codex/Dockerfile.cognee'), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -516,7 +618,7 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: '.config/deploy.cognee.yml',
+          path: 'config/deploy.cognee.yml',
           reason: 'missing plain dockerfile path'
         })
       ])

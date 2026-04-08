@@ -58,17 +58,4 @@ export default function registerRepoWorkflows(pi: ExtensionAPI): void {
     },
   });
 
-  pi.registerCommand('land', {
-    description: 'Run scripts/land.sh from the current feature branch',
-    handler: async (args: string, ctx: CommandContext) => {
-      if (args.trim().length > 0) {
-        if (ctx.hasUI) {
-          ctx.ui.notify('Run scripts/land.sh directly if you need custom flags.');
-        }
-        return;
-      }
-
-      await runRepoScript(pi, ctx, 'scripts/land.sh', [], 'Landing workflow finished.');
-    },
-  });
 }

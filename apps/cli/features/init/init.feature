@@ -12,9 +12,9 @@ Feature: Initialize a new AI workflow project
     Then the CLI reports planned changes
     And no files are written to disk
 
-  Scenario: Prepare a new project for the Pi-native baseline
+  Scenario: Prepare a new project for the Pi + Codex baseline
     Given an empty target directory
-    When I initialize a new project named "pi-native-app"
-    Then the CLI creates the Pi-native workflow files
-    And the Pi-native runtime files are available
+    When I initialize a new project named "codex-app" for the "codex" assistant
+    Then the CLI creates assistant compatibility files
+    And the Codex runtime files are available
     And no OpenCode compatibility files are created

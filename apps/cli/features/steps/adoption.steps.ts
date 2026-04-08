@@ -87,14 +87,15 @@ export async function whenIApplyTheScaffoldInExistingProjectModeWithCuratedClean
   });
 }
 
-export async function givenExistingProjectDirectoryWithoutPiNativeWorkflowFiles(world: CliFeatureWorld): Promise<void> {
+export async function givenExistingProjectDirectoryWithoutCodexFiles(world: CliFeatureWorld): Promise<void> {
   world.targetDir = path.join(world.workspace, 'existing-pi-baseline');
   await mkdir(requireTargetDir(world), { recursive: true });
   await writeFile(path.join(requireTargetDir(world), 'README.md'), '# Existing Repo\n', 'utf8');
 }
 
-export async function whenIApplyTheScaffoldInExistingProjectModeForPiNativeBaseline(
+export async function whenIApplyTheScaffoldInExistingProjectModeForAssistant(
   world: CliFeatureWorld,
+  ..._legacyStepArgs: unknown[]
 ): Promise<void> {
   await applyExistingRepo(world);
 }
@@ -107,7 +108,7 @@ export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): vo
       'AGENTS.md',
       '.pi/settings.json',
       '.pi/prompts/adopt.md',
-      '.pi/skills/harness/SKILL.md',
+      '.pi/skills/bake/SKILL.md',
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh'
     ])
@@ -168,11 +169,11 @@ export async function thenAmbiguousFilesAreLeftUnchanged(world: CliFeatureWorld)
   expect(content).toBe('# notes\n');
 }
 
-export function thenPiNativeWorkflowFilesAreCreated(world: CliFeatureWorld): void {
+export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): void {
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
-    expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/land.md', 'scripts/bootstrap-worktree.sh'])
+    expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/serve.md', 'scripts/bootstrap-worktree.sh'])
   );
 }
 

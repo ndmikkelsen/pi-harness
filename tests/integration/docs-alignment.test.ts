@@ -82,7 +82,7 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'extensions', 'role-workflow.ts'],
       },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'adopt.md'], targetPath: ['.pi', 'prompts', 'adopt.md'] },
-      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'land.md'], targetPath: ['.pi', 'prompts', 'land.md'] },
+      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'serve.md'], targetPath: ['.pi', 'prompts', 'serve.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'triage.md'], targetPath: ['.pi', 'prompts', 'triage.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'plan-change.md'], targetPath: ['.pi', 'prompts', 'plan-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'ship-change.md'], targetPath: ['.pi', 'prompts', 'ship-change.md'] },
@@ -102,8 +102,8 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'skills', 'red-green-refactor', 'SKILL.md'],
       },
       {
-        sourcePath: ['src', 'templates', 'pi', 'skills', 'harness', 'SKILL.md'],
-        targetPath: ['.pi', 'skills', 'harness', 'SKILL.md'],
+        sourcePath: ['src', 'templates', 'pi', 'skills', 'bake', 'SKILL.md'],
+        targetPath: ['.pi', 'skills', 'bake', 'SKILL.md'],
       },
       {
         sourcePath: ['src', 'templates', 'pi', 'skills', 'parallel-wave-design', 'SKILL.md'],
@@ -118,9 +118,9 @@ describe('workflow docs alignment', () => {
         targetPath: ['scripts', 'bootstrap-worktree.sh'],
       },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'cognee-brief.sh'], targetPath: ['scripts', 'cognee-brief.sh'] },
-      { sourcePath: ['src', 'templates', 'pi', 'scripts', 'land.sh'], targetPath: ['scripts', 'land.sh'] },
+      { sourcePath: ['src', 'templates', 'pi', 'scripts', 'serve.sh'], targetPath: ['scripts', 'serve.sh'] },
       { sourcePath: ['src', 'templates', 'root', 'pre-commit.yaml'], targetPath: ['.pre-commit-config.yaml'] },
-      { sourcePath: ['src', 'templates', 'pi', '.docker', 'Dockerfile.cognee'], targetPath: ['.docker', 'Dockerfile.cognee'] },
+      { sourcePath: ['src', 'templates', 'pi', 'docker', 'Dockerfile.cognee'], targetPath: ['docker', 'Dockerfile.cognee'] },
     ] as const;
 
     for (const surface of literalRuntimeSurfaces) {
@@ -143,32 +143,26 @@ describe('workflow docs alignment', () => {
       { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
     );
     const dogfoodSyncArtifactsScript = normalizeDoc(await readRepoFile('scripts', 'sync-artifacts-to-cognee.sh'));
-    const renderedSeedCogneeGardenScript = renderTemplate(
-      normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'scripts', 'seed-cognee-garden.sh')),
-      { APP_SLUG: slugifyTitle(rootTitleMatch![1]) },
-    );
-    const dogfoodSeedCogneeGardenScript = normalizeDoc(await readRepoFile('scripts', 'seed-cognee-garden.sh'));
 
     expect(dogfoodCogneeBridge).toBe(renderedCogneeBridge);
     expect(dogfoodSyncArtifactsScript).toBe(renderedSyncArtifactsScript);
-    expect(dogfoodSeedCogneeGardenScript).toBe(renderedSeedCogneeGardenScript);
   });
 
   it('keeps repo-facing docs aligned to the Pi-native baseline', async () => {
     const rootReadme = normalizeDoc(await readRepoFile('README.md'));
     const templateRootReadme = normalizeDoc(await readRepoFile('src', 'templates', 'root', 'README.md'));
-    const harnessUsage = normalizeDoc(await readRepoFile('docs', 'harness-usage.md'));
+    const bakeUsage = normalizeDoc(await readRepoFile('docs', 'bake-usage.md'));
     const agentsGuide = normalizeDoc(await readRepoFile('AGENTS.md'));
     const piSystem = normalizeDoc(await readRepoFile('.pi', 'SYSTEM.md'));
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
-    const landPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'land.md'));
+    const servePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'serve.md'));
     const triagePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'triage.md'));
     const beadsSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'beads', 'SKILL.md'));
     const cogneeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'cognee', 'SKILL.md'));
     const redGreenRefactorSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'red-green-refactor', 'SKILL.md'));
-    const harnessSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'harness', 'SKILL.md'));
+    const bakeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'bake', 'SKILL.md'));
     const parallelSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'parallel-wave-design', 'SKILL.md'));
     const subagentWorkflowSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'subagent-workflow', 'SKILL.md'));
 
@@ -188,18 +182,18 @@ describe('workflow docs alignment', () => {
     const migratedDocs = [
       rootReadme,
       templateRootReadme,
-      harnessUsage,
+      bakeUsage,
       agentsGuide,
       piSystem,
       leadAgent,
       roleWorkflowExtension,
       adoptPrompt,
-      landPrompt,
+      servePrompt,
       triagePrompt,
       beadsSkill,
       cogneeSkill,
       redGreenRefactorSkill,
-      harnessSkill,
+      bakeSkill,
       parallelSkill,
       subagentWorkflowSkill,
     ];
@@ -212,31 +206,29 @@ describe('workflow docs alignment', () => {
     expect(templateRootReadme).toContain('native `bd` with `.beads/**`');
     expect(rootReadme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
     expect(rootReadme).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(rootReadme).toContain('Use `.pi/skills/harness/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(rootReadme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(rootReadme).toContain('pnpm test:bdd');
-    expect(rootReadme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
-    expect(rootReadme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.');
-    expect(harnessUsage).toContain(
-      'The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.',
-    );
-    expect(harnessUsage).toContain('What gets created:');
-    expect(harnessUsage).toContain('- `AGENTS.md`');
-    expect(harnessUsage).toContain('- `.pi/*`');
-    expect(harnessUsage).toContain('- `scripts/*`');
     expect(agentsGuide).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(agentsGuide).toContain('.pi/agents/*');
     expect(agentsGuide).toContain('/role <name>');
     expect(agentsGuide).toContain(
-      'Use `.pi/skills/harness/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
+      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
     );
-    expect(agentsGuide).toContain('Only execution or autonomous landing lanes should run `./scripts/land.sh`.');
+    expect(agentsGuide).toContain('Only execution or autonomous serving lanes should run `./scripts/serve.sh`.');
+    expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(piSystem).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(piSystem).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
+    expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(adoptPrompt).toContain('existing `AGENTS.md` or `.pi/*` runtime files');
-    expect(landPrompt).toContain('Use `/land` or run `./scripts/land.sh`.');
-    expect(landPrompt).toContain('`scripts/land.sh` must never merge into or push directly to `main`.');
+    expect(servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked, differ from `STICKYNOTE.example.md`, and include a completed-work summary under `## Completed This Session`.');
+    expect(servePrompt).toContain('Use `/serve` as the canonical Pi-native entrypoint and let it drive `./scripts/serve.sh --commit-message "<message>"` when publish is allowed.');
+    expect(servePrompt).toContain('Confirm the explicit PR description/body that serving will create or refresh from `STICKYNOTE.md`, and make sure it includes the completed-work summary you want reviewers to see.');
+    expect(servePrompt).toContain("Treat plain-language requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to run the same `/serve` workflow when publishing is allowed in the current lane.");
+    expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
+    expect(servePrompt).toContain('Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.');
+    expect(servePrompt).toContain('`scripts/serve.sh` must never merge into or push directly to `main`.');
     expect(triagePrompt).toContain('Start from `bd ready --json` when Beads is available.');
     expect(beadsSkill).toContain('1. `bd ready --json`');
     expect(cogneeSkill).toContain('knowledge garden');
@@ -244,12 +236,12 @@ describe('workflow docs alignment', () => {
     expect(beadsSkill).toContain(
       '5. close the issue only after verification passes: `bd close <id> --reason "Verified: <evidence>" --json`',
     );
-    expect(harnessSkill).toContain(
+    expect(bakeSkill).toContain(
       'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
     );
-    expect(harnessSkill).toContain('3. `.pi/extensions/role-workflow.ts`');
-    expect(harnessSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
-    expect(harnessSkill).toContain('5. `.pi/agents/*.chain.md`');
+    expect(bakeSkill).toContain('3. `.pi/extensions/role-workflow.ts`');
+    expect(bakeSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
+    expect(bakeSkill).toContain('5. `.pi/agents/*.chain.md`');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(leadAgent).toContain('Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");

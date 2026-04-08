@@ -19,7 +19,7 @@ Requirements:
   - `parallel-wave` only when tasks are truly independent and ownership boundaries are explicit
 - keep delegated tasks to about 3-5 files
 - do not ask child subagents to run project-wide build, test, or lint commands
-- keep final verification, Beads closeout, and landing in the main session
+- keep final verification, Beads closeout, and serving in the main session
 
 Return:
 - active Beads issue or `untracked`

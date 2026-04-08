@@ -2,7 +2,7 @@
 
 ## Goal
 
-Prove that existing-project adoption preserves user files while adding the current Pi-native Beads + Cognee scaffold baseline.
+Prove that existing-project adoption preserves user files while adding the current Codex + Beads + Cognee scaffold baseline.
 
 ## Scenarios covered
 
@@ -10,7 +10,7 @@ Prove that existing-project adoption preserves user files while adding the curre
 - merge root scaffold entries only when explicitly requested
 - remove curated legacy files through cleanup
 - report ambiguous cleanup entries without deleting them
-- add the Pi-native workflow files to an existing project
+- add the Pi + Codex compatibility files to an existing project
 
 ## Key assertions
 

@@ -10,7 +10,6 @@ __pycache__/
 .pytest_cache/
 .coverage
 .venv/
-.pi/npm/
 *.log
 .vscode/
 .idea/

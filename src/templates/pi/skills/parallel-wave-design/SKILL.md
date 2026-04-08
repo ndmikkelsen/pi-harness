@@ -20,7 +20,7 @@ Keep Pi-native parallel work aligned with repo policy while avoiding a second or
 - Subagents do not run project-wide build, test, or lint commands.
 - Use `worktree: true` when parallel tasks would otherwise overlap or need isolated patches.
 - Sequence type, schema, or contract changes before consumer tasks.
-- The caller verifies the whole wave and handles landing after edits return.
+- The caller verifies the whole wave and handles serving after edits return.
 
 ## Repo-specific reminders
 

@@ -45,7 +45,7 @@ Use these artifact names unless the caller gives better ones:
 - Do not run project-wide build, test, or lint commands inside child subagents.
 - Use `worktree: true` for parallel work when tasks could overlap or need isolated patches.
 - Sequence contract, schema, or type changes before consumer work.
-- The caller owns final verification, Beads updates, and landing.
+- The caller owns final verification, Beads updates, and serving.
 
 ## Output expectations
 
