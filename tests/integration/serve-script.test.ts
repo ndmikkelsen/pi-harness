@@ -8,10 +8,37 @@ import { describe, expect, it } from 'vitest';
 
 const execFile = promisify(execFileCallback);
 
+const FILLED_STICKYNOTE = `# Session Handoff
+
+**Project:** Serve Fixture
+
+## Completed This Session
+
+- Current branch: feat/serve-fixture
+- Current task: Verify serve contract
+- Verified with: pnpm test -- tests/integration/serve-script.test.ts
+
+## Key Files Changed
+
+- scripts/serve.sh
+
+## Pending / Follow-Up
+
+- None.
+`;
+
 async function initGitRepo(repoDir: string) {
   await execFile('git', ['init', '-b', 'main'], { cwd: repoDir });
   await execFile('git', ['config', 'user.name', 'Pi Harness Tests'], { cwd: repoDir });
   await execFile('git', ['config', 'user.email', 'tests@example.com'], { cwd: repoDir });
+}
+
+async function setGhListResponse(fixture: { ghListFile: string }, payload: unknown) {
+  await writeFile(fixture.ghListFile, `${JSON.stringify(payload)}\n`, 'utf8');
+}
+
+async function seedUsableStickyNote(repoDir: string, content = FILLED_STICKYNOTE) {
+  await writeFile(path.join(repoDir, 'STICKYNOTE.md'), content, 'utf8');
 }
 
 async function createServeFixture() {
@@ -20,6 +47,7 @@ async function createServeFixture() {
   const remoteDir = path.join(workspace, 'remote.git');
   const binDir = path.join(workspace, 'bin');
   const ghLog = path.join(workspace, 'gh.log');
+  const ghListFile = path.join(workspace, 'gh-pr-list.json');
   const pnpmLog = path.join(workspace, 'pnpm.log');
   const syncLog = path.join(workspace, 'sync.log');
 
@@ -29,12 +57,10 @@ async function createServeFixture() {
   await initGitRepo(repoDir);
   await execFile('git', ['init', '--bare'], { cwd: remoteDir });
 
-  const sourceLand = await readFile(
-    path.join(process.cwd(), 'scripts', 'serve.sh'),
-    'utf8'
-  );
+  const sourceServe = await readFile(path.join(process.cwd(), 'scripts', 'serve.sh'), 'utf8');
+  const stickyExample = await readFile(path.join(process.cwd(), 'STICKYNOTE.example.md'), 'utf8');
   await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
-  await writeFile(path.join(repoDir, 'scripts', 'serve.sh'), sourceLand, 'utf8');
+  await writeFile(path.join(repoDir, 'scripts', 'serve.sh'), sourceServe, 'utf8');
   await chmod(path.join(repoDir, 'scripts', 'serve.sh'), 0o755);
 
   await writeFile(
@@ -56,6 +82,9 @@ async function createServeFixture() {
     'utf8'
   );
   await writeFile(path.join(repoDir, 'README.md'), '# serve fixture\n', 'utf8');
+  await writeFile(path.join(repoDir, '.gitignore'), '/STICKYNOTE.md\n', 'utf8');
+  await writeFile(path.join(repoDir, 'STICKYNOTE.example.md'), stickyExample, 'utf8');
+  await writeFile(ghListFile, '[]\n', 'utf8');
 
   await writeFile(
     path.join(binDir, 'pnpm'),
@@ -70,19 +99,52 @@ exit 0
     path.join(binDir, 'gh'),
     `#!/usr/bin/env bash
 set -euo pipefail
-printf '%s\n' "$*" >> "${ghLog}"
+
+log_file="${ghLog}"
+list_file="${ghListFile}"
+
+record_body_file() {
+  local previous=""
+  local body_file=""
+
+  for arg in "$@"; do
+    if [[ "$previous" == "--body-file" ]]; then
+      body_file="$arg"
+      break
+    fi
+    previous="$arg"
+  done
+
+  if [[ -n "$body_file" && -f "$body_file" ]]; then
+    printf 'BODY<<EOF\n' >> "$log_file"
+    cat "$body_file" >> "$log_file"
+    printf '\nEOF\n' >> "$log_file"
+  fi
+}
+
+printf '%s\n' "$*" >> "$log_file"
+
 if [[ "$1 $2" == "pr list" ]]; then
-  printf '[]\n'
+  cat "$list_file"
   exit 0
 fi
+
 if [[ "$1 $2" == "pr create" ]]; then
+  record_body_file "$@"
   printf 'https://example.test/pr/123\n'
   exit 0
 fi
+
+if [[ "$1 $2" == "pr edit" ]]; then
+  record_body_file "$@"
+  exit 0
+fi
+
 if [[ "$1 $2" == "pr view" ]]; then
   printf '{}\n'
   exit 0
 fi
+
 exit 1
 `,
     'utf8'
@@ -95,20 +157,22 @@ exit 1
   await execFile('git', ['remote', 'add', 'origin', remoteDir], { cwd: repoDir });
   await execFile('git', ['push', '-u', 'origin', 'main'], { cwd: repoDir });
   await execFile('git', ['checkout', '-b', 'feat/serve-fixture'], { cwd: repoDir });
+  await seedUsableStickyNote(repoDir);
 
   return {
     workspace,
     repoDir,
     remoteDir,
     binDir,
-      ghLog,
-      pnpmLog,
-      syncLog
-    };
+    ghLog,
+    ghListFile,
+    pnpmLog,
+    syncLog
+  };
 }
 
 describe('serve.sh', () => {
-  it('pushes the feature branch and creates a PR to dev', { timeout: 15000 }, async () => {
+  it('pushes the feature branch, creates a PR with an explicit completed-work body, and prints a post-serve summary', { timeout: 15000 }, async () => {
     const fixture = await createServeFixture();
 
     try {
@@ -129,12 +193,50 @@ describe('serve.sh', () => {
       });
 
       expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/123');
-      expect(ghLog).toContain('pr create --base dev --head feat/serve-fixture --fill');
+      expect(result.stdout).toContain('Post-serve branch summary:');
+      expect(result.stdout).toContain('- Branch: feat/serve-fixture');
+      expect(result.stdout).toContain('- Latest commit: chore: seed serving fixture');
+      expect(ghLog).toContain('pr create --base dev --head feat/serve-fixture --title');
+      expect(ghLog).toContain('--body-file');
+      expect(ghLog).not.toContain('--fill');
+      expect(ghLog).toContain('## Completed Work');
+      expect(ghLog).toContain('- Current task: Verify serve contract');
+      expect(ghLog).toContain('## Branch Summary');
+      expect(ghLog).toContain('- Latest commit: chore: seed serving fixture');
       expect(pnpmLog).toContain('typecheck');
       expect(pnpmLog).toContain('test');
       expect(pnpmLog).toContain('test:bdd');
       expect(pnpmLog).toContain('test:smoke:dist');
       expect(remoteHeads.stdout).toContain('refs/heads/feat/serve-fixture');
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('updates an existing PR body with the completed-work summary instead of relying on create --fill', { timeout: 15000 }, async () => {
+    const fixture = await createServeFixture();
+
+    try {
+      await setGhListResponse(fixture, [
+        { number: 77, url: 'https://example.test/pr/77', baseRefName: 'dev', state: 'OPEN' }
+      ]);
+
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
+        cwd: fixture.repoDir,
+        env: {
+          ...process.env,
+          PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+        },
+        encoding: 'utf8'
+      });
+
+      const ghLog = await readFile(fixture.ghLog, 'utf8');
+
+      expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/77');
+      expect(ghLog).not.toContain('pr create');
+      expect(ghLog).toContain('pr edit 77 --body-file');
+      expect(ghLog).toContain('## Completed Work');
+      expect(ghLog).toContain('- Current branch: feat/serve-fixture');
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
@@ -156,6 +258,77 @@ describe('serve.sh', () => {
           encoding: 'utf8'
         })
       ).rejects.toMatchObject({ stderr: expect.stringContaining('Refusing to serve directly from main') });
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('requires a usable local STICKYNOTE.md before serving', async () => {
+    const fixture = await createServeFixture();
+
+    try {
+      await rm(path.join(fixture.repoDir, 'STICKYNOTE.md'), { force: true });
+
+      await expect(
+        execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
+          cwd: fixture.repoDir,
+          env: {
+            ...process.env,
+            PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+          },
+          encoding: 'utf8'
+        })
+      ).rejects.toMatchObject({
+        stderr: expect.stringContaining('Serving requires a usable local STICKYNOTE.md')
+      });
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses to serve when STICKYNOTE.md is tracked', async () => {
+    const fixture = await createServeFixture();
+
+    try {
+      await execFile('git', ['add', '-f', 'STICKYNOTE.md'], { cwd: fixture.repoDir });
+      await execFile('git', ['commit', '-m', 'test: track sticky note'], { cwd: fixture.repoDir });
+
+      await expect(
+        execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
+          cwd: fixture.repoDir,
+          env: {
+            ...process.env,
+            PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+          },
+          encoding: 'utf8'
+        })
+      ).rejects.toMatchObject({
+        stderr: expect.stringContaining('STICKYNOTE.md must stay local-only and untracked before serving')
+      });
+    } finally {
+      await rm(fixture.workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses to serve when STICKYNOTE.md still matches the untouched template', async () => {
+    const fixture = await createServeFixture();
+
+    try {
+      const stickyExample = await readFile(path.join(fixture.repoDir, 'STICKYNOTE.example.md'), 'utf8');
+      await seedUsableStickyNote(fixture.repoDir, stickyExample);
+
+      await expect(
+        execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
+          cwd: fixture.repoDir,
+          env: {
+            ...process.env,
+            PATH: `${fixture.binDir}:${process.env.PATH ?? ''}`
+          },
+          encoding: 'utf8'
+        })
+      ).rejects.toMatchObject({
+        stderr: expect.stringContaining('STICKYNOTE.md still matches STICKYNOTE.example.md')
+      });
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
@@ -226,11 +399,11 @@ exit 0
       await rm(fixture.workspace, { recursive: true, force: true });
     }
   });
+
   it('does not invoke deprecated planning-sync legacy artifacts during serving', async () => {
     const fixture = await createServeFixture();
 
     try {
-      // Seed legacy cleanup artifacts; supported scripts/serve.sh must ignore them.
       await mkdir(path.join(fixture.repoDir, '.codex', 'scripts'), { recursive: true });
       await writeFile(
         path.join(fixture.repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'),

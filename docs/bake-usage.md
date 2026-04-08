@@ -88,6 +88,26 @@ pi-harness doctor <path>
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
+## Serve and STICKYNOTE contract
+
+- `./scripts/bootstrap-worktree.sh` seeds `STICKYNOTE.md` from `STICKYNOTE.example.md` only when needed, then keeps linked worktrees pointed at the main worktree copy so local handoff context survives across worktrees.
+- `STICKYNOTE.md` is intentionally local-only and must remain untracked; the scaffold only ships `STICKYNOTE.example.md`.
+- `/serve` stays prompt-native, but plain-language publish requests such as `serve this branch` or `ship it` should route through the same serve workflow.
+- Serving now requires a refreshed `STICKYNOTE.md` with a non-empty `## Completed This Session` section. That completed-work summary becomes the basis for the PR body.
+- `scripts/serve.sh` creates or refreshes the PR body explicitly for both new and existing PRs and prints a short post-serve branch summary after pushing.
+
+## Muninn comparison and curated knowledge-sync decision
+
+Muninn is a useful comparison point because its landing workflow also treats a local handoff note as mandatory before publishing and leans toward curated planning sync. For `pi-harness`, we are borrowing the workflow discipline, not widening the sync surface.
+
+Decision for this scaffold:
+- keep automatic Cognee sync limited to curated Pi artifacts such as `context.md`, `plan.md`, `progress.md`, `review.md`, and `wave.md`
+- do **not** upload `STICKYNOTE.md`, raw PR bodies, or raw post-serve summaries automatically
+- keep `STICKYNOTE.md` local-only even though `/serve` reuses its completed-work section for the PR description
+- if future work wants broader knowledge sync, introduce a durable non-local artifact first instead of promoting ephemeral local notes directly into the knowledge garden
+
+This preserves the useful part of the muninn comparison — stronger publish discipline — without leaking local-only scratch context into Cognee by default.
+
 ## Seeding Cognee datasets when briefs are empty
 
 If `./scripts/cognee-brief.sh` reports missing datasets, seed the knowledge garden before treating Cognee as unavailable.

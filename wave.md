@@ -7,18 +7,25 @@ Direct
 untracked
 
 ## Knowledge
-Cognee skipped. `bd ready --json` returned no actionable work, and the task is narrow local Pi workflow behavior.
+`bd ready --json` returned no ready issues. Cognee was attempted with `./scripts/cognee-brief.sh "serve workflow PR description completed work summary STICKYNOTE bootstrap worktree sync coverage"`; the result was generic, so local repo files remained the source of truth.
 
 ## Test Strategy
-Hybrid, prompt-led. RED: remove extension-backed `/serve` expectations from the narrow scaffold and doctor tests so they fail against the current implementation. GREEN: keep `/serve` prompt-native by removing the colliding extension command, teach the serve prompt to drive `scripts/serve.sh --commit-message ...`, and update doctor/runtime expectations accordingly. REFACTOR: keep dogfood/template alignment and rerun the narrow verification set.
+Hybrid, integration-led.
+- RED for serve behavior: tighten `tests/integration/serve-script.test.ts` around PR body/summary and post-serve output.
+- RED for STICKYNOTE flow: tighten `tests/integration/bootstrap-worktree.test.ts` around shared/main-worktree handoff behavior.
+- REFACTOR safety net: use `tests/integration/doctor.test.ts` and `tests/integration/docs-alignment.test.ts` only after the runtime contract is explicit.
 
 ## Agents / Chains
-Main session only. The change is small but cross-cuts dogfooded Pi runtime files, templates, and integration tests.
+Main session only. The task was scoped repo recon across prompt, script, worktree, doctor, and Cognee seams; no parallel wave needed.
 
 ## Verification
-`pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
-- `pnpm test -- tests/integration/cli-doctor.test.ts`
+Likely caller-side RED commands:
+- `pnpm test -- tests/integration/serve-script.test.ts`
+- `pnpm test -- tests/integration/bootstrap-worktree.test.ts`
+- optional contract/parity follow-up: `pnpm test -- tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts`
 
 ## Risks
-- Pi prompt execution semantics are runtime-driven, so the scaffold can document and shape `/serve`, but cannot force upstream Pi UX beyond prompt/extension surfaces.
-- Existing repos that already loaded the old extension command may need a Pi restart after refresh to pick up the prompt-only `/serve` behavior.
+- `/serve` is deliberately prompt-native, so plain-language serve intent is documented today but not executable outside prompt/lane behavior.
+- `scripts/serve.sh` currently relies on `gh pr create --fill`; requiring a guaranteed PR description/summary likely needs explicit body generation and probably an existing-PR update path too.
+- `STICKYNOTE.md` is local-only and ignored today; making it “flow back” to future worktrees requires a decision between shared symlink behavior and copy/sync behavior.
+- Current automatic Cognee sync only covers Pi artifacts (`context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md`), not `STICKYNOTE.md` or PR metadata.

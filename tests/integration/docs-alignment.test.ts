@@ -222,9 +222,12 @@ describe('workflow docs alignment', () => {
     );
     expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(adoptPrompt).toContain('existing `AGENTS.md` or `.pi/*` runtime files');
+    expect(servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked, differ from `STICKYNOTE.example.md`, and include a completed-work summary under `## Completed This Session`.');
     expect(servePrompt).toContain('Use `/serve` as the canonical Pi-native entrypoint and let it drive `./scripts/serve.sh --commit-message "<message>"` when publish is allowed.');
+    expect(servePrompt).toContain('Confirm the explicit PR description/body that serving will create or refresh from `STICKYNOTE.md`, and make sure it includes the completed-work summary you want reviewers to see.');
     expect(servePrompt).toContain("Treat plain-language requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to run the same `/serve` workflow when publishing is allowed in the current lane.");
     expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
+    expect(servePrompt).toContain('Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.');
     expect(servePrompt).toContain('`scripts/serve.sh` must never merge into or push directly to `main`.');
     expect(triagePrompt).toContain('Start from `bd ready --json` when Beads is available.');
     expect(beadsSkill).toContain('1. `bd ready --json`');

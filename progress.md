@@ -7,30 +7,44 @@ untracked
 Completed
 
 ## Test Strategy
-Hybrid, prompt-led. Cognee skipped because the scope was narrow and local repo evidence was sufficient.
+Hybrid, integration-led. Reused the latest Cognee brief already captured in `context.md`/`plan.md`; local repo files remained authoritative.
 
 ## Tasks
-- [x] Removed the colliding `/serve` extension command from dogfood and scaffold repo-workflow extensions.
-- [x] Updated the `/serve` prompt in dogfood and scaffold templates to make the prompt the canonical entrypoint and to drive `./scripts/serve.sh --commit-message "<message>"`.
-- [x] Updated doctor and integration coverage so prompt-native `/serve` is expected and extension shadowing is flagged.
-- [x] Re-ran narrow verification for init/scaffold/docs/doctor behavior.
+- [x] Tightened the serve contract so publish flows require a usable local `STICKYNOTE.md`, create or refresh an explicit PR body from `## Completed This Session`, and print a short post-serve branch summary.
+- [x] Kept `/serve` prompt-native while aligning prompt/template guidance with the stricter serve contract and plain-language serve intent.
+- [x] Switched linked worktrees to a main-worktree-canonical `STICKYNOTE.md` while preserving local-only/untracked behavior and first-run seeding from `STICKYNOTE.example.md`.
+- [x] Strengthened the scaffolded `STICKYNOTE.example.md` handoff template for serve-ready summaries.
+- [x] Documented the muninn comparison and the decision to keep automatic Cognee sync limited to curated Pi artifacts rather than `STICKYNOTE.md` or raw PR metadata.
+- [x] Extended parity/doctor coverage so the serve prompt and runtime enforce the new completed-work, PR-refresh, and post-serve-summary contract.
 
 ## Files Changed
-- `.pi/extensions/repo-workflows.ts` - removed the extension-backed `/serve` command so prompt routing can own `/serve`.
-- `src/templates/pi/extensions/repo-workflows.ts` - kept scaffold parity with the prompt-native `/serve` design.
-- `.pi/prompts/serve.md` - clarified that `/serve` is the canonical Pi-native entrypoint and should drive `scripts/serve.sh` with a commit message.
-- `src/templates/pi/prompts/serve.md` - mirrored the prompt-native serving guidance in scaffold output.
-- `src/commands/doctor.ts` - stopped requiring a `/serve` extension command and now flags extension shadowing of `/serve`.
-- `tests/integration/init.test.ts` - updated scaffold assertions for prompt-native `/serve`.
-- `tests/integration/scaffold-snapshots.test.ts` - updated snapshot assertions so repo workflow glue no longer owns `/serve`.
-- `tests/integration/docs-alignment.test.ts` - aligned dogfood/template expectations with the prompt-native `/serve` contract.
-- `tests/integration/doctor.test.ts` - updated runtime-glue coverage and added a regression test for extension shadowing of `/serve`.
+- `scripts/serve.sh` - requires a usable local `STICKYNOTE.md`, builds/refreshes explicit PR bodies, and prints a post-serve branch summary.
+- `src/templates/pi/scripts/serve.sh` - mirrored the serve runtime changes in the scaffold template.
+- `.pi/prompts/serve.md` - documented the prompt-native `/serve` contract, STICKYNOTE requirements, PR body refresh, and post-serve reporting.
+- `src/templates/pi/prompts/serve.md` - kept template parity with the runtime serve prompt.
+- `scripts/bootstrap-worktree.sh` - links linked worktrees back to the main-worktree canonical `STICKYNOTE.md` and preserves initial seeding behavior.
+- `src/templates/pi/scripts/bootstrap-worktree.sh` - mirrored the bootstrap/STICKYNOTE behavior in the scaffold template.
+- `STICKYNOTE.example.md` - strengthened the local-only handoff template with serve-ready completed-work fields.
+- `src/templates/project-docs/STICKYNOTE.md` - kept scaffold parity with the stronger STICKYNOTE template.
+- `docs/bake-usage.md` - recorded the muninn comparison and the curated knowledge-sync decision.
+- `src/commands/doctor.ts` - tightened prompt/runtime contract checks for STICKYNOTE guidance, explicit PR refresh, and post-serve summary output.
+- `tests/integration/serve-script.test.ts` - added coverage for explicit PR bodies, existing PR refresh, STICKYNOTE gating, and post-serve summaries.
+- `tests/integration/bootstrap-worktree.test.ts` - added coverage for canonical main-worktree STICKYNOTE linking and persistence across linked worktrees.
+- `tests/integration/init.test.ts` - aligned scaffold expectations with the stronger STICKYNOTE template and serve contract.
+- `tests/integration/scaffold-snapshots.test.ts` - aligned scaffold snapshots with explicit PR-body refresh and post-serve summary behavior.
+- `tests/integration/docs-alignment.test.ts` - tightened serve prompt parity expectations for STICKYNOTE and explicit PR-body refresh guidance.
+- `tests/integration/doctor.test.ts` - added regression coverage for missing serve prompt guidance and missing explicit PR refresh behavior.
 
 ## Verification Evidence
-- RED: `pnpm test -- tests/integration/init.test.ts tests/integration/docs-alignment.test.ts` failed after updating expectations to require prompt-native `/serve` guidance and commit-message-driven serving.
-- GREEN: `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts` passed after removing the colliding extension command and updating prompt/doctor behavior.
-- REFACTOR: `pnpm test -- tests/integration/cli-doctor.test.ts` passed after tightening doctor behavior around prompt-native `/serve`.
+- RED: `pnpm test -- tests/integration/serve-script.test.ts` failed before the serve-script changes because the old flow still used `gh pr create --fill`, lacked post-serve summary output, and only warned when `STICKYNOTE.md` was missing or untouched.
+- GREEN: `pnpm test -- tests/integration/serve-script.test.ts` passed after implementing explicit PR body creation/update, STICKYNOTE gating, and post-serve summary output.
+- RED: `pnpm test -- tests/integration/bootstrap-worktree.test.ts` failed before the bootstrap changes because linked worktrees still received copied `STICKYNOTE.md` files instead of a main-worktree canonical note.
+- GREEN: `pnpm test -- tests/integration/bootstrap-worktree.test.ts` passed after linking linked worktrees back to the main-worktree `STICKYNOTE.md`.
+- RED: `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts` failed before parity updates because they still expected the old STICKYNOTE template wording and `gh pr create --fill` behavior.
+- GREEN: `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts` passed after aligning scaffold expectations.
+- REFACTOR: `pnpm test -- tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts` passed after tightening prompt/runtime contract coverage.
+- Caller verification: `pnpm test -- tests/integration/serve-script.test.ts tests/integration/bootstrap-worktree.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts` passed.
 
 ## Notes
-- `bd ready --json` returned no ready issues, so this work remains `untracked`.
-- Existing Pi sessions may need a restart after scaffold refresh so the prompt-only `/serve` behavior replaces any previously loaded extension command.
+- `bd ready --json` returned `[]`, so this work remains `untracked`.
+- Automatic Cognee sync remains intentionally limited to curated Pi artifacts (`context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md`); this change does not upload `STICKYNOTE.md`, raw PR bodies, or raw post-serve summaries.

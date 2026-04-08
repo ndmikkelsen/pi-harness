@@ -444,6 +444,15 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (servePrompt !== null && !servePrompt.includes('context.md')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing Cognee artifact-sync guidance');
   }
+  if (servePrompt !== null && !servePrompt.includes('STICKYNOTE.md')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing local handoff note guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('completed-work summary')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing completed-work summary guidance');
+  }
+  if (servePrompt !== null && !servePrompt.includes('refreshes the PR body')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/serve.md', 'missing explicit PR body refresh guidance');
+  }
 
   const triagePrompt = await readFileIfPresent(targetDir, '.pi/prompts/triage.md');
   if (triagePrompt !== null && !triagePrompt.includes('bd ready --json')) {
@@ -597,6 +606,15 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
     if (!serveScript.includes('sync-artifacts-to-cognee.sh')) {
       pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing Pi artifact sync hook');
+    }
+    if (!serveScript.includes('validate_sticky_note')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing STICKYNOTE validation guardrail');
+    }
+    if (!serveScript.includes('gh pr edit')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing explicit PR refresh path');
+    }
+    if (!serveScript.includes('Post-serve branch summary:')) {
+      pushAlignmentInvalid(alignmentInvalid, 'scripts/serve.sh', 'missing post-serve summary output');
     }
   }
 

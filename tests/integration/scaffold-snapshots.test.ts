@@ -36,12 +36,14 @@ async function snapshotForProject(rootDir: string) {
     leadAgent: await readProjectFile(rootDir, '.pi', 'agents', 'lead.md'),
     roleWorkflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'role-workflow.ts'),
     workflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'repo-workflows.ts'),
+    servePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'serve.md'),
     beadsSkill: await readProjectFile(rootDir, '.pi', 'skills', 'beads', 'SKILL.md'),
     cogneeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'cognee', 'SKILL.md'),
     redGreenRefactorSkill: await readProjectFile(rootDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'),
     bakeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'bake', 'SKILL.md'),
     parallelSkill: await readProjectFile(rootDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md'),
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
+    stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
@@ -180,6 +182,9 @@ describe('scaffold snapshots', () => {
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(result.roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(result.servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked');
+    expect(result.servePrompt).toContain('Confirm the explicit PR description/body that serving will create or refresh from `STICKYNOTE.md`');
+    expect(result.servePrompt).toContain('Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.');
     expect(result.beadsSkill).toContain('1. `bd ready --json`');
     expect(result.cogneeSkill).toContain('knowledge garden');
     expect(result.redGreenRefactorSkill).toContain('RED');
@@ -191,6 +196,9 @@ describe('scaffold snapshots', () => {
     expect(result.leadAgent).toContain('worktree: true');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
+    expect(result.stickyNoteExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
+    expect(result.stickyNoteExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
+    expect(result.stickyNoteExample).toContain('- Checks still needed before serving:');
     expect(result.bootstrapScript).toContain('Bootstrapped worktree-local Pi workflow state.');
     expect(result.bootstrapScript).toContain('the relevant `.pi/*` runtime files before implementation');
     expect(result.cogneeBridge).toContain('snapshot-pi-native-cognee.apps.compute.lan');
@@ -202,7 +210,10 @@ describe('scaffold snapshots', () => {
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
     expect(result.serveScript).toContain('run_cmd pnpm test:bdd');
     expect(result.serveScript).toContain('sync-artifacts-to-cognee.sh');
-    expect(result.serveScript).toContain('gh pr create --base dev --head "$branch" --fill');
+    expect(result.serveScript).toContain('validate_sticky_note');
+    expect(result.serveScript).toContain('gh pr create --base dev --head "$branch" --title "$pr_title" --body-file "$PR_BODY_FILE"');
+    expect(result.serveScript).toContain('gh pr edit "$existing_pr_number" --body-file "$PR_BODY_FILE"');
+    expect(result.serveScript).toContain('Post-serve branch summary:');
     expect(result.dockerfile).toContain('FROM cognee/cognee:latest@sha256:');
     expect(result.beadsConfig.trim()).toBe('backup:\n  enabled: false');
 

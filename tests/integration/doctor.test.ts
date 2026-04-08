@@ -214,6 +214,27 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the serve prompt loses completed-work guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-prompt-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'serve.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('completed-work summary', 'completed work summary'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/serve.md',
+          reason: 'missing completed-work summary guidance'
+        })
+      ])
+    );
+  });
+
   it('fails when the triage prompt loses Beads ready-work guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-triage-guidance');
@@ -475,6 +496,27 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
           reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when serve.sh loses the explicit PR refresh path', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-refresh');
+
+    const servePath = path.join(targetDir, 'scripts', 'serve.sh');
+    const serveScript = await readFile(servePath, 'utf8');
+    await writeFile(servePath, serveScript.replace('gh pr edit', 'gh pr refresh'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/serve.sh',
+          reason: 'missing explicit PR refresh path'
         })
       ])
     );

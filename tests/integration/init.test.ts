@@ -110,8 +110,10 @@ describe('runInit', () => {
     const stickyExample = await readFile(path.join(projectDir, 'STICKYNOTE.example.md'), 'utf8');
 
     expect(stickyExample).toContain('# Session Handoff');
-    expect(stickyExample).toContain('- Current branch:');
-    expect(stickyExample).toContain('- Note any validation still required before serving work.');
+    expect(stickyExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
+    expect(stickyExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
+    expect(stickyExample).toContain('- Outcome ready to ship:');
+    expect(stickyExample).toContain('- Checks still needed before serving:');
     await expect(readFile(path.join(projectDir, '.planning', 'REQUIREMENTS.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, '.planning', 'ROADMAP.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, '.planning', 'STATE.md'), 'utf8')).rejects.toThrow();
