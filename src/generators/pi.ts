@@ -42,7 +42,7 @@ export function buildPiEntries(): ManagedEntry[] {
       content: () => template('pi/extensions/role-workflow.ts'),
     },
     { kind: 'file', path: '.pi/prompts/adopt.md', content: () => template('pi/prompts/adopt.md') },
-    { kind: 'file', path: '.pi/prompts/land.md', content: () => template('pi/prompts/land.md') },
+    { kind: 'file', path: '.pi/prompts/serve.md', content: () => template('pi/prompts/serve.md') },
     { kind: 'file', path: '.pi/prompts/triage.md', content: () => template('pi/prompts/triage.md') },
     { kind: 'file', path: '.pi/prompts/plan-change.md', content: () => template('pi/prompts/plan-change.md') },
     { kind: 'file', path: '.pi/prompts/ship-change.md', content: () => template('pi/prompts/ship-change.md') },
@@ -114,8 +114,8 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
-      path: 'scripts/land.sh',
-      content: () => template('pi/scripts/land.sh'),
+      path: 'scripts/serve.sh',
+      content: () => template('pi/scripts/serve.sh'),
       executable: true,
     },
     {

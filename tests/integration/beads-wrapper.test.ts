@@ -76,7 +76,7 @@ describe('Beads integration', () => {
       '5. close the issue only after verification passes: `bd close <id> --reason "Verified: <evidence>" --json`',
     );
     expect(beadsSkill).toContain(
-      '6. if the session is in an execution or autonomous landing lane, finish with `./scripts/land.sh`',
+      '6. if the session is in an execution or autonomous serving lane, finish with `./scripts/serve.sh`',
     );
     expect(bakeSkill).toContain('---\nname: bake\ndescription: Use the pi-harness CLI to scaffold new and existing repositories for vanilla Pi with Beads, Cognee, and project-local `.pi/*` runtime surfaces.\n---');
     expect(bakeSkill).toContain('Beads state if `bd` or `.beads/` is available');

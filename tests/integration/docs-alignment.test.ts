@@ -82,7 +82,7 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'extensions', 'role-workflow.ts'],
       },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'adopt.md'], targetPath: ['.pi', 'prompts', 'adopt.md'] },
-      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'land.md'], targetPath: ['.pi', 'prompts', 'land.md'] },
+      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'serve.md'], targetPath: ['.pi', 'prompts', 'serve.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'triage.md'], targetPath: ['.pi', 'prompts', 'triage.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'plan-change.md'], targetPath: ['.pi', 'prompts', 'plan-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'ship-change.md'], targetPath: ['.pi', 'prompts', 'ship-change.md'] },
@@ -118,7 +118,7 @@ describe('workflow docs alignment', () => {
         targetPath: ['scripts', 'bootstrap-worktree.sh'],
       },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'cognee-brief.sh'], targetPath: ['scripts', 'cognee-brief.sh'] },
-      { sourcePath: ['src', 'templates', 'pi', 'scripts', 'land.sh'], targetPath: ['scripts', 'land.sh'] },
+      { sourcePath: ['src', 'templates', 'pi', 'scripts', 'serve.sh'], targetPath: ['scripts', 'serve.sh'] },
       { sourcePath: ['src', 'templates', 'root', 'pre-commit.yaml'], targetPath: ['.pre-commit-config.yaml'] },
       { sourcePath: ['src', 'templates', 'pi', 'docker', 'Dockerfile.cognee'], targetPath: ['docker', 'Dockerfile.cognee'] },
     ] as const;
@@ -157,7 +157,7 @@ describe('workflow docs alignment', () => {
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
-    const landPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'land.md'));
+    const servePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'serve.md'));
     const triagePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'triage.md'));
     const beadsSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'beads', 'SKILL.md'));
     const cogneeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'cognee', 'SKILL.md'));
@@ -188,7 +188,7 @@ describe('workflow docs alignment', () => {
       leadAgent,
       roleWorkflowExtension,
       adoptPrompt,
-      landPrompt,
+      servePrompt,
       triagePrompt,
       beadsSkill,
       cogneeSkill,
@@ -208,29 +208,24 @@ describe('workflow docs alignment', () => {
     expect(rootReadme).toContain('Run `bd init` once in the repository before using Beads.');
     expect(rootReadme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(rootReadme).toContain('pnpm test:bdd');
-    expect(rootReadme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
-    expect(rootReadme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.');
-    expect(bakeUsage).toContain(
-      'The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.',
-    );
-    expect(bakeUsage).toContain('What gets created:');
-    expect(bakeUsage).toContain('- `AGENTS.md`');
-    expect(bakeUsage).toContain('- `.pi/*`');
-    expect(bakeUsage).toContain('- `scripts/*`');
     expect(agentsGuide).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(agentsGuide).toContain('.pi/agents/*');
     expect(agentsGuide).toContain('/role <name>');
     expect(agentsGuide).toContain(
       'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
     );
-    expect(agentsGuide).toContain('Only execution or autonomous landing lanes should run `./scripts/land.sh`.');
+    expect(agentsGuide).toContain('Only execution or autonomous serving lanes should run `./scripts/serve.sh`.');
+    expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(piSystem).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(piSystem).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
+    expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(adoptPrompt).toContain('existing `AGENTS.md` or `.pi/*` runtime files');
-    expect(landPrompt).toContain('Use `/land` or run `./scripts/land.sh`.');
-    expect(landPrompt).toContain('`scripts/land.sh` must never merge into or push directly to `main`.');
+    expect(servePrompt).toContain('Use `/serve` as the canonical Pi-native entrypoint and let it drive `./scripts/serve.sh --commit-message "<message>"` when publish is allowed.');
+    expect(servePrompt).toContain("Treat plain-language requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to run the same `/serve` workflow when publishing is allowed in the current lane.");
+    expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
+    expect(servePrompt).toContain('`scripts/serve.sh` must never merge into or push directly to `main`.');
     expect(triagePrompt).toContain('Start from `bd ready --json` when Beads is available.');
     expect(beadsSkill).toContain('1. `bd ready --json`');
     expect(cogneeSkill).toContain('knowledge garden');

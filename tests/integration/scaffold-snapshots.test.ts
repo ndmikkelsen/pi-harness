@@ -47,7 +47,7 @@ async function snapshotForProject(rootDir: string) {
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
     postCheckoutHook: await readProjectFile(rootDir, 'scripts', 'hooks', 'post-checkout'),
-    landScript: await readProjectFile(rootDir, 'scripts', 'land.sh'),
+    serveScript: await readProjectFile(rootDir, 'scripts', 'serve.sh'),
     dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
     beadsConfig: await readProjectFile(rootDir, '.beads', 'config.yaml'),
   };
@@ -105,7 +105,7 @@ describe('scaffold snapshots', () => {
         '.pi/extensions/repo-workflows.ts',
         '.pi/extensions/role-workflow.ts',
         '.pi/prompts/adopt.md',
-        '.pi/prompts/land.md',
+        '.pi/prompts/serve.md',
         '.pi/prompts/triage.md',
         '.pi/prompts/plan-change.md',
         '.pi/prompts/ship-change.md',
@@ -130,7 +130,7 @@ describe('scaffold snapshots', () => {
         'scripts/cognee-brief.sh',
         'scripts/sync-artifacts-to-cognee.sh',
         'scripts/hooks/post-checkout',
-        'scripts/land.sh',
+        'scripts/serve.sh',
       ]),
     );
     expect(
@@ -162,6 +162,7 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain(
       'Use the commands and shortcuts registered by project-local `.pi/extensions/*` files when native slash-command execution is the cleanest path.',
     );
+    expect(result.agents).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(JSON.parse(result.settings)).toEqual({
       packages: ['npm:pi-subagents'],
@@ -171,9 +172,10 @@ describe('scaffold snapshots', () => {
     expect(result.system).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
+    expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
-    expect(result.workflowExtension).toContain("pi.registerCommand('land'");
+    expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
@@ -198,9 +200,9 @@ describe('scaffold snapshots', () => {
     expect(result.syncArtifactsScript).toContain('context.md');
     expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
-    expect(result.landScript).toContain('run_cmd pnpm test:bdd');
-    expect(result.landScript).toContain('sync-artifacts-to-cognee.sh');
-    expect(result.landScript).toContain('gh pr create --base dev --head "$branch" --fill');
+    expect(result.serveScript).toContain('run_cmd pnpm test:bdd');
+    expect(result.serveScript).toContain('sync-artifacts-to-cognee.sh');
+    expect(result.serveScript).toContain('gh pr create --base dev --head "$branch" --fill');
     expect(result.dockerfile).toContain('FROM cognee/cognee:latest@sha256:');
     expect(result.beadsConfig.trim()).toBe('backup:\n  enabled: false');
 

@@ -51,11 +51,11 @@ cd "$REPO_ROOT"
 
 branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown)"
 if [[ "$branch" == "HEAD" || "$branch" == "unknown" ]]; then
-  fail "Refusing to land from a detached HEAD"
+  fail "Refusing to serve from a detached HEAD"
 fi
 
 if [[ "$branch" == "main" || "$branch" == "dev" ]]; then
-  fail "Refusing to land directly from $branch"
+  fail "Refusing to serve directly from $branch"
 fi
 
 if command -v pnpm >/dev/null 2>&1 && [[ -f package.json ]]; then
@@ -89,7 +89,7 @@ fi
 
 if [[ -n "$(git status --porcelain)" ]]; then
   if [[ -z "$COMMIT_MESSAGE" ]]; then
-    fail "Working tree has uncommitted changes. Commit them before landing or pass --commit-message."
+    fail "Working tree has uncommitted changes. Commit them before serving or pass --commit-message."
   fi
 
   run_cmd git add -A
@@ -97,11 +97,11 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 if command -v bd >/dev/null 2>&1 && [[ -d .beads ]]; then
-  printf 'Beads detected. Ensure issue status reflects the latest verification result before landing.\n'
+  printf 'Beads detected. Ensure issue status reflects the latest verification result before serving.\n'
 fi
 
 if ! git remote get-url origin >/dev/null 2>&1; then
-  fail "Landing requires an origin remote"
+  fail "Serving requires an origin remote"
 fi
 
 if git rev-parse --abbrev-ref --symbolic-full-name '@{u}' >/dev/null 2>&1; then
@@ -111,7 +111,7 @@ else
 fi
 
 if ! command -v gh >/dev/null 2>&1; then
-  fail "Landing requires GitHub CLI (gh) to open or confirm the PR to dev"
+  fail "Serving requires GitHub CLI (gh) to open or confirm the PR to dev"
 fi
 
 existing_pr_json="$(gh pr list --head "$branch" --json number,url,baseRefName,state)"
@@ -120,7 +120,7 @@ existing_pr_number="$(node -e 'const prs = JSON.parse(process.argv[1]); if (prs[
 existing_pr_url="$(node -e 'const prs = JSON.parse(process.argv[1]); if (prs[0]?.url) process.stdout.write(prs[0].url);' "$existing_pr_json")"
 
 if [[ -n "$existing_pr_base" && "$existing_pr_base" != "dev" ]]; then
-  fail "Open PR for $branch already targets $existing_pr_base; landing only supports PRs to dev"
+  fail "Open PR for $branch already targets $existing_pr_base; serving only supports PRs to dev"
 fi
 
 pr_url="$existing_pr_url"
@@ -131,4 +131,4 @@ elif [[ -n "$existing_pr_number" ]]; then
 fi
 
 run_cmd git status --short --branch
-printf 'Landing complete. PR to dev: %s\n' "$pr_url"
+printf 'Serve complete. PR to dev: %s\n' "$pr_url"

@@ -135,6 +135,46 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the old /land prompt alias is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-serve-alias');
+
+    await mkdir(path.join(targetDir, '.pi', 'prompts'), { recursive: true });
+    await writeFile(path.join(targetDir, '.pi', 'prompts', 'land.md'), '# stale alias\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/land.md',
+          reason: 'stale landing prompt alias present; renamed to `.pi/prompts/serve.md`'
+        })
+      ])
+    );
+  });
+
+  it('fails when the old landing script alias is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-serve-script-alias');
+
+    await mkdir(path.join(targetDir, 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, 'scripts', 'land.sh'), '# stale alias\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/land.sh',
+          reason: 'stale landing script alias present; renamed to `scripts/serve.sh`'
+        })
+      ])
+    );
+  });
+
   it('fails when the old /harness setup skill alias is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-bake-alias');
@@ -387,13 +427,13 @@ describe('runDoctor', () => {
     );
   });
 
-  it('fails when the Pi-native extension loses workflow command glue', async () => {
+  it('fails when the Pi-native extension loses cognee-brief workflow command glue', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-runtime-glue');
 
     const extensionPath = path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts');
     const extension = await readFile(extensionPath, 'utf8');
-    await writeFile(extensionPath, extension.replaceAll('scripts/land.sh', 'scripts/landing.sh'), 'utf8');
+    await writeFile(extensionPath, extension.replaceAll('scripts/cognee-brief.sh', 'scripts/cognee-brief'), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -405,19 +445,27 @@ describe('runDoctor', () => {
       expect.arrayContaining([
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
-          reason: 'missing native workflow command glue: scripts/land.sh'
+          reason: 'missing native workflow command glue: scripts/cognee-brief.sh'
         })
       ])
     );
   });
 
-  it('fails when land.sh loses the Pi artifact sync hook', async () => {
+  it('fails when the repo workflow extension shadows the prompt-native /serve flow', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
-    const targetDir = await scaffoldProject(workspace, 'doctor-land-sync-hook');
+    const targetDir = await scaffoldProject(workspace, 'doctor-serve-shadow');
 
-    const landPath = path.join(targetDir, 'scripts', 'land.sh');
-    const landScript = await readFile(landPath, 'utf8');
-    await writeFile(landPath, landScript.replace('sync-artifacts-to-cognee.sh', 'sync-artifacts'), 'utf8');
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    const shadow = `
+  pi.registerCommand('serve', {
+    description: 'shadow',
+    handler: async (_args: string, ctx: CommandContext) => {
+      ctx.ui.notify('shadow');
+    },
+  });
+`;
+    await writeFile(extensionPath, extension.replace('\n}\n', `${shadow}}\n`), 'utf8');
 
     const result = await auditProject(workspace, targetDir);
 
@@ -425,7 +473,28 @@ describe('runDoctor', () => {
     expect(result.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          path: 'scripts/land.sh',
+          path: '.pi/extensions/repo-workflows.ts',
+          reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when serve.sh loses the Pi artifact sync hook', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-land-sync-hook');
+
+    const servePath = path.join(targetDir, 'scripts', 'serve.sh');
+    const serveScript = await readFile(servePath, 'utf8');
+    await writeFile(servePath, serveScript.replace('sync-artifacts-to-cognee.sh', 'sync-artifacts'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/serve.sh',
           reason: 'missing Pi artifact sync hook'
         })
       ])

@@ -17,4 +17,4 @@ This file is the default handoff note for the scaffolded repository.
 ## Pending / Follow-Up
 
 - Record unresolved work and next actions before handoff.
-- Note any validation still required before landing work.
+- Note any validation still required before serving work.

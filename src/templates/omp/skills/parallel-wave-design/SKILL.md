@@ -19,7 +19,7 @@ Keep Pi-native parallel work aligned with repo policy while avoiding a second or
 - Subagents do not run project-wide build, test, or lint commands.
 - Use `isolated: true` when tasks would otherwise touch overlapping files.
 - Sequence type, schema, or contract changes before consumer tasks.
-- The caller verifies the whole wave and handles landing after edits return.
+- The caller verifies the whole wave and handles serving after edits return.
 
 ## Repo-specific reminders
 

@@ -11,6 +11,6 @@ Requirements:
 - carry the active Beads issue context and shared test strategy into the wave plan
 - attempt or reference the latest Cognee brief before broad planning when local context is not already enough
 - use `worktree: true` when parallel work should be isolated
-- keep final verification, Beads updates, and landing in the main session
+- keep final verification, Beads updates, and serving in the main session
 
 Return the wave plan, owned files per task, test strategy, whether parallel execution should actually happen, the caller-side verification command, and the main risks.

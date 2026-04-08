@@ -42,11 +42,11 @@ export function thenTheCliCreatesTheAiWorkflowScaffoldFiles(world: CliFeatureWor
       '.pi/SYSTEM.md',
       '.pi/extensions/repo-workflows.ts',
       '.pi/prompts/adopt.md',
-      '.pi/prompts/land.md',
+      '.pi/prompts/serve.md',
       '.pi/skills/bake/SKILL.md',
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh',
-      'scripts/land.sh',
+      'scripts/serve.sh',
       'docker/Dockerfile.cognee',
       'STICKYNOTE.example.md'
     ])
@@ -78,11 +78,11 @@ export async function thenTheCliCreatesCodexCompatibilityFiles(world: CliFeature
       'AGENTS.md',
       '.pi/settings.json',
       '.pi/extensions/repo-workflows.ts',
-      '.pi/prompts/land.md',
+      '.pi/prompts/serve.md',
       '.pi/skills/bake/SKILL.md',
       'scripts/bootstrap-worktree.sh',
       'scripts/cognee-brief.sh',
-      'scripts/land.sh',
+      'scripts/serve.sh',
       'docker/Dockerfile.cognee'
     ])
   );
@@ -92,19 +92,23 @@ export async function thenTheCodexRuntimeFilesAreAvailable(world: CliFeatureWorl
   const agentsGuide = await readTargetFile(world, 'AGENTS.md');
   const bootstrapScript = await readTargetFile(world, 'scripts/bootstrap-worktree.sh');
   const workflowExtension = await readTargetFile(world, '.pi/extensions/repo-workflows.ts');
+  const servePrompt = await readTargetFile(world, '.pi/prompts/serve.md');
 
   expect(agentsGuide).toContain('.pi/extensions/*');
   expect(agentsGuide).toContain('.pi/prompts/*');
   expect(agentsGuide).toContain('.pi/skills/*');
   expect(agentsGuide).toContain('./scripts/bootstrap-worktree.sh');
+  expect(agentsGuide).toContain('./scripts/serve.sh');
   expect(bootstrapScript).toContain('bd ready --json');
   expect(bootstrapScript).toContain('AGENTS.md');
   expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
   expect(workflowExtension).toContain("registerCommand('cognee-brief'");
-  expect(workflowExtension).toContain("registerCommand('land'");
+  expect(workflowExtension).not.toContain("registerCommand('serve'");
   expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
   expect(workflowExtension).toContain('scripts/cognee-brief.sh');
-  expect(workflowExtension).toContain('scripts/land.sh');
+  expect(servePrompt).toContain('/serve');
+  expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
+  expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
 }
 
 export async function thenNoOpenCodeCompatibilityFilesAreCreated(world: CliFeatureWorld): Promise<void> {

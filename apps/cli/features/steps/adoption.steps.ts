@@ -173,7 +173,7 @@ export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): v
   const result = requireResult(world);
 
   expect(result.createdPaths).toEqual(
-    expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/land.md', 'scripts/bootstrap-worktree.sh'])
+    expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/serve.md', 'scripts/bootstrap-worktree.sh'])
   );
 }
 

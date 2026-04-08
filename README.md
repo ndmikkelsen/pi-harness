@@ -56,4 +56,4 @@ The canonical workflow surfaces are:
 11. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
 12. Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.
 13. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
-14. Let an execution or autonomous landing lane run `./scripts/land.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+14. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.

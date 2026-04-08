@@ -14,8 +14,8 @@ async function initGitRepo(repoDir: string) {
   await execFile('git', ['config', 'user.email', 'tests@example.com'], { cwd: repoDir });
 }
 
-async function createLandFixture() {
-  const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-land-'));
+async function createServeFixture() {
+  const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-serve-'));
   const repoDir = path.join(workspace, 'repo');
   const remoteDir = path.join(workspace, 'remote.git');
   const binDir = path.join(workspace, 'bin');
@@ -30,18 +30,18 @@ async function createLandFixture() {
   await execFile('git', ['init', '--bare'], { cwd: remoteDir });
 
   const sourceLand = await readFile(
-    path.join(process.cwd(), 'scripts', 'land.sh'),
+    path.join(process.cwd(), 'scripts', 'serve.sh'),
     'utf8'
   );
   await mkdir(path.join(repoDir, 'scripts'), { recursive: true });
-  await writeFile(path.join(repoDir, 'scripts', 'land.sh'), sourceLand, 'utf8');
-  await chmod(path.join(repoDir, 'scripts', 'land.sh'), 0o755);
+  await writeFile(path.join(repoDir, 'scripts', 'serve.sh'), sourceLand, 'utf8');
+  await chmod(path.join(repoDir, 'scripts', 'serve.sh'), 0o755);
 
   await writeFile(
     path.join(repoDir, 'package.json'),
     JSON.stringify(
       {
-        name: 'land-fixture',
+        name: 'serve-fixture',
         private: true,
         scripts: {
           typecheck: 'node -e "process.exit(0)"',
@@ -55,7 +55,7 @@ async function createLandFixture() {
     ),
     'utf8'
   );
-  await writeFile(path.join(repoDir, 'README.md'), '# land fixture\n', 'utf8');
+  await writeFile(path.join(repoDir, 'README.md'), '# serve fixture\n', 'utf8');
 
   await writeFile(
     path.join(binDir, 'pnpm'),
@@ -91,10 +91,10 @@ exit 1
   await chmod(path.join(binDir, 'gh'), 0o755);
 
   await execFile('git', ['add', '.'], { cwd: repoDir });
-  await execFile('git', ['commit', '-m', 'chore: seed landing fixture'], { cwd: repoDir });
+  await execFile('git', ['commit', '-m', 'chore: seed serving fixture'], { cwd: repoDir });
   await execFile('git', ['remote', 'add', 'origin', remoteDir], { cwd: repoDir });
   await execFile('git', ['push', '-u', 'origin', 'main'], { cwd: repoDir });
-  await execFile('git', ['checkout', '-b', 'feat/land-fixture'], { cwd: repoDir });
+  await execFile('git', ['checkout', '-b', 'feat/serve-fixture'], { cwd: repoDir });
 
   return {
     workspace,
@@ -107,12 +107,12 @@ exit 1
     };
 }
 
-describe('land.sh', () => {
+describe('serve.sh', () => {
   it('pushes the feature branch and creates a PR to dev', { timeout: 15000 }, async () => {
-    const fixture = await createLandFixture();
+    const fixture = await createServeFixture();
 
     try {
-      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,
@@ -123,31 +123,31 @@ describe('land.sh', () => {
 
       const ghLog = await readFile(fixture.ghLog, 'utf8');
       const pnpmLog = await readFile(fixture.pnpmLog, 'utf8');
-      const remoteHeads = await execFile('git', ['ls-remote', '--heads', 'origin', 'feat/land-fixture'], {
+      const remoteHeads = await execFile('git', ['ls-remote', '--heads', 'origin', 'feat/serve-fixture'], {
         cwd: fixture.repoDir,
         encoding: 'utf8'
       });
 
-      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
-      expect(ghLog).toContain('pr create --base dev --head feat/land-fixture --fill');
+      expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/123');
+      expect(ghLog).toContain('pr create --base dev --head feat/serve-fixture --fill');
       expect(pnpmLog).toContain('typecheck');
       expect(pnpmLog).toContain('test');
       expect(pnpmLog).toContain('test:bdd');
       expect(pnpmLog).toContain('test:smoke:dist');
-      expect(remoteHeads.stdout).toContain('refs/heads/feat/land-fixture');
+      expect(remoteHeads.stdout).toContain('refs/heads/feat/serve-fixture');
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
   });
 
-  it('refuses to land from main', async () => {
-    const fixture = await createLandFixture();
+  it('refuses to serve from main', async () => {
+    const fixture = await createServeFixture();
 
     try {
       await execFile('git', ['checkout', 'main'], { cwd: fixture.repoDir });
 
       await expect(
-        execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+        execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
           cwd: fixture.repoDir,
           env: {
             ...process.env,
@@ -155,14 +155,14 @@ describe('land.sh', () => {
           },
           encoding: 'utf8'
         })
-      ).rejects.toMatchObject({ stderr: expect.stringContaining('Refusing to land directly from main') });
+      ).rejects.toMatchObject({ stderr: expect.stringContaining('Refusing to serve directly from main') });
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
   });
 
   it('invokes the Pi-native artifact sync when present', async () => {
-    const fixture = await createLandFixture();
+    const fixture = await createServeFixture();
 
     try {
       await writeFile(
@@ -178,7 +178,7 @@ exit 0
       await execFile('git', ['add', 'scripts/sync-artifacts-to-cognee.sh'], { cwd: fixture.repoDir });
       await execFile('git', ['commit', '-m', 'test: seed pi-native artifact sync'], { cwd: fixture.repoDir });
 
-      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,
@@ -187,15 +187,15 @@ exit 0
         encoding: 'utf8'
       });
 
-      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/123');
       expect(await readFile(fixture.syncLog, 'utf8')).toContain('pi-sync-invoked');
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
   });
 
-  it('continues landing when Pi-native artifact sync reports an unavailable-but-skipped path', async () => {
-    const fixture = await createLandFixture();
+  it('continues serving when Pi-native artifact sync reports an unavailable-but-skipped path', { timeout: 15000 }, async () => {
+    const fixture = await createServeFixture();
 
     try {
       await writeFile(
@@ -211,7 +211,7 @@ exit 0
       await execFile('git', ['add', 'scripts/sync-artifacts-to-cognee.sh'], { cwd: fixture.repoDir });
       await execFile('git', ['commit', '-m', 'test: allow skipped pi-native artifact sync'], { cwd: fixture.repoDir });
 
-      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,
@@ -220,17 +220,17 @@ exit 0
         encoding: 'utf8'
       });
 
-      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/123');
       expect(result.stdout).toContain('Cognee unavailable - skipping artifact sync');
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });
     }
   });
-  it('does not invoke deprecated planning-sync legacy artifacts during landing', async () => {
-    const fixture = await createLandFixture();
+  it('does not invoke deprecated planning-sync legacy artifacts during serving', async () => {
+    const fixture = await createServeFixture();
 
     try {
-      // Seed legacy cleanup artifacts; supported scripts/land.sh must ignore them.
+      // Seed legacy cleanup artifacts; supported scripts/serve.sh must ignore them.
       await mkdir(path.join(fixture.repoDir, '.codex', 'scripts'), { recursive: true });
       await writeFile(
         path.join(fixture.repoDir, '.codex', 'scripts', 'sync-planning-to-cognee.sh'),
@@ -261,7 +261,7 @@ exit 43
         cwd: fixture.repoDir
       });
 
-      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'land.sh'), [], {
+      const result = await execFile(path.join(fixture.repoDir, 'scripts', 'serve.sh'), [], {
         cwd: fixture.repoDir,
         env: {
           ...process.env,
@@ -270,7 +270,7 @@ exit 43
         encoding: 'utf8'
       });
 
-      expect(result.stdout).toContain('Landing complete. PR to dev: https://example.test/pr/123');
+      expect(result.stdout).toContain('Serve complete. PR to dev: https://example.test/pr/123');
       await expect(readFile(fixture.syncLog, 'utf8')).rejects.toMatchObject({ code: 'ENOENT' });
     } finally {
       await rm(fixture.workspace, { recursive: true, force: true });

@@ -52,7 +52,7 @@ Prefer to tailor newly created files in this order:
 5. `.pi/agents/*.chain.md`
 6. `.pi/extensions/repo-workflows.ts`
 7. `.pi/skills/bake/SKILL.md`
-8. `.pi/prompts/land.md`
+8. `.pi/prompts/serve.md`
 9. `STICKYNOTE.example.md`
 
 Do not add secrets to `.env.example`; keep placeholder values only.

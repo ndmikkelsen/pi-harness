@@ -74,7 +74,7 @@ describe('CLI doctor', () => {
       expect.arrayContaining([
         'AGENTS.md',
         '.pi/extensions/repo-workflows.ts',
-        '.pi/prompts/land.md',
+        '.pi/prompts/serve.md',
         '.pi/skills/bake/SKILL.md',
         'scripts/bootstrap-worktree.sh',
         'docker/Dockerfile.cognee'
