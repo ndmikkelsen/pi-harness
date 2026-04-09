@@ -389,6 +389,48 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when project settings lose pi-mcp-adapter package registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-adapter-package');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = await readFile(settingsPath, 'utf8');
+    await writeFile(settingsPath, settings.replace('"npm:pi-mcp-adapter"', '"npm:missing-mcp-package"'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing package registration for npm:pi-mcp-adapter'
+        })
+      ])
+    );
+  });
+
+  it('fails when the project MCP config loses the GitHub server token wiring', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-config');
+
+    const mcpConfigPath = path.join(targetDir, '.pi', 'mcp.json');
+    const mcpConfig = await readFile(mcpConfigPath, 'utf8');
+    await writeFile(mcpConfigPath, mcpConfig.replaceAll('GITHUB_PERSONAL_ACCESS_TOKEN', 'GITHUB_TOKEN'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/mcp.json',
+          reason: 'missing GitHub MCP token interpolation'
+        })
+      ])
+    );
+  });
+
   it('fails when project settings lose pi-subagents package registration', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-subagents-package');

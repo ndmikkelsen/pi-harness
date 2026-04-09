@@ -44,6 +44,7 @@ describe('workflow docs alignment', () => {
     const literalRuntimeSurfaces = [
       { sourcePath: ['src', 'templates', 'pi', 'AGENTS.md'], targetPath: ['AGENTS.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'settings.json'], targetPath: ['.pi', 'settings.json'] },
+      { sourcePath: ['src', 'templates', 'pi', 'mcp.json'], targetPath: ['.pi', 'mcp.json'] },
       { sourcePath: ['src', 'templates', 'pi', 'SYSTEM.md'], targetPath: ['.pi', 'SYSTEM.md'] },
       {
         sourcePath: ['src', 'templates', 'pi', 'agents', 'lead.md'],
@@ -209,9 +210,11 @@ describe('workflow docs alignment', () => {
     expect(templateRootReadme).toContain('This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.');
     expect(templateRootReadme).toContain('native `bd` with `.beads/**`');
     expect(rootReadme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
+    expect(rootReadme).toContain('This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.');
     expect(rootReadme).toContain('Run `bd init` once in the repository before using Beads.');
     expect(rootReadme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(rootReadme).toContain('./scripts/promote.sh');
+    expect(rootReadme).toContain('/mcp');
     expect(rootReadme).toContain('pnpm test:bdd');
     expect(agentsGuide).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(agentsGuide).toContain('.pi/agents/*');
@@ -249,9 +252,10 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain(
       'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
     );
-    expect(bakeSkill).toContain('3. `.pi/extensions/role-workflow.ts`');
+    expect(bakeSkill).toContain('3. `.pi/mcp.json`');
+    expect(bakeSkill).toContain('4. `.pi/extensions/role-workflow.ts`');
     expect(bakeSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
-    expect(bakeSkill).toContain('5. `.pi/agents/*.chain.md`');
+    expect(bakeSkill).toContain('6. `.pi/agents/*.chain.md`');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(leadAgent).toContain('Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");

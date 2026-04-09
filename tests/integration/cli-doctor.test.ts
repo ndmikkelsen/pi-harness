@@ -73,6 +73,7 @@ describe('CLI doctor', () => {
     expect(initPayload.createdPaths).toEqual(
       expect.arrayContaining([
         'AGENTS.md',
+        '.pi/mcp.json',
         '.pi/extensions/repo-workflows.ts',
         '.pi/prompts/serve.md',
         '.pi/skills/bake/SKILL.md',

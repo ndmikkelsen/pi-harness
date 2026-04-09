@@ -4,31 +4,33 @@
 Direct
 
 ## Work Item
-`pi-harness-edk` — Add a separate dev-to-main promotion workflow
-
-Child tasks:
-- `pi-harness-edk.2` — Lock RED coverage for dev-to-main promotion
-- `pi-harness-edk.1` — Implement the promotion runtime and scaffold template
-- `pi-harness-edk.3` — Align docs, doctor, and scaffold parity for promotion
+untracked
 
 ## Knowledge
-Cognee was attempted with `./scripts/cognee-brief.sh "dev to main promotion workflow release step ensure local changes land upstream dev main"`, but the brief was stale and still referenced legacy `land.sh` guidance. Local repository files, tests, and branch policy remained authoritative.
+Cognee was attempted with `./scripts/cognee-brief.sh "github mcp adapter add github mcp integration adapter support"`; it returned only generic scaffold guidance, so local repo files plus upstream adapter docs were treated as authoritative. I also inspected `https://github.com/nicobailon/pi-mcp-adapter` and the GitHub MCP server package docs for the project-local `.pi/mcp.json` contract.
 
 ## Test Strategy
-Hybrid, integration-led.
-- RED: add `tests/integration/promote-script.test.ts` before runtime changes and confirm it fails because `scripts/promote.sh` does not exist yet.
-- GREEN: add a dedicated `dev` -> `main` promotion script/prompt pair plus scaffold wiring and explicit PR-body refresh behavior.
-- REFACTOR: align doctor, docs, init, and scaffold snapshot coverage so the new release-step contract stays stable without weakening `/serve`.
+TDD
+- RED: extend scaffold/init/doctor/docs tests to expect `pi-mcp-adapter`, a managed `.pi/mcp.json`, and GitHub MCP setup guidance.
+- GREEN: add the managed `.pi/mcp.json`, register `npm:pi-mcp-adapter`, wire template/root/docs parity, and validate the new baseline in `doctor`.
+- REFACTOR: keep dogfood/template parity intact and verify the targeted integration suite plus typecheck/build.
 
 ## Agents / Chains
-Main session only. The work crossed one release contract spanning runtime docs, scaffold templates, doctor checks, and integration coverage, so parallel delegation would have increased overlap risk.
+Main session only. This change stayed small but crossed scaffold templates, dogfooded runtime files, docs, and doctor checks, so splitting it would have increased overlap risk.
 
 ## Verification
-Caller-side verification completed with:
+Completed with:
+- `pnpm test -- tests/integration/init.test.ts tests/integration/cli-init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts tests/integration/cli-doctor.test.ts tests/integration/docs-alignment.test.ts`
 - `pnpm typecheck`
-- `pnpm test -- tests/integration/serve-script.test.ts tests/integration/promote-script.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts`
+- `pnpm build`
 
 ## Risks
-- `scripts/promote.sh` intentionally opens or refreshes a PR to `main`; it never merges or pushes directly to `main`, so release completion still depends on the normal GitHub review/merge path.
-- Promotion summaries are commit-driven, not `STICKYNOTE.md`-driven, so the release PR body is explicit but intentionally higher-level than feature-branch serve summaries.
-- Existing plain-language publish intent still maps to `/serve`; callers should invoke `/promote` explicitly for the separate `dev` -> `main` release step.
+- `pi-mcp-adapter` is project-local runtime configuration, so the tracked scaffold ships only placeholder token wiring and keeps secrets in `.env`.
+- The GitHub MCP baseline is intentionally opinionated; repos that do not want it can still edit `.pi/mcp.json`, but this scaffold now assumes GitHub-aware Pi usage by default.
+- The adapter relies on Pi restarting or reloading project packages before `/mcp` and the GitHub server are available in-session.
+
+## Result
+- Added tracked project-local MCP config at `.pi/mcp.json` and scaffold-template parity at `src/templates/pi/mcp.json`.
+- Registered `npm:pi-mcp-adapter` alongside `npm:pi-subagents` in dogfood and template `.pi/settings.json`.
+- Added GitHub token placeholders and setup guidance in docs and env templates.
+- Extended `doctor` and integration tests to enforce the new baseline.
