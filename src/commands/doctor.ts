@@ -384,6 +384,22 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!settings.includes('npm:pi-subagents')) {
       pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-subagents');
     }
+    if (!settings.includes('npm:pi-mcp-adapter')) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-mcp-adapter');
+    }
+  }
+
+  const mcpConfig = await readFileIfPresent(targetDir, '.pi/mcp.json');
+  if (mcpConfig !== null) {
+    if (!mcpConfig.includes('"github"')) {
+      pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP server entry');
+    }
+    if (!mcpConfig.includes('@modelcontextprotocol/server-github')) {
+      pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP server package');
+    }
+    if (!mcpConfig.includes('${GITHUB_PERSONAL_ACCESS_TOKEN}')) {
+      pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP token interpolation');
+    }
   }
 
   const systemGuide = await readFileIfPresent(targetDir, '.pi/SYSTEM.md');

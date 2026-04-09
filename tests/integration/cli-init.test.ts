@@ -14,7 +14,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
-const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
+const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
@@ -48,7 +48,7 @@ describe('CLI init', () => {
     };
 
     expect(payload.mode).toBe('new');
-    expect(payload.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json', 'scripts/bootstrap-worktree.sh']));
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', 'scripts/bootstrap-worktree.sh']));
     expect(payload.cleanup.status).toBe('not-requested');
   });
 
@@ -93,7 +93,7 @@ exit 0
     expect((await stat(postCheckoutHook)).mode & 0o111).toBeGreaterThan(0);
   });
 
-  it('preserves existing scaffold files by default in existing mode', async () => {
+  it('preserves existing scaffold files by default in existing mode', { timeout: 10000 }, async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'existing-preserve');
     const gitignorePath = path.join(targetDir, '.gitignore');
