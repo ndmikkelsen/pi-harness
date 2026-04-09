@@ -32,6 +32,7 @@ async function snapshotForProject(rootDir: string) {
     readme: await readProjectFile(rootDir, 'README.md'),
     agents: await readProjectFile(rootDir, 'AGENTS.md'),
     settings: await readProjectFile(rootDir, '.pi', 'settings.json'),
+    mcpConfig: await readProjectFile(rootDir, '.pi', 'mcp.json'),
     system: await readProjectFile(rootDir, '.pi', 'SYSTEM.md'),
     leadAgent: await readProjectFile(rootDir, '.pi', 'agents', 'lead.md'),
     roleWorkflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'role-workflow.ts'),
@@ -54,6 +55,7 @@ async function snapshotForProject(rootDir: string) {
     promoteScript: await readProjectFile(rootDir, 'scripts', 'promote.sh'),
     dockerfile: await readProjectFile(rootDir, 'docker', 'Dockerfile.cognee'),
     beadsConfig: await readProjectFile(rootDir, '.beads', 'config.yaml'),
+    envExample: await readProjectFile(rootDir, '.env.example'),
   };
 }
 
@@ -118,6 +120,7 @@ describe('scaffold snapshots', () => {
         '.pi/prompts/review-change.md',
         '.pi/prompts/feat-change.md',
         '.pi/settings.json',
+        '.pi/mcp.json',
         '.pi/skills/beads/SKILL.md',
         '.pi/skills/cognee/SKILL.md',
         '.pi/skills/red-green-refactor/SKILL.md',
@@ -157,9 +160,11 @@ describe('scaffold snapshots', () => {
     );
     expect(result.readme).toContain('Run `bd init` once in the repository before using Beads.');
     expect(result.readme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
+    expect(result.readme).toContain('This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.');
     expect(result.readme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.');
+    expect(result.readme).toContain('Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.');
     expect(result.readme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
     expect(result.readme).toContain('pnpm test:bdd');
     expect(result.agents).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
@@ -172,9 +177,11 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(result.agents).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
     expect(JSON.parse(result.settings)).toEqual({
-      packages: ['npm:pi-subagents'],
+      packages: ['npm:pi-subagents', 'npm:pi-mcp-adapter'],
       extensions: ['.pi/extensions/repo-workflows.ts'],
     });
+    expect(result.mcpConfig).toContain('@modelcontextprotocol/server-github');
+    expect(result.mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(result.system).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(result.system).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',

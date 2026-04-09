@@ -36,7 +36,7 @@ Before editing scaffold files in an existing project, gather:
 - git status, branch, remotes, and recent commits
 - Beads state if `bd` or `.beads/` is available
 - Cognee brief if `scripts/cognee-brief.sh` already exists
-- project docs like `README*`, `docs/**/*.md`, repo-local handoff docs when present, `AGENTS.md`, and any existing `.pi/**/*` runtime files, especially `.pi/settings.json`, `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts`
+- project docs like `README*`, `docs/**/*.md`, repo-local handoff docs when present, `AGENTS.md`, and any existing `.pi/**/*` runtime files, especially `.pi/settings.json`, `.pi/mcp.json`, `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts`
 - manifest files using `references/manifest-discovery.md`
 
 Use `assets/adoption-notes-template.md` as a scratch document if the repo is large or the context is noisy.
@@ -47,12 +47,13 @@ Prefer to tailor newly created files in this order:
 
 1. `AGENTS.md`
 2. `.pi/settings.json`
-3. `.pi/extensions/role-workflow.ts`
-4. `.pi/agents/*.md`
-5. `.pi/agents/*.chain.md`
-6. `.pi/extensions/repo-workflows.ts`
-7. `.pi/skills/bake/SKILL.md`
-8. `.pi/prompts/serve.md`
-9. `STICKYNOTE.example.md`
+3. `.pi/mcp.json`
+4. `.pi/extensions/role-workflow.ts`
+5. `.pi/agents/*.md`
+6. `.pi/agents/*.chain.md`
+7. `.pi/extensions/repo-workflows.ts`
+8. `.pi/skills/bake/SKILL.md`
+9. `.pi/prompts/serve.md`
+10. `STICKYNOTE.example.md`
 
 Do not add secrets to `.env.example`; keep placeholder values only.
