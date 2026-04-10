@@ -1,28 +1,34 @@
 # Implementation Plan
 
 ## Work Item
-`pi-harness-edk` — Add a separate dev-to-main promotion workflow
+untracked — resolve merge conflicts between `feat/bake` and `origin/dev`
 
 ## Goal
-Keep feature-branch `/serve` focused on PRs to `dev`, and add a separate explicit release step that pushes `dev` upstream and creates or refreshes a PR to `main`.
+Keep the `feat/bake` PR mergeable into `dev` by reconciling the bake/serve changes with the newer GitHub MCP and promote workflow updates already on `dev`.
 
 ## Knowledge Inputs
-- Active Beads issue: `pi-harness-edk`
-- Child tasks: `pi-harness-edk.2`, `pi-harness-edk.1`, `pi-harness-edk.3`
-- Cognee brief attempted with `./scripts/cognee-brief.sh "dev to main promotion workflow release step ensure local changes land upstream dev main"`, but it was stale and still referenced legacy `land.sh`; local repo files remained authoritative.
-- Primary sources: `AGENTS.md`, `README.md`, `.pi/prompts/serve.md`, `scripts/serve.sh`, `src/generators/pi.ts`, `src/commands/doctor.ts`, and the existing integration tests under `tests/integration/`.
+- `bd ready --json` returned `[]`, so there is no active Beads issue.
+- Cognee was skipped for this pass because the task is a bounded merge-conflict resolution and local git/doc/test context is sufficient.
+- Primary sources: `AGENTS.md`, `README.md`, `docs/bake-usage.md`, `src/generators/pi.ts`, `src/commands/doctor.ts`, and the conflicted integration tests.
 
 ## Test Strategy
-Hybrid, integration-led.
-- RED: `pnpm test -- tests/integration/promote-script.test.ts`
-- GREEN: implement `scripts/promote.sh`, `.pi/prompts/promote.md`, and matching scaffold/template wiring.
-- REFACTOR safety net: `pnpm test -- tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/serve-script.test.ts`
+Verification-led merge resolution.
+- No new user-facing behavior is being designed here; the goal is to preserve both already-tested changesets.
+- Reconcile conflicted files to keep the `feat/bake` surfaces plus `dev` additions for `.pi/mcp.json`, `npm:pi-mcp-adapter`, and `/promote`.
+- Run the narrow integration/typecheck/build suite that covers scaffold parity, doctor alignment, and init behavior after conflicts are resolved.
 
 ## Tasks
-1. Add failing integration coverage for a dedicated promotion script.
-2. Implement the runtime/template promotion workflow for `dev` -> `main`.
-3. Align docs, doctor checks, and scaffold parity around the new release-step split.
+1. Resolve conflicted runtime docs/prompts/templates in favor of the combined bake + MCP + promote baseline.
+2. Resolve conflicted generator/doctor logic so scaffolded projects keep both the bake rename and the newer MCP/promote wiring.
+3. Resolve conflicted integration tests so they assert the merged baseline rather than either side independently.
+4. Refresh repo-local handoff artifacts for this merge-resolution session.
+5. Verify with targeted test, typecheck, and build commands.
 
 ## Verification
+- `pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/promote-script.test.ts tests/integration/serve-script.test.ts tests/integration/cli-doctor.test.ts`
 - `pnpm typecheck`
-- `pnpm test -- tests/integration/serve-script.test.ts tests/integration/promote-script.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts`
+- `pnpm build`
+
+## Risks
+- The main risk is silently dropping either the bake rename/serve contract or the newer MCP/promote additions during conflict resolution.
+- Dogfood/template parity must stay exact or the docs-alignment and snapshot tests will drift.
