@@ -1,6 +1,7 @@
 {
   "packages": [
-    "npm:pi-subagents"
+    "npm:pi-subagents",
+    "npm:pi-mcp-adapter"
   ],
   "extensions": [
     ".pi/extensions/repo-workflows.ts"

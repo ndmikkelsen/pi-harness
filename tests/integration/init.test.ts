@@ -12,6 +12,7 @@ const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-r
 const requiredRuntimePaths = [
   'AGENTS.md',
   '.pi/settings.json',
+  '.pi/mcp.json',
   '.pi/SYSTEM.md',
   '.pi/agents/lead.md',
   '.pi/agents/explore.md',
@@ -24,6 +25,7 @@ const requiredRuntimePaths = [
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
   '.pi/prompts/serve.md',
+  '.pi/prompts/promote.md',
   '.pi/prompts/triage.md',
   '.pi/prompts/plan-change.md',
   '.pi/prompts/ship-change.md',
@@ -41,12 +43,14 @@ const requiredRuntimePaths = [
   'scripts/cognee-brief.sh',
   'scripts/sync-artifacts-to-cognee.sh',
   'scripts/serve.sh',
+  'scripts/promote.sh',
   'docker/Dockerfile.cognee',
   'config/deploy.cognee.yml'
 ];
 const existingModeBaselinePaths = [
   'AGENTS.md',
   '.pi/settings.json',
+  '.pi/mcp.json',
   '.pi/agents/lead.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
@@ -139,10 +143,14 @@ describe('runInit', () => {
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
     const systemPrompt = await readFile(path.join(projectDir, '.pi', 'SYSTEM.md'), 'utf8');
     const settings = await readFile(path.join(projectDir, '.pi', 'settings.json'), 'utf8');
+    const mcpConfig = await readFile(path.join(projectDir, '.pi', 'mcp.json'), 'utf8');
     const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
     const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
+    const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
     const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
+    const promoteScript = await readFile(path.join(projectDir, 'scripts', 'promote.sh'), 'utf8');
+    const envExample = await readFile(path.join(projectDir, '.env.example'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const bakeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
 
@@ -153,11 +161,15 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/bootstrap-worktree.sh');
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh');
     expect(agentsGuide).toContain('./scripts/serve.sh');
+    expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(systemPrompt).toContain('Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
     expect(systemPrompt).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(settings).toContain('npm:pi-subagents');
+    expect(settings).toContain('npm:pi-mcp-adapter');
+    expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
+    expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
     expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
     expect(workflowExtension).toContain("registerCommand('cognee-brief'");
@@ -171,7 +183,18 @@ describe('runInit', () => {
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
     expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
     expect(servePrompt).toContain("let's serve the dish");
+    expect(servePrompt).toContain('./scripts/promote.sh');
+    expect(promotePrompt).toContain('scripts/promote.sh');
+    expect(promotePrompt).toContain('/promote');
+    expect(promoteScript).toContain('--base main');
+    expect(servePrompt).toContain('./scripts/promote.sh');
+    expect(promotePrompt).toContain('scripts/promote.sh');
+    expect(promotePrompt).toContain('/promote');
+    expect(promotePrompt).toContain('PR to `main`');
+    expect(promoteScript).toContain('--base main');
+    expect(promoteScript).toContain('Post-promotion summary:');
     expect(syncArtifactsScript).toContain('context.md');
+    expect(envExample).toContain('GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE');
     expect(syncArtifactsScript).toContain('progress.md');
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
@@ -259,10 +282,13 @@ describe('runInit', () => {
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
     const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
+    const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
     const cogneeBriefScript = await readFile(path.join(projectDir, 'scripts', 'cognee-brief.sh'), 'utf8');
+    const promoteScript = await readFile(path.join(projectDir, 'scripts', 'promote.sh'), 'utf8');
 
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh "<query>"');
     expect(agentsGuide).toContain('./scripts/serve.sh');
+    expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("let's serve the dish");
     expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
     expect(adoptPrompt).toContain('--cleanup-manifest legacy-ai-frameworks-v1 --init-json');
@@ -271,6 +297,16 @@ describe('runInit', () => {
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
     expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
     expect(servePrompt).toContain("let's serve the dish");
+    expect(servePrompt).toContain('./scripts/promote.sh');
+    expect(promotePrompt).toContain('scripts/promote.sh');
+    expect(promotePrompt).toContain('/promote');
+    expect(promoteScript).toContain('--base main');
+    expect(servePrompt).toContain('./scripts/promote.sh');
+    expect(promotePrompt).toContain('scripts/promote.sh');
+    expect(promotePrompt).toContain('/promote');
+    expect(promotePrompt).toContain('PR to `main`');
+    expect(promoteScript).toContain('--base main');
+    expect(promoteScript).toContain('Post-promotion summary:');
     expect(cogneeBriefScript).toContain('scripts/cognee-bridge.sh');
     expect(cogneeBriefScript).toContain('exec "$BRIDGE" brief "$@"');
   });

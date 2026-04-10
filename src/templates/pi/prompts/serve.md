@@ -13,11 +13,13 @@ Use this prompt when implementation and verification are complete and the curren
 8. Treat plain-language requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to run the same `/serve` workflow when publishing is allowed in the current lane.
 9. Let serving sync shared Pi artifacts like `context.md`, `plan.md`, `progress.md`, `review.md`, and `wave.md` to Cognee when the local bridge is available.
 10. Report the pushed branch, pull request URL, refreshed PR body/completed-work summary, post-serve branch summary, verification evidence, and any follow-up issues.
+11. Use `/promote` or `./scripts/promote.sh` later for the separate `dev` -> `main` release step; do not overload `/serve` with main-promotion work.
 
 ## Guardrails
 - Planning, research, and review lanes must hand off instead of publishing.
 - Keep `/serve` prompt-native; do not shadow it with a project-local extension command.
 - `scripts/serve.sh` must never merge into or push directly to `main`.
+- Use `/promote` or `./scripts/promote.sh` for the separate `dev` -> `main` release step.
 - Serving now fails unless `STICKYNOTE.md` is present, still local-only, and updated beyond the untouched template before the PR is created or refreshed.
 - Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.
 - If serving fails, fix the cause and retry rather than stopping with unpublished local work.

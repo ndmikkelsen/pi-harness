@@ -4,7 +4,7 @@
 
 `pi-harness` is the local CLI that scaffolds and refreshes repositories for vanilla Pi.
 The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.
-Project-local subagent support is typically shared through `.pi/settings.json` with `npm:pi-subagents` plus repo-local agent files under `.pi/agents/*`.
+Project-local subagent support is typically shared through `.pi/settings.json` with `npm:pi-subagents`, while project-local MCP support can ride through `npm:pi-mcp-adapter` plus a tracked `.pi/mcp.json` for repo-specific servers.
 
 ## Install once on your machine
 
@@ -26,9 +26,10 @@ That gives you a local `pi-harness` command backed by this checkout.
 4. Use `AGENTS.md` as the canonical runtime instruction file.
 5. Use `.pi/agents/*.md` and `.pi/agents/*.chain.md` for the project-local role workflow, `.pi/skills/*.md` for reusable guidance, `.pi/prompts/*.md` for reusable slash workflows, and `.pi/extensions/*` for native workflow commands.
 6. The active main-session role should be easy to switch with `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role`.
-7. Keep shared Pi packages in `.pi/settings.json`; use package specs like `npm:pi-subagents` instead of machine-specific absolute extension paths.
-8. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
-9. Use BDD for user-visible behavior and TDD for lower-level logic; implementation plans should carry explicit RED -> GREEN -> REFACTOR checkpoints.
+7. Keep shared Pi packages in `.pi/settings.json`; use package specs like `npm:pi-subagents` and `npm:pi-mcp-adapter` instead of machine-specific absolute extension paths.
+8. Use `.pi/mcp.json` for tracked project-local MCP servers such as a GitHub server wired through `pi-mcp-adapter`; keep secrets in `.env`, not in the tracked config.
+9. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+10. Use BDD for user-visible behavior and TDD for lower-level logic; implementation plans should carry explicit RED -> GREEN -> REFACTOR checkpoints.
 
 ## New repository walkthrough
 
@@ -40,7 +41,7 @@ pi-harness acme-api --init-json
 
 What gets created:
 - `AGENTS.md`
-- `.pi/*`
+- `.pi/*` including `.pi/mcp.json` when the repo ships project-local MCP servers
 - `scripts/*`
 - Beads config and hook wiring
 - root setup files like `.gitignore`, `.env.example`, and deploy starters
@@ -50,9 +51,11 @@ What to do next:
 2. Run `pi-harness doctor .`.
 3. Run `bd init` once before using Beads.
 4. Use `AGENTS.md`, `.pi/*`, and `scripts/*` for daily work.
-5. Let Pi auto-install project packages from `.pi/settings.json`, including `npm:pi-subagents`, or run `pi install -l npm:pi-subagents` if needed.
-6. Use the project-local role workflow from `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts` so users can switch roles quickly without leaving the main session.
-7. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
+5. Let Pi auto-install project packages from `.pi/settings.json`, including `npm:pi-subagents` and `npm:pi-mcp-adapter`, or run `pi install -l npm:pi-subagents` and `pi install -l npm:pi-mcp-adapter` if needed.
+6. Fill in `.env` with placeholders from `.env.example`, including `GITHUB_PERSONAL_ACCESS_TOKEN` when you want the preconfigured GitHub MCP server from `.pi/mcp.json`.
+7. Use `/mcp` once Pi starts to inspect or reconnect the project-local GitHub MCP server.
+8. Use the project-local role workflow from `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts` so users can switch roles quickly without leaving the main session.
+9. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
 
 ## Existing repository walkthrough
 
@@ -88,13 +91,14 @@ pi-harness doctor <path>
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
-## Serve and STICKYNOTE contract
+## Serve, promote, and STICKYNOTE contract
 
 - `./scripts/bootstrap-worktree.sh` seeds `STICKYNOTE.md` from `STICKYNOTE.example.md` only when needed, then keeps linked worktrees pointed at the main worktree copy so local handoff context survives across worktrees.
 - `STICKYNOTE.md` is intentionally local-only and must remain untracked; the scaffold only ships `STICKYNOTE.example.md`.
 - `/serve` stays prompt-native, but plain-language publish requests such as `serve this branch` or `ship it` should route through the same serve workflow.
 - Serving now requires a refreshed `STICKYNOTE.md` with a non-empty `## Completed This Session` section. That completed-work summary becomes the basis for the PR body.
 - `scripts/serve.sh` creates or refreshes the PR body explicitly for both new and existing PRs and prints a short post-serve branch summary after pushing.
+- `/promote` and `scripts/promote.sh` are the separate release step for `dev` -> `main`; they require a clean `dev` branch, push `dev` upstream, and create or refresh an explicit PR body to `main` from the commit summary.
 
 ## Muninn comparison and curated knowledge-sync decision
 

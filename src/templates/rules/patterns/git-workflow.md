@@ -3,7 +3,7 @@
 Use safe branch-based collaboration by default.
 
 - create feature branches early and avoid working directly on `main` or `dev`
-- land feature work by pushing the feature branch upstream and opening or updating a pull request to `dev`
+- land feature work by pushing the feature branch upstream and ensuring a pull request to `dev` exists
 - keep promotion from `dev` to `main` as a separate release step
 - use conventional commit messages
 - do not overwrite or revert unrelated user changes in a dirty worktree

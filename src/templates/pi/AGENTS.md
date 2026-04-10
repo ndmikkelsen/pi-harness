@@ -31,7 +31,7 @@ The canonical project surfaces are:
 6. Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.
 7. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role between `lead`, `explore`, `plan`, `build`, and `review`.
 8. Use project-local agents and chains under `.pi/agents/*` with pi-subagents when the work benefits from narrow delegation, caller-managed parallel waves, or repo-specific role handoffs.
-9. Use `.pi/prompts/adopt.md`, `.pi/prompts/triage.md`, `.pi/prompts/serve.md`, `.pi/prompts/plan-change.md`, `.pi/prompts/ship-change.md`, `.pi/prompts/parallel-wave.md`, `.pi/prompts/review-change.md`, and `.pi/prompts/feat-change.md` for reusable slash workflows.
+9. Use `.pi/prompts/adopt.md`, `.pi/prompts/triage.md`, `.pi/prompts/serve.md`, `.pi/prompts/promote.md`, `.pi/prompts/plan-change.md`, `.pi/prompts/ship-change.md`, `.pi/prompts/parallel-wave.md`, `.pi/prompts/review-change.md`, and `.pi/prompts/feat-change.md` for reusable slash workflows.
 10. Use the commands and shortcuts registered by project-local `.pi/extensions/*` files when native slash-command execution is the cleanest path.
 11. If you are in an execution or autonomous serving lane, finish with `./scripts/serve.sh`.
 
@@ -68,6 +68,13 @@ This project uses `bd` for issue tracking.
 - Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.
 - `scripts/serve.sh` is a feature-branch closeout only. It must never merge into or push directly to `main`.
 - Work is not complete until the feature branch is pushed and the pull request to `dev` exists or is updated.
+
+## Promotion authority
+
+- Only execution or autonomous release lanes should run `./scripts/promote.sh`.
+- Use `/promote` or `./scripts/promote.sh` only from `dev` when the release changes already live on `dev` and you need a PR to `main`.
+- `scripts/promote.sh` pushes `dev` and creates or refreshes the PR to `main`; it must never merge into or push directly to `main`.
+- Keep feature-branch publishing on `/serve` / `./scripts/serve.sh`; do not overload serve for the `dev` -> `main` release step.
 
 ## Beads + Cognee loop
 

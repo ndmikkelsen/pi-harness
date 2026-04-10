@@ -23,6 +23,7 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'directory', path: 'docker' },
     { kind: 'file', path: 'AGENTS.md', content: () => template('pi/AGENTS.md') },
     { kind: 'file', path: '.pi/settings.json', content: () => template('pi/settings.json') },
+    { kind: 'file', path: '.pi/mcp.json', content: () => template('pi/mcp.json') },
     { kind: 'file', path: '.pi/SYSTEM.md', content: () => template('pi/SYSTEM.md') },
     { kind: 'file', path: '.pi/agents/lead.md', content: () => template('pi/agents/lead.md') },
     { kind: 'file', path: '.pi/agents/explore.md', content: () => template('pi/agents/explore.md') },
@@ -43,6 +44,7 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     { kind: 'file', path: '.pi/prompts/adopt.md', content: () => template('pi/prompts/adopt.md') },
     { kind: 'file', path: '.pi/prompts/serve.md', content: () => template('pi/prompts/serve.md') },
+    { kind: 'file', path: '.pi/prompts/promote.md', content: () => template('pi/prompts/promote.md') },
     { kind: 'file', path: '.pi/prompts/triage.md', content: () => template('pi/prompts/triage.md') },
     { kind: 'file', path: '.pi/prompts/plan-change.md', content: () => template('pi/prompts/plan-change.md') },
     { kind: 'file', path: '.pi/prompts/ship-change.md', content: () => template('pi/prompts/ship-change.md') },
@@ -116,6 +118,12 @@ export function buildPiEntries(): ManagedEntry[] {
       kind: 'file',
       path: 'scripts/serve.sh',
       content: () => template('pi/scripts/serve.sh'),
+      executable: true,
+    },
+    {
+      kind: 'file',
+      path: 'scripts/promote.sh',
+      content: () => template('pi/scripts/promote.sh'),
       executable: true,
     },
     {

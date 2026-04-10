@@ -3,12 +3,14 @@
 This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.
 Provider and model choice stay inside Pi runtime configuration, not in the scaffold identity.
 Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.
+This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.
 
 ## Runtime surfaces
 
 The canonical workflow surfaces are:
 - `AGENTS.md`
 - `.pi/settings.json`
+- `.pi/mcp.json`
 - `.pi/SYSTEM.md`
 - `.pi/agents/*`
 - `.pi/extensions/*`
@@ -38,8 +40,8 @@ The canonical workflow surfaces are:
 2. Start Pi in the repository so it can install any project packages declared in `.pi/settings.json`.
 3. Run `/login` to configure the provider credentials you want Pi to use.
 4. Run `/model` to select the current model.
-5. This scaffold declares `npm:pi-subagents` in `.pi/settings.json`; if Pi does not auto-install it on startup, run `pi install -l npm:pi-subagents`.
-6. Use `.pi/settings.json` for project-local overrides and package sources, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
+5. This scaffold declares `npm:pi-subagents` and `npm:pi-mcp-adapter` in `.pi/settings.json`; if Pi does not auto-install them on startup, run `pi install -l npm:pi-subagents` and `pi install -l npm:pi-mcp-adapter`.
+6. Use `.pi/settings.json` for project-local overrides and package sources, `.pi/mcp.json` for project-local MCP servers, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
 
 ## Next steps
 
@@ -47,13 +49,15 @@ The canonical workflow surfaces are:
 2. Review `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.
 3. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.
 4. Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.
-5. Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, or `/review-change` for common role-based flows.
-6. Copy `.env.example` to `.env` and fill in local values.
-7. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
-8. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
-9. Run `bd init` once in the repository before using Beads.
-10. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
-11. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
-12. Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.
-13. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
-14. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+5. Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.
+6. Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.
+7. Copy `.env.example` to `.env` and fill in local values, including `GITHUB_PERSONAL_ACCESS_TOKEN` if you want the preconfigured GitHub MCP server.
+8. On a fresh checkout or worktree, run `./scripts/bootstrap-worktree.sh`.
+9. If `pre-commit` is installed locally, `pi-harness` already wires the worktree bootstrap hook; otherwise keep `scripts/hooks/post-checkout` available for later hook installation.
+10. Run `bd init` once in the repository before using Beads.
+11. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+12. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
+13. Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.
+14. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+15. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
+16. When `dev` is ready for release, run `/promote` or `./scripts/promote.sh` from `dev`; it pushes `dev` upstream and ensures a PR to `main` exists or is refreshed.

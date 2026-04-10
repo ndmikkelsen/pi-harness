@@ -214,6 +214,27 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the promote prompt loses main PR guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-promote-prompt-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'promote.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('PR to `main`', 'pull request to main'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/promote.md',
+          reason: 'missing main pull request guidance'
+        })
+      ])
+    );
+  });
+
   it('fails when the serve prompt loses completed-work guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-serve-prompt-guidance');
@@ -368,6 +389,48 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when project settings lose pi-mcp-adapter package registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-adapter-package');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = await readFile(settingsPath, 'utf8');
+    await writeFile(settingsPath, settings.replace('"npm:pi-mcp-adapter"', '"npm:missing-mcp-package"'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing package registration for npm:pi-mcp-adapter'
+        })
+      ])
+    );
+  });
+
+  it('fails when the project MCP config loses the GitHub server token wiring', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-config');
+
+    const mcpConfigPath = path.join(targetDir, '.pi', 'mcp.json');
+    const mcpConfig = await readFile(mcpConfigPath, 'utf8');
+    await writeFile(mcpConfigPath, mcpConfig.replaceAll('GITHUB_PERSONAL_ACCESS_TOKEN', 'GITHUB_TOKEN'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/mcp.json',
+          reason: 'missing GitHub MCP token interpolation'
+        })
+      ])
+    );
+  });
+
   it('fails when project settings lose pi-subagents package registration', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-subagents-package');
@@ -496,6 +559,27 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
           reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when promote.sh loses the main pull request target', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-promote-target');
+
+    const promotePath = path.join(targetDir, 'scripts', 'promote.sh');
+    const promoteScript = await readFile(promotePath, 'utf8');
+    await writeFile(promotePath, promoteScript.replace('--base main', '--base release'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'scripts/promote.sh',
+          reason: 'missing main pull request target'
         })
       ])
     );
