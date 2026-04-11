@@ -20,7 +20,7 @@ Freeze the user-visible adoption contract so baked repos keep `bake` as the cano
 
 - adopted repos create `.pi/skills/bake/SKILL.md` as the canonical bake surface
 - adopted repos still create `.pi/prompts/adopt.md` for conservative `/adopt` compatibility
-- the bake skill keeps the `name: bake` contract and existing-repo adoption guidance
+- the bake skill keeps the `name: bake` contract and distinguishes baked-repo refreshes from conservative adoption guidance
 - the adopt prompt keeps the existing-repo `pi-harness --mode existing . --init-json` path
 - no OpenCode or OMO compatibility files are generated
 

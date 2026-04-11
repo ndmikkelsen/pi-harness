@@ -24,7 +24,7 @@ The canonical workflow surfaces are:
 
 - Scaffolded with `pi-harness` v0.1.0 on 2026-04-05.
 - Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
-- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `pi-harness --mode existing <path> --init-json`, then customize only `createdPaths`.
+- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `/bake` or `scripts/bake.sh` for the target repo, then customize only the resulting managed outputs you intentionally want to tailor.
 - Finish updates with `pi-harness doctor <path>`.
 - This scaffold assumes `pi-harness` is used locally to set up and refresh repos, not consumed as a registry-published package.
 
@@ -39,8 +39,8 @@ The canonical workflow surfaces are:
    ```
 
 2. `pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`.
-3. That user-global `/bake` surface is the first-bake bootstrapper for untouched repos: it should delegate to `pi-harness --init-json` and must not become a second source of repo policy.
-4. After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. In baked repos, prefer the generated repo-local `/bake` prompt, keep `/adopt` as the compatibility path for conservative existing-repo refreshes, and follow `createdPaths` / `skippedPaths` before rewriting scaffold files.
+3. That user-global `/bake` surface is the first-bake bootstrapper for untouched repos: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.
+4. After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. In baked repos, prefer the generated repo-local `/bake` command and `scripts/bake.sh`, use `/skill:bake` when you want the same contract explained first, and keep `/adopt` only as the conservative compatibility path.
 
 ## If you are migrating from scaiff
 
@@ -62,7 +62,7 @@ The canonical workflow surfaces are:
 
 1. Read `AGENTS.md`.
 2. Review `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.
-3. In untouched repos, use the user-global `/bake` surface to bootstrap Pi files; in baked repos, keep the generated repo-local `/bake` prompt as the canonical setup surface.
+3. In untouched repos, use the user-global `/bake` surface to bootstrap Pi files; in baked repos, use the generated repo-local `/bake` command or `/skill:bake` guidance for refreshes.
 4. Keep `/adopt` available as the compatibility path for conservative existing-repo refreshes and older handoff notes.
 5. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.
 6. Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.
@@ -74,7 +74,7 @@ The canonical workflow surfaces are:
 12. Run `bd init` once in the repository before using Beads.
 13. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
 14. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
-15. Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.
-16. If you are adopting a repo with legacy AI framework files, use `pi-harness --mode existing <path> --cleanup-manifest legacy-ai-frameworks-v1 --init-json`.
+15. Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.
+16. Existing-repo `/bake` runs already apply curated legacy AI-scaffolding cleanup; keep raw `pi-harness` cleanup flags for advanced or manual fallback cases only.
 17. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
 18. When `dev` is ready for release, run `/promote` or `./scripts/promote.sh` from `dev`; it pushes `dev` upstream and ensures a PR to `main` exists or is refreshed.

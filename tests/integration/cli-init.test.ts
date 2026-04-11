@@ -14,7 +14,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
-const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
+const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/bake.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
@@ -257,6 +257,45 @@ exit 0
       expect.arrayContaining([expect.objectContaining({ path: legacyRuntimeDir, status: 'prompt-required' })])
     );
   });
+  it('auto-confirms curated cleanup entries when cleanup-confirm-all is set', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-confirm-all');
+
+    await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
+    await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
+
+    const result = await execFile(
+      process.execPath,
+      [
+        tsxCli,
+        'src/cli.ts',
+        '--mode',
+        'existing',
+        '--cleanup-manifest',
+        'legacy-ai-frameworks-v1',
+        '--cleanup-confirm-all',
+        '--init-json',
+        targetDir
+      ],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const payload = JSON.parse(result.stdout) as {
+      cleanup: {
+        status: string;
+        removedPaths: string[];
+        summary: { promptRequired: number };
+      };
+    };
+
+    expect(payload.cleanup.status).toBe('applied');
+    expect(payload.cleanup.summary.promptRequired).toBe(0);
+    expect(payload.cleanup.removedPaths).toEqual(expect.arrayContaining(['.codex']));
+  });
+
 
   it('reports mixed adoption outcomes for created skipped and removed files in init-json output', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));

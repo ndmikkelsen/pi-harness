@@ -48,8 +48,8 @@ function assertCanonicalBakeAndAdoptCompatibility(world: CliFeatureWorld): void 
   expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
   expect(bakeSkill).toContain('name: bake');
   expect(bakeSkill).toContain('# Bake');
-  expect(bakeSkill).toContain('adopt an existing codebase into the scaffold');
-  expect(bakeSkill).toContain('pi-harness --mode existing . --init-json');
+  expect(bakeSkill).toContain('/skill:bake');
+  expect(bakeSkill).toContain('pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json');
 }
 
 export async function givenExistingProjectDirectoryWithCustomRootFiles(world: CliFeatureWorld): Promise<void> {

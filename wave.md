@@ -4,37 +4,29 @@
 Direct closeout
 
 ## Work Item
-untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
+untracked — merge `origin/main` back into `dev`, refresh the release PR to `main`, and merge it if GitHub allows.
 
 ## Knowledge
 - `bd ready --json` returned `[]`.
-- Cognee was skipped because this is a bounded release-conflict fix and repository/PR state is sufficient.
-- The current release PR is `https://github.com/ndmikkelsen/pi-harness/pull/16`.
-- This is a promotion lane on `dev`, so the publish step is `/promote` / `./scripts/promote.sh` rather than feature-branch `/serve`.
+- `origin/dev` contained the new `/bake` feature work.
+- `origin/main` contained the latest release commit and had to be merged back into `dev` before promotion.
+- No open `dev` -> `main` PR existed before this session.
 
 ## Test Strategy
 Merge-verification only.
-- Surface conflicts locally by merging `origin/main` into `dev`.
-- Resolve only the conflicting handoff artifacts.
-- Re-run the release verification path and push `dev`.
-- Confirm PR #16 returns to a mergeable state.
-
-## Agents / Chains
-Main session only. The task is small, overlap-heavy, and not worth splitting.
+- Resolve the `origin/main` -> `dev` conflicts.
+- Re-run the release verification path.
+- Run `./scripts/promote.sh` from `dev`.
+- If the resulting PR is mergeable and the user explicitly wants completion, merge it through GitHub.
 
 ## Verification
-Completed path:
+Pending after merge resolution:
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm test:bdd`
 - `pnpm test:smoke:dist`
 - `gitleaks detect --source . --config .gitleaks.toml`
-- `gh pr view 16 --json mergeable,mergeStateStatus`
-
-## Outcome
-- `main` was merged back into `dev` and only the conflicting tracked handoff artifacts were reconciled.
-- `./scripts/promote.sh` pushed `dev` and refreshed PR #16 to `main`.
-- PR #16 is back to a clean, mergeable state.
+- `gh pr view <number> --json mergeable,mergeStateStatus,url`
 
 ## Risks
-- Low: future conflicts on this PR are now most likely only if `main` advances again before merge.
+- Low: the release should be straightforward once `dev` is re-verified and the PR is refreshed.
