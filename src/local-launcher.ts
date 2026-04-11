@@ -124,7 +124,7 @@ function parseCommandArgs(input: string): string[] {
       continue;
     }
 
-    if (char === '\\\\') {
+    if (char === '\\') {
       escaped = true;
       continue;
     }
@@ -148,7 +148,7 @@ function parseCommandArgs(input: string): string[] {
       continue;
     }
 
-    if (/\\s/.test(char)) {
+    if (/\s/.test(char)) {
       if (current.length > 0) {
         args.push(current);
         current = '';
@@ -160,7 +160,7 @@ function parseCommandArgs(input: string): string[] {
   }
 
   if (escaped) {
-    current += '\\\\';
+    current += '\\';
   }
 
   if (quote) {

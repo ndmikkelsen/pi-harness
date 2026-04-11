@@ -1,29 +1,23 @@
 # Review
 
 ## Verdict
-Pass for `pi-harness-cw9`.
+Ready to merge to `dev` once the refreshed PR updates on GitHub.
 
 ## What changed
-- `/bake` is now a Pi-native execution path in both the installed global extension and baked repos.
-- Existing-repo native bake runs now refresh managed scaffold files and auto-confirm curated legacy AI-scaffolding cleanup.
-- `/skill:bake` guidance now points at the same native `/bake` contract.
-- Generated docs/templates/doctor checks match the new contract.
+- The escaping bug in the generated global Pi `/bake` extension is fixed.
+- Narrow regression coverage now protects the generated extension output and installed artifact import path.
+- The feature branch has been refreshed with the latest `origin/dev` state.
 
 ## Risks
-- The aggressive cleanup behavior is intentionally scoped to the curated `legacy-ai-frameworks-v1` manifest plus explicit `--cleanup-confirm-all`; conservative fallback still exists through `/adopt` and raw CLI usage.
-- Custom advanced flag combinations beyond the default `/bake` flow still depend on users choosing the explicit fallback path.
+- Low: the change is isolated to generated extension escaping and protected by focused regression coverage.
 
 ## Caller-side checks
-- Run `/bake` in an empty directory and confirm it emits new-project scaffold JSON.
-- Run `/bake` in an existing repo containing curated legacy AI scaffolding and confirm only pi-harness baseline files remain.
-- Run `pi-harness doctor <target>` after bake when you want an explicit audit.
+- Confirm PR #19 reports a clean merge state after the refreshed branch push.
+- Merge PR #19 to `dev`, then continue promotion from `dev` to `main`.
 
 ## Verification evidence
+- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
 - `pnpm typecheck`
-- `pnpm test`
-- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
-- `pnpm test:smoke:dist`
-
-## Beads / Cognee
-- Active Beads issue: `pi-harness-cw9`
-- Cognee brief fallback recorded because datasets are missing.
+- `pnpm build`
+- `pnpm install:local`
+- `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`

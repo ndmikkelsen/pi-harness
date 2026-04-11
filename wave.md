@@ -1,21 +1,20 @@
 # Execution Approach
 
 ## Mode
-Direct bugfix
+Direct bugfix closeout
 
 ## Work Item
-pi-harness-4mj — fix generated global `/bake` extension escaping so `pnpm install:local` emits parseable TypeScript.
+pi-harness-4mj — fix generated global `/bake` extension escaping and land it through `dev` and `main`.
 
 ## Knowledge
-- `bd ready --json` returned `[]`, so the bug was created and claimed as `pi-harness-4mj`.
-- Cognee brief was attempted and unavailable because datasets are not seeded.
-- The generated extension in `~/.pi/agent/extensions/pi-harness-bake/index.ts` was emitting under-escaped backslashes, producing `if (char === '\')` as `if (char === '")` in the installed file and causing Pi startup to fail.
+- The installed global extension was failing Pi startup with an unterminated string constant.
+- PR #19 to `dev` initially conflicted because `fix/bake` was behind `origin/dev`.
+- The code merged cleanly with `origin/dev`; only tracked handoff artifacts required manual resolution.
 
 ## Test Strategy
 TDD, narrow regression-first.
-- RED: add tests proving the rendered global extension preserves escaped backslashes and can be parsed/imported after generation.
-- GREEN: fix the escaping in `renderGlobalBakeExtension`.
-- REFACTOR: rebuild and reinstall locally, then import the installed extension to confirm the real artifact parses.
+- Focus verification on the generated global extension and installed artifact parse path.
+- Refresh the branch with `origin/dev`, then continue the normal serve/promote workflow.
 
 ## Verification
 - `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
@@ -25,4 +24,4 @@ TDD, narrow regression-first.
 - `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`
 
 ## Risks
-- Low: fix is isolated to generated extension escaping and targeted tests now cover the installed artifact path.
+- Low: remaining work is release plumbing after the refreshed branch push.
