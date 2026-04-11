@@ -14,6 +14,7 @@ export interface ResolvedProjectInput {
   appVar: string;
   targetDir: string;
   mode: Exclude<ProjectMode, 'auto'>;
+  inferenceNotes: string[];
 }
 
 export interface PortSettings {

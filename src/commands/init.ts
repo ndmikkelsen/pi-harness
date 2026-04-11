@@ -59,7 +59,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
     mergeRootFiles: options.mergeRootFiles
   });
 
-  const notes = [...portSettings.notes];
+  const notes = [...input.inferenceNotes, ...portSettings.notes];
   notes.push(
     'Use `pi-harness` locally on your machine to scaffold repos. The documented setup path is a checkout plus `pnpm build` and `pnpm install:local`; there is no registry-published package.'
   );
