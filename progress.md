@@ -4,7 +4,7 @@
 untracked — resolve `dev` -> `main` promotion PR conflicts and refresh the release PR
 
 ## Status
-In Progress
+Completed
 
 ## Test Strategy
 Hybrid, merge-verification led.
@@ -16,9 +16,9 @@ Hybrid, merge-verification led.
 ## Tasks
 - [x] Confirm PR #16 is conflicting against `main`.
 - [x] Merge `origin/main` into `dev` to surface the exact conflicts.
-- [ ] Resolve the conflicting handoff artifacts without changing the shipped scaffold/runtime contract.
-- [ ] Rerun the narrowest verification that proves the release branch is healthy.
-- [ ] Push `dev` and confirm the PR is mergeable again.
+- [x] Resolve the conflicting handoff artifacts without changing the shipped scaffold/runtime contract.
+- [x] Rerun the narrowest verification that proves the release branch is healthy.
+- [x] Push `dev` and confirm the PR is mergeable again.
 
 ## Files Changed
 - `progress.md` - current release-conflict execution notes and verification trace.
@@ -28,9 +28,11 @@ Hybrid, merge-verification led.
 ## Verification Evidence
 - RED: `gh pr view 16 --json mergeable,mergeStateStatus` returned `"mergeable":"CONFLICTING"` and `"mergeStateStatus":"DIRTY"`.
 - RED: `git merge --no-ff --no-commit origin/main` surfaced conflicts in `progress.md`, `review.md`, and `wave.md`.
-- GREEN: pending merge resolution and post-merge verification.
-- REFACTOR: pending PR refresh after verification.
+- GREEN: resolved the merge by reconciling only `progress.md`, `review.md`, and `wave.md`, then committed `chore: merge main into dev for release parity`.
+- GREEN: `./scripts/promote.sh` passed `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, `pnpm test:smoke:dist`, and `gitleaks detect --source . --config .gitleaks.toml`.
+- REFACTOR: `gh pr view 16 --json mergeable,mergeStateStatus` now returns `"mergeable":"MERGEABLE"` and `"mergeStateStatus":"CLEAN"`; the PR description was refreshed with summary, details, and verification.
 
 ## Notes
 - `bd ready --json` returned `[]`, so this remains untracked.
 - Because this is the `dev` -> `main` release path, the publish step is `./scripts/promote.sh`, not feature-branch `./scripts/serve.sh`.
+- PR #16 is now cleanly mergeable into `main`: https://github.com/ndmikkelsen/pi-harness/pull/16

@@ -23,13 +23,18 @@ Merge-verification only.
 Main session only. The task is small, overlap-heavy, and not worth splitting.
 
 ## Verification
-Target path:
+Completed path:
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm test:bdd`
 - `pnpm test:smoke:dist`
+- `gitleaks detect --source . --config .gitleaks.toml`
 - `gh pr view 16 --json mergeable,mergeStateStatus`
 
+## Outcome
+- `main` was merged back into `dev` and only the conflicting tracked handoff artifacts were reconciled.
+- `./scripts/promote.sh` pushed `dev` and refreshed PR #16 to `main`.
+- PR #16 is back to a clean, mergeable state.
+
 ## Risks
-- Accidentally changing release behavior while resolving note-file conflicts.
-- Forgetting to refresh the already-open PR after pushing the merge fix.
+- Low: future conflicts on this PR are now most likely only if `main` advances again before merge.
