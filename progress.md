@@ -28,12 +28,14 @@ Hybrid, BDD-led.
 - `src/commands/doctor.ts` - validate the managed bake prompt and related workflow contract.
 - `src/core/project-input.ts`, `src/core/strings.ts` - repair inferred names for invalid directory basenames while keeping explicit names strict.
 - `README.md`, `docs/bake-usage.md`, `src/templates/root/README.md`, `.pi/prompts/*`, `.pi/skills/bake/SKILL.md`, `.pi/extensions/repo-workflows.ts` - document and dogfood the new bake story.
+- `src/templates/pi/mcp.json` - realign the scaffolded MCP baseline with the dogfooded `.pi/mcp.json` so release verification stays green.
 - `tests/unit/project-context.test.ts`, `tests/unit/local-launcher.test.ts`, `tests/integration/global-bake-install.test.ts`, `tests/integration/cli-init.test.ts`, `tests/integration/init.test.ts`, `tests/integration/scaffold-snapshots.test.ts`, `tests/integration/cli-doctor.test.ts`, `tests/integration/docs-alignment.test.ts`, `apps/cli/features/adoption/*` - lock the new behavior into BDD/unit/integration coverage.
 - `.envrc` - export `GITHUB_PERSONAL_ACCESS_TOKEN` from `_GITHUB_PERSONAL_ACCESS_TOKEN` only when the helper variable is set.
 
 ## Verification Evidence
 - BDD contract: `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 - Targeted suite: `pnpm test -- tests/unit/project-context.test.ts tests/unit/local-launcher.test.ts tests/integration/cli-init.test.ts tests/integration/global-bake-install.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/cli-doctor.test.ts tests/integration/docs-alignment.test.ts`
+- Release-prep RED/GREEN: `./scripts/promote.sh` failed first on `tests/integration/docs-alignment.test.ts` because `src/templates/pi/mcp.json` was missing `directTools: true`; `pnpm test -- tests/integration/docs-alignment.test.ts` passed after realigning the template.
 - Beads closure:
   - `pi-harness-bur.1` closed with BDD verification
   - `pi-harness-bur.2` closed with scoped scaffold smoke verification
