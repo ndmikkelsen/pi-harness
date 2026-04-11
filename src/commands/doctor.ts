@@ -21,6 +21,7 @@ function createDoctorContext(targetDir: string): ScaffoldContext {
     appSlug: 'doctor-app',
     appTitle: 'Doctor App',
     appVar: 'DOCTOR_APP',
+    inferenceNotes: [],
     targetDir,
     mode: 'existing',
     doltPort: DEFAULT_POLICY.defaultDoltPort,
