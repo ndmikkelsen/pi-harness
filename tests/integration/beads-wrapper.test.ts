@@ -64,7 +64,7 @@ describe('Beads integration', () => {
 
     expect(readme).toContain('Run `bd init` once in the repository before using Beads.');
     expect(readme).toContain('Review `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.');
-    expect(readme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(readme).toContain('Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.');
     expect(agentsGuide).toContain('This project uses `bd` for issue tracking.');
     expect(agentsGuide).toContain('2. `bd update <id> --claim --json`');
     expect(agentsGuide).toContain(
@@ -78,9 +78,9 @@ describe('Beads integration', () => {
     expect(beadsSkill).toContain(
       '6. if the session is in an execution or autonomous serving lane, finish with `./scripts/serve.sh`',
     );
-    expect(bakeSkill).toContain('---\nname: bake\ndescription: Use the pi-harness CLI to scaffold new and existing repositories for vanilla Pi with Beads, Cognee, and project-local `.pi/*` runtime surfaces.\n---');
+    expect(bakeSkill).toContain('---\nname: bake\ndescription: Use the pi-harness CLI and Pi-native `/bake` flow to scaffold new and existing repositories for vanilla Pi with Beads, Cognee, and project-local `.pi/*` runtime surfaces.\n---');
     expect(bakeSkill).toContain('Beads state if `bd` or `.beads/` is available');
-    expect(bakeSkill).toContain('Run `pi-harness doctor <target>` after setup.');
+    expect(bakeSkill).toContain('Run `pi-harness doctor <target>` after setup when you need an explicit audit.');
     expect(cogneeSkill).toContain('knowledge garden');
     expect(redGreenRefactorSkill).toContain('RED');
     expect(parallelSkill).toContain('---\nname: parallel-wave-design\ndescription: Repo-local guidance for shaping safe Pi subagent batches in pi-harness without duplicating workflow authority.\n---');

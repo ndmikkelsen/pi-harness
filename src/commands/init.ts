@@ -47,6 +47,7 @@ export async function runInit(options: InitCommandOptions): Promise<InitResult> 
     targetDir: context.targetDir,
     manifestId: options.cleanupManifestId,
     dryRun: options.dryRun,
+    cleanupConfirmAll: options.cleanupConfirmAll,
     nonInteractive: options.nonInteractive,
     confirmCleanup: options.confirmCleanup
   });

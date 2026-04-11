@@ -1,31 +1,29 @@
-# Review Verdict
-
-## Work Item
-untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
+# Review
 
 ## Verdict
-Ready to merge
+Pass for `pi-harness-cw9`.
 
-## Scope Reviewed
-- release PR mergeability against `main`
-- conflicting handoff artifacts only (`progress.md`, `review.md`, `wave.md`)
-- no intended changes to scaffold, runtime, or release-script behavior beyond conflict cleanup
+## What changed
+- `/bake` is now a Pi-native execution path in both the installed global extension and baked repos.
+- Existing-repo native bake runs now refresh managed scaffold files and auto-confirm curated legacy AI-scaffolding cleanup.
+- `/skill:bake` guidance now points at the same native `/bake` contract.
+- Generated docs/templates/doctor checks match the new contract.
 
-## Key Checks
-- keep the shipped `dev` branch behavior intact while resolving the merge
-- avoid introducing new release logic while touching only the conflicting notes artifacts
-- confirm the refreshed PR remains a `dev` -> `main` promotion PR with an accurate body
+## Risks
+- The aggressive cleanup behavior is intentionally scoped to the curated `legacy-ai-frameworks-v1` manifest plus explicit `--cleanup-confirm-all`; conservative fallback still exists through `/adopt` and raw CLI usage.
+- Custom advanced flag combinations beyond the default `/bake` flow still depend on users choosing the explicit fallback path.
 
-## Verification Run
+## Caller-side checks
+- Run `/bake` in an empty directory and confirm it emits new-project scaffold JSON.
+- Run `/bake` in an existing repo containing curated legacy AI scaffolding and confirm only pi-harness baseline files remain.
+- Run `pi-harness doctor <target>` after bake when you want an explicit audit.
+
+## Verification evidence
 - `pnpm typecheck`
 - `pnpm test`
-- `pnpm test:bdd`
+- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 - `pnpm test:smoke:dist`
-- `gitleaks detect --source . --config .gitleaks.toml`
-- `gh pr view 16 --json mergeable,mergeStateStatus`
-- `git status --short --branch`
 
-## Outcome
-- Only the conflicting tracked handoff artifacts were reconciled.
-- PR #16 now reports a clean merge state and remains targeted from `dev` to `main`.
-- The PR description was refreshed after promotion so reviewers still have a summary, detailed description, and verification list.
+## Beads / Cognee
+- Active Beads issue: `pi-harness-cw9`
+- Cognee brief fallback recorded because datasets are missing.

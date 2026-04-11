@@ -435,7 +435,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const extension = await readFileIfPresent(targetDir, '.pi/extensions/repo-workflows.ts');
   if (extension !== null) {
-    for (const token of ["registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
+    for (const token of ["registerCommand('bake'", "registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bake.sh', 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
       if (!extension.includes(token)) {
         pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', `missing native workflow command glue: ${token}`);
       }
@@ -457,10 +457,10 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const bakePrompt = await readFileIfPresent(targetDir, '.pi/prompts/bake.md');
   if (bakePrompt !== null) {
     for (const [token, reason] of [
-      ['canonical repo-local Pi setup surface', 'missing canonical repo-local bake guidance'],
-      ['pi-harness --mode existing . --init-json', 'missing existing-repo bake command'],
-      ['prefer `/bake` as the canonical Pi setup surface', 'missing canonical /bake guidance'],
-      ['Keep `/adopt` available as the compatibility path', 'missing /adopt compatibility guidance'],
+      ['Use `/bake` as the canonical Pi-native entrypoint', 'missing canonical /bake entrypoint guidance'],
+      ['/skill:bake', 'missing /skill:bake guidance'],
+      ['auto-detect whether the target is `new` or `existing`', 'missing bake auto-detect guidance'],
+      ['legacy-ai-frameworks-v1', 'missing legacy cleanup guidance'],
       ['pi-harness doctor <target>', 'missing doctor follow-up guidance'],
     ] as const) {
       if (!bakePrompt.includes(token)) {
@@ -562,8 +562,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const bakeSkill = await readFileIfPresent(targetDir, '.pi/skills/bake/SKILL.md');
   if (bakeSkill !== null) {
     validateSkillFrontmatter(alignmentInvalid, '.pi/skills/bake/SKILL.md', bakeSkill, 'bake');
-    if (!bakeSkill.includes('pi-harness --mode existing . --init-json')) {
-      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing existing-repo adoption command');
+    if (!bakeSkill.includes('/skill:bake')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing /skill:bake guidance');
+    }
+    if (!bakeSkill.includes('--cleanup-confirm-all')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing existing-repo cleanup-confirm guidance');
     }
     if (!bakeSkill.includes('pi-harness doctor <target>')) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/skills/bake/SKILL.md', 'missing doctor follow-up guidance');

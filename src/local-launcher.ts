@@ -35,7 +35,7 @@ SRC="$REPO/src/cli.ts"
 TSX="$REPO/node_modules/.bin/tsx"
 
 die() {
-  printf '%s: %s\\n' "\$(basename "$0")" "$*" >&2
+  printf '%s: %s\\n' "$(basename "$0")" "$*" >&2
   exit 1
 }
 
@@ -62,7 +62,11 @@ die "CLI is not ready. Run: cd \"$REPO\" && pnpm install && pnpm build"
 export function renderGlobalBakeExtension({ launcherPath }: GlobalBakeExtensionOptions): string {
   const launcherLiteral = JSON.stringify(launcherPath);
 
-  return `type CommandContext = {
+  return `import { existsSync, readdirSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+
+type CommandContext = {
   cwd: string;
   hasUI: boolean;
   ui: {
@@ -82,7 +86,25 @@ type ExtensionAPI = {
 };
 
 const PI_HARNESS_LAUNCHER = ${launcherLiteral};
-const DEFAULT_BAKE_ARGS = ['--init-json'];
+const LEGACY_CLEANUP_MANIFEST = 'legacy-ai-frameworks-v1';
+const EXPLICIT_CONTROL_FLAGS = new Set([
+  '--mode',
+  '--force',
+  '--cleanup-manifest',
+  '--cleanup-confirm-all',
+  '--merge-root-files',
+  '--non-interactive',
+  '--dry-run',
+]);
+const VALUE_FLAGS = new Set([
+  '--mode',
+  '--cleanup-manifest',
+  '--dolt-port',
+  '--cognee-db-port',
+  '--compute-host',
+  '--compute-user',
+  '--ssh-key-path',
+]);
 
 function parseCommandArgs(input: string): string[] {
   const trimmed = input.trim();
@@ -102,7 +124,7 @@ function parseCommandArgs(input: string): string[] {
       continue;
     }
 
-    if (char === '\\\\') {
+    if (char === '\\') {
       escaped = true;
       continue;
     }
@@ -126,7 +148,7 @@ function parseCommandArgs(input: string): string[] {
       continue;
     }
 
-    if (/\\s/.test(char)) {
+    if (/\s/.test(char)) {
       if (current.length > 0) {
         args.push(current);
         current = '';
@@ -138,7 +160,7 @@ function parseCommandArgs(input: string): string[] {
   }
 
   if (escaped) {
-    current += '\\\\';
+    current += '\\';
   }
 
   if (quote) {
@@ -152,12 +174,98 @@ function parseCommandArgs(input: string): string[] {
   return args;
 }
 
+function expandHome(value: string): string {
+  return value.startsWith('~/') ? path.join(os.homedir(), value.slice(2)) : value;
+}
+
+function looksLikePath(value: string): boolean {
+  return value === '.' || value === '..' || value.startsWith('~/') || value.startsWith('/') || value.includes(path.sep);
+}
+
+function resolveTargetDir(targetInput: string, cwd: string): string {
+  if (looksLikePath(targetInput)) {
+    return path.resolve(cwd, expandHome(targetInput));
+  }
+
+  return path.resolve(cwd, targetInput);
+}
+
+function directoryHasFiles(targetDir: string): boolean {
+  return existsSync(targetDir) && readdirSync(targetDir).length > 0;
+}
+
+function ensureInitJson(args: string[]): string[] {
+  return args.includes('--init-json') ? args : [...args, '--init-json'];
+}
+
+function hasExplicitControlFlags(args: string[]): boolean {
+  return args.some((arg) => EXPLICIT_CONTROL_FLAGS.has(arg));
+}
+
+function positionalArgs(args: string[]): string[] {
+  const positionals: string[] = [];
+  let skipNext = false;
+
+  for (const arg of args) {
+    if (skipNext) {
+      skipNext = false;
+      continue;
+    }
+
+    if (VALUE_FLAGS.has(arg)) {
+      skipNext = true;
+      continue;
+    }
+
+    if (arg.startsWith('-')) {
+      continue;
+    }
+
+    positionals.push(arg);
+  }
+
+  return positionals;
+}
+
+function buildAutomaticBakeArgs(args: string[], cwd: string): string[] {
+  if (args.includes('--help') || args.includes('-h')) {
+    return args;
+  }
+
+  if (hasExplicitControlFlags(args)) {
+    return ensureInitJson(args);
+  }
+
+  const positionals = positionalArgs(args);
+  if (positionals.length > 1) {
+    return ensureInitJson(args);
+  }
+
+  const targetInput = positionals[0] ?? '.';
+  const targetDir = resolveTargetDir(targetInput, cwd);
+
+  if (directoryHasFiles(targetDir)) {
+    return ensureInitJson([
+      '--mode',
+      'existing',
+      '--force',
+      '--cleanup-manifest',
+      LEGACY_CLEANUP_MANIFEST,
+      '--cleanup-confirm-all',
+      ...args,
+    ]);
+  }
+
+  return ensureInitJson(args);
+}
+
 export default function registerPiHarnessBake(pi: ExtensionAPI): void {
   pi.registerCommand('bake', {
-    description: 'Run pi-harness for the current directory. Defaults to pi-harness --init-json.',
+    description:
+      'Auto-detect new vs existing repositories and run pi-harness with Pi-native bake defaults.',
     handler: async (args: string, ctx: CommandContext) => {
       const parsedArgs = parseCommandArgs(args);
-      const commandArgs = parsedArgs.length > 0 ? parsedArgs : DEFAULT_BAKE_ARGS;
+      const commandArgs = buildAutomaticBakeArgs(parsedArgs, ctx.cwd);
 
       await pi.exec(PI_HARNESS_LAUNCHER, commandArgs);
 

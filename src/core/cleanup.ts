@@ -10,6 +10,7 @@ export interface RunCleanupOptions {
   targetDir: string;
   manifestId?: string;
   dryRun: boolean;
+  cleanupConfirmAll?: boolean;
   nonInteractive?: boolean;
   confirmCleanup?: CleanupConfirmer;
 }
@@ -114,6 +115,8 @@ export async function runCleanup(options: RunCleanupOptions): Promise<CleanupRes
     let decision: boolean | null;
     if (options.confirmCleanup) {
       decision = await options.confirmCleanup(entry);
+    } else if (options.cleanupConfirmAll === true) {
+      decision = true;
     } else if (options.nonInteractive === true) {
       decision = null;
     } else if (options.dryRun) {

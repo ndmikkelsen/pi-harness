@@ -1,38 +1,43 @@
 # Progress
 
 ## Work Item
-untracked — resolve `dev` -> `main` promotion PR conflicts and refresh the release PR
+pi-harness-cw9
 
-## Status
-Completed
+## Completed
+- Added `--cleanup-confirm-all` plumbing from CLI -> init -> cleanup so Pi-native bake flows can auto-confirm curated legacy AI-scaffolding cleanup without changing conservative fallback CLI behavior.
+- Upgraded the installed global Pi `/bake` extension in `src/local-launcher.ts` to auto-detect new vs existing targets and apply existing-repo defaults (`--mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json`).
+- Added repo-local native `/bake` support through `.pi/extensions/repo-workflows.ts` and new `scripts/bake.sh` template/dogfood copies.
+- Updated bake prompt/skill/docs to make `/bake` and `/skill:bake` the canonical setup path while leaving `/adopt` as the conservative compatibility path.
+- Extended doctor/tests/BDD coverage for cleanup auto-confirm, native bake script behavior, scaffold outputs, and docs alignment.
 
-## Test Strategy
-Hybrid, merge-verification led.
-- Cognee skipped because this is a bounded release-conflict fix and local git/PR state is sufficient.
-- RED: confirm the promotion PR is conflicting.
-- GREEN: merge `origin/main` into `dev` and resolve only the conflicting handoff artifacts.
-- REFACTOR: rerun the promotion verification path and refresh the PR metadata.
+## Changed Files
+- `src/core/types.ts`
+- `src/core/cleanup.ts`
+- `src/cli.ts`
+- `src/commands/init.ts`
+- `src/local-launcher.ts`
+- `src/generators/pi.ts`
+- `src/commands/doctor.ts`
+- `src/templates/pi/extensions/repo-workflows.ts`
+- `src/templates/pi/scripts/bake.sh`
+- `src/templates/pi/prompts/bake.md`
+- `src/templates/pi/skills/bake/SKILL.md`
+- `src/templates/root/README.md`
+- `docs/bake-usage.md`
+- `docs/pi-harness-map.md`
+- dogfood copies under `.pi/`, `scripts/`, and `README.md`
+- tests under `tests/**` and adoption steps under `apps/cli/features/steps/adoption.steps.ts`
 
-## Tasks
-- [x] Confirm PR #16 is conflicting against `main`.
-- [x] Merge `origin/main` into `dev` to surface the exact conflicts.
-- [x] Resolve the conflicting handoff artifacts without changing the shipped scaffold/runtime contract.
-- [x] Rerun the narrowest verification that proves the release branch is healthy.
-- [x] Push `dev` and confirm the PR is mergeable again.
+## Verification
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
+- `pnpm test:smoke:dist`
 
-## Files Changed
-- `progress.md` - current release-conflict execution notes and verification trace.
-- `review.md` - refresh review guidance for this bounded conflict-resolution pass.
-- `wave.md` - record the direct closeout route for this release-fix task.
-
-## Verification Evidence
-- RED: `gh pr view 16 --json mergeable,mergeStateStatus` returned `"mergeable":"CONFLICTING"` and `"mergeStateStatus":"DIRTY"`.
-- RED: `git merge --no-ff --no-commit origin/main` surfaced conflicts in `progress.md`, `review.md`, and `wave.md`.
-- GREEN: resolved the merge by reconciling only `progress.md`, `review.md`, and `wave.md`, then committed `chore: merge main into dev for release parity`.
-- GREEN: `./scripts/promote.sh` passed `pnpm typecheck`, `pnpm test`, `pnpm test:bdd`, `pnpm test:smoke:dist`, and `gitleaks detect --source . --config .gitleaks.toml`.
-- REFACTOR: `gh pr view 16 --json mergeable,mergeStateStatus` now returns `"mergeable":"MERGEABLE"` and `"mergeStateStatus":"CLEAN"`; the PR description was refreshed with summary, details, and verification.
+## Beads / Cognee
+- Active Beads issue: `pi-harness-cw9`
+- Cognee brief attempted and unavailable because datasets are not seeded (`DatasetNotFoundError`).
 
 ## Notes
-- `bd ready --json` returned `[]`, so this remains untracked.
-- Because this is the `dev` -> `main` release path, the publish step is `./scripts/promote.sh`, not feature-branch `./scripts/serve.sh`.
-- PR #16 is now cleanly mergeable into `main`: https://github.com/ndmikkelsen/pi-harness/pull/16
+- Conservative raw CLI fallback remains available via `/adopt` and explicit `pi-harness --mode existing . --init-json`.
+- Native `/bake` paths now drive the cleanup-confirming refresh behavior the user requested.

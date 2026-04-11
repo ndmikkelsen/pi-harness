@@ -27,6 +27,7 @@ program
   .option('--force', 'overwrite managed files', false)
   .option('--merge-root-files', 'in existing-project mode, merge scaffold entries into .gitignore and .env.example', false)
   .option('--cleanup-manifest <id>', 'in existing-project mode, apply a curated cleanup manifest before scaffolding')
+  .option('--cleanup-confirm-all', 'auto-confirm prompt-before-delete entries from the selected cleanup manifest', false)
   .option('--non-interactive', 'disable prompts and report prompt-required cleanup actions instead', false)
   .option('--skip-git', 'skip git initialization', false)
   .option('--detect-ports', 'probe the compute host for available service ports', false)
@@ -45,6 +46,7 @@ program
       force: options.force,
       mergeRootFiles: options.mergeRootFiles,
       cleanupManifestId: options.cleanupManifest,
+      cleanupConfirmAll: options.cleanupConfirmAll,
       nonInteractive: options.nonInteractive,
       skipGit: options.skipGit,
       detectPorts: options.detectPorts,
