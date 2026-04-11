@@ -4,39 +4,32 @@
 Direct closeout
 
 ## Work Item
-`pi-harness-bur` — Global Pi `/bake` entrypoint for new and existing repos
+untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
 
 ## Knowledge
-- Pi supports both user-global resources under `~/.pi/agent/*` and repo-local resources under `.pi/*`.
-- This feature now uses that split intentionally:
-  - user-global thin bootstrap: installed via `pnpm install:local`
-  - repo-local workflow authority after bake: `AGENTS.md`, `.pi/*`, `scripts/*`, and Beads state
-- All child Beads tasks for this feature are complete and the parent issue is closed.
+- `bd ready --json` returned `[]`.
+- Cognee was skipped because this is a bounded release-conflict fix and repository/PR state is sufficient.
+- The current release PR is `https://github.com/ndmikkelsen/pi-harness/pull/16`.
+- This is a promotion lane on `dev`, so the publish step is `/promote` / `./scripts/promote.sh` rather than feature-branch `/serve`.
 
 ## Test Strategy
-Hybrid, BDD-led.
-- `/bake` vs `/adopt` contract frozen in BDD first.
-- Repo-local scaffold surface and user-global bootstrap surface implemented next.
-- Doctor/tests/docs/name-edge-case work followed with narrow TDD verification.
-- Final caller-side verification suite is green.
+Merge-verification only.
+- Surface conflicts locally by merging `origin/main` into `dev`.
+- Resolve only the conflicting handoff artifacts.
+- Re-run the release verification path and push `dev`.
+- Confirm PR #16 returns to a mergeable state.
 
 ## Agents / Chains
-- Used project-local and builtin subagents to split work into safe slices.
-- Parallel wave 1:
-  - repo-local `/bake` scaffold prompt and wiring
-  - user-global first-bake installer/bootstrap surface
-- Parallel wave 2:
-  - doctor + integration test alignment
-  - docs + template docs alignment
-- Final direct slice:
-  - repo-name edge-case repair for invalid directory basenames
+Main session only. The task is small, overlap-heavy, and not worth splitting.
 
 ## Verification
-Passed:
-- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
-- `pnpm test -- tests/unit/project-context.test.ts tests/unit/local-launcher.test.ts tests/integration/cli-init.test.ts tests/integration/global-bake-install.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/cli-doctor.test.ts tests/integration/docs-alignment.test.ts`
+Target path:
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm test:bdd`
+- `pnpm test:smoke:dist`
+- `gh pr view 16 --json mergeable,mergeStateStatus`
 
 ## Risks
-- The thin user-global `/bake` extension delegates to `pi-harness --init-json`; reviewer attention should stay on whether the baked-repo UX is acceptable when both the global extension and repo-local `.pi/prompts/bake.md` exist.
-- The global bootstrapper must remain thin and must not become a second source of repo policy.
-- `.envrc` now safely mirrors `_GITHUB_PERSONAL_ACCESS_TOKEN` only when explicitly set; this should avoid blanking an existing token in direnv-enabled shells.
+- Accidentally changing release behavior while resolving note-file conflicts.
+- Forgetting to refresh the already-open PR after pushing the merge fix.
