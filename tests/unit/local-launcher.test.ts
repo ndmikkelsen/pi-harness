@@ -2,10 +2,14 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { LOCAL_LAUNCHER_NAMES, renderLauncherScript } from '../../src/local-launcher.js';
+import { LOCAL_LAUNCHER_NAMES, renderGlobalBakeExtension, renderLauncherScript } from '../../src/local-launcher.js';
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
+const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
 describe('renderLauncherScript', () => {
   it('renders a wrapper that targets the selected repo', () => {
@@ -37,6 +41,32 @@ describe('renderLauncherScript', () => {
       writeFileSync(scriptPath, renderLauncherScript(path.resolve('/tmp/repo')), 'utf8');
       expect(() => {
         execFileSync('bash', ['-n', scriptPath], { stdio: 'pipe' });
+      }).not.toThrow();
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('renderGlobalBakeExtension', () => {
+  it('keeps escaped backslashes intact in the generated extension source', () => {
+    const result = renderGlobalBakeExtension({ launcherPath: '/tmp/pi-harness' });
+
+    expect(result).toContain(String.raw`if (char === '\\')`);
+    expect(result).toContain(String.raw`/\s/.test(char)`);
+    expect(result).toContain(String.raw`current += '\\';`);
+  });
+
+  it('renders TypeScript source that tsx can parse', () => {
+    const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-global-ext-'));
+    const scriptPath = path.join(workspace, 'index.ts');
+
+    try {
+      writeFileSync(scriptPath, renderGlobalBakeExtension({ launcherPath: '/tmp/pi-harness' }), 'utf8');
+      expect(() => {
+        execFileSync(process.execPath, [tsxCli, '-e', `import(${JSON.stringify(scriptPath)})`], {
+          stdio: 'pipe',
+        });
       }).not.toThrow();
     } finally {
       rmSync(workspace, { recursive: true, force: true });

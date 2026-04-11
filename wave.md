@@ -1,32 +1,27 @@
 # Execution Approach
 
 ## Mode
-Direct closeout
+Direct bugfix closeout
 
 ## Work Item
-untracked — merge `origin/main` back into `dev`, refresh the release PR to `main`, and merge it if GitHub allows.
+pi-harness-4mj — fix generated global `/bake` extension escaping and land it through `dev` and `main`.
 
 ## Knowledge
-- `bd ready --json` returned `[]`.
-- `origin/dev` contained the new `/bake` feature work.
-- `origin/main` contained the latest release commit and had to be merged back into `dev` before promotion.
-- No open `dev` -> `main` PR existed before this session.
+- The installed global extension was failing Pi startup with an unterminated string constant.
+- PR #19 to `dev` initially conflicted because `fix/bake` was behind `origin/dev`.
+- The code merged cleanly with `origin/dev`; only tracked handoff artifacts required manual resolution.
 
 ## Test Strategy
-Merge-verification only.
-- Resolve the `origin/main` -> `dev` conflicts.
-- Re-run the release verification path.
-- Run `./scripts/promote.sh` from `dev`.
-- If the resulting PR is mergeable and the user explicitly wants completion, merge it through GitHub.
+TDD, narrow regression-first.
+- Focus verification on the generated global extension and installed artifact parse path.
+- Refresh the branch with `origin/dev`, then continue the normal serve/promote workflow.
 
 ## Verification
-Pending after merge resolution:
+- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
 - `pnpm typecheck`
-- `pnpm test`
-- `pnpm test:bdd`
-- `pnpm test:smoke:dist`
-- `gitleaks detect --source . --config .gitleaks.toml`
-- `gh pr view <number> --json mergeable,mergeStateStatus,url`
+- `pnpm build`
+- `pnpm install:local`
+- `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`
 
 ## Risks
-- Low: the release should be straightforward once `dev` is re-verified and the PR is refreshed.
+- Low: remaining work is release plumbing after the refreshed branch push.
