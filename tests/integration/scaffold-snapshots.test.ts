@@ -37,6 +37,7 @@ async function snapshotForProject(rootDir: string) {
     leadAgent: await readProjectFile(rootDir, '.pi', 'agents', 'lead.md'),
     roleWorkflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'role-workflow.ts'),
     workflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'repo-workflows.ts'),
+    bakePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'bake.md'),
     servePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'serve.md'),
     promotePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'promote.md'),
     beadsSkill: await readProjectFile(rootDir, '.pi', 'skills', 'beads', 'SKILL.md'),
@@ -110,6 +111,7 @@ describe('scaffold snapshots', () => {
         '.pi/agents/ship-change.chain.md',
         '.pi/extensions/repo-workflows.ts',
         '.pi/extensions/role-workflow.ts',
+        '.pi/prompts/bake.md',
         '.pi/prompts/adopt.md',
         '.pi/prompts/serve.md',
         '.pi/prompts/promote.md',
@@ -190,6 +192,11 @@ describe('scaffold snapshots', () => {
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
     expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
+    expect(result.bakePrompt).toContain('canonical repo-local Pi setup surface');
+    expect(result.bakePrompt).toContain('pi-harness --mode existing . --init-json');
+    expect(result.bakePrompt).toContain('prefer `/bake` as the canonical Pi setup surface');
+    expect(result.bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
+    expect(result.bakePrompt).toContain('pi-harness doctor <target>');
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");

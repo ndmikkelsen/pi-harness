@@ -52,6 +52,29 @@ describe('CLI init', () => {
     expect(payload.cleanup.status).toBe('not-requested');
   });
 
+  it('supports no-arg init-json flows when the current directory basename is not already a valid slug', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, '123 first bake');
+
+    await mkdir(targetDir, { recursive: true });
+    await writeFile(path.join(targetDir, 'README.md'), '# existing repo\n', 'utf8');
+
+    const result = await execFile(process.execPath, [tsxCli, path.join(repoRoot, 'src/cli.ts'), '--skip-git', '--init-json'], {
+      cwd: targetDir,
+      encoding: 'utf8'
+    });
+
+    const payload = JSON.parse(result.stdout) as {
+      appName: string;
+      mode: string;
+      createdPaths: string[];
+    };
+
+    expect(payload.appName).toBe('project-123-first-bake');
+    expect(payload.mode).toBe('existing');
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/mcp.json']));
+  });
+
   it('installs post-checkout hook support when pre-commit is available', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, 'hooked-app');

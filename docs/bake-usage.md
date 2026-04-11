@@ -6,6 +6,15 @@
 The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.
 Project-local subagent support is typically shared through `.pi/settings.json` with `npm:pi-subagents`, while project-local MCP support can ride through `npm:pi-mcp-adapter` plus a tracked `.pi/mcp.json` for repo-specific servers.
 
+## Global-first `/bake` story
+
+The `/bake` story has two layers:
+
+1. **User-global first bake.** Install `pi-harness` from a local checkout on your machine so untouched repos can use `/bake` before any repo-local `.pi/*` files exist.
+2. **Repo-local authority after bake.** Once a repo is scaffolded, the generated `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state become the canonical workflow authority for that repository.
+
+The user-global layer should stay thin. It exists to delegate into `pi-harness --init-json`, not to carry repo-specific policy, provider defaults, or a second copy of scaffold rules.
+
 ## Install once on your machine
 
 From your local `pi-harness` checkout:
@@ -16,20 +25,45 @@ pnpm build
 pnpm install:local
 ```
 
-That gives you a local `pi-harness` command backed by this checkout.
+That gives you:
+- a `pi-harness` launcher in `~/.local/bin`
+- a user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`
+- a first-bake entrypoint that can run in untouched repos without depending on repo-local `.pi/*`
+
+Keep provider and model setup in Pi runtime configuration: use `/login`, `/model`, `.pi/settings.json`, and `~/.pi/agent/models.json` instead of baking providers into scaffold files.
+
+## First bake in an untouched repo
+
+1. Open Pi in the target directory or repository.
+2. Run `/bake` with no args for the default `pi-harness --init-json` flow, or pass explicit `pi-harness` arguments when you need a different target or mode.
+3. If your Pi session routes a plain-language setup request to bake, keep it mapped to the same `pi-harness` flow rather than inventing a second scaffold path.
+4. Review the emitted JSON so you can see what was created, skipped, or preserved.
+5. Run `pi-harness doctor <target>` before broader customization.
+
+## Repo-local authority after bake
+
+After the first bake succeeds, treat the generated repo-local files as canonical:
+- `AGENTS.md` owns workflow authority
+- `.pi/prompts/bake.md` is the canonical repo-local setup surface in baked repos
+- `.pi/prompts/adopt.md` remains the compatibility path for conservative existing-repo refreshes and older handoff notes
+- `.pi/skills/bake/SKILL.md` documents the local operating contract for new vs existing repos
+- `scripts/*`, Beads state, and repo docs carry the project-specific execution details
+
+The user-global `/bake` extension remains a bootstrapper. It should not override repo-local prompts, skills, scripts, or provider/model setup.
 
 ## Current-state runbook
 
-1. Scaffold or adopt with `pi-harness ... --init-json`.
-2. Run `pi-harness doctor <target>`.
-3. Run `bd init` once in the target repo if Beads has not been initialized yet.
-4. Use `AGENTS.md` as the canonical runtime instruction file.
-5. Use `.pi/agents/*.md` and `.pi/agents/*.chain.md` for the project-local role workflow, `.pi/skills/*.md` for reusable guidance, `.pi/prompts/*.md` for reusable slash workflows, and `.pi/extensions/*` for native workflow commands.
-6. The active main-session role should be easy to switch with `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role`.
-7. Keep shared Pi packages in `.pi/settings.json`; use package specs like `npm:pi-subagents` and `npm:pi-mcp-adapter` instead of machine-specific absolute extension paths.
-8. Use `.pi/mcp.json` for tracked project-local MCP servers such as a GitHub server wired through `pi-mcp-adapter`; keep secrets in `.env`, not in the tracked config.
-9. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
-10. Use BDD for user-visible behavior and TDD for lower-level logic; implementation plans should carry explicit RED -> GREEN -> REFACTOR checkpoints.
+1. Use the user-global `/bake` surface for the first bake in untouched repos, then prefer the generated repo-local `/bake` prompt in baked repos.
+2. Scaffold or adopt with `pi-harness ... --init-json`.
+3. Run `pi-harness doctor <target>`.
+4. Run `bd init` once in the target repo if Beads has not been initialized yet.
+5. Use `AGENTS.md` as the canonical runtime instruction file.
+6. Use `.pi/agents/*.md` and `.pi/agents/*.chain.md` for the project-local role workflow, `.pi/skills/*.md` for reusable guidance, `.pi/prompts/*.md` for reusable slash workflows, and `.pi/extensions/*` for native workflow commands.
+7. The active main-session role should be easy to switch with `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role`.
+8. Keep shared Pi packages in `.pi/settings.json`; use package specs like `npm:pi-subagents` and `npm:pi-mcp-adapter` instead of machine-specific absolute extension paths.
+9. Use `.pi/mcp.json` for tracked project-local MCP servers such as a GitHub server wired through `pi-mcp-adapter`; keep secrets in `.env`, not in the tracked config.
+10. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
+11. Use BDD for user-visible behavior and TDD for lower-level logic; implementation plans should carry explicit RED -> GREEN -> REFACTOR checkpoints.
 
 ## New repository walkthrough
 
@@ -55,7 +89,8 @@ What to do next:
 6. Fill in `.env` with placeholders from `.env.example`, including `GITHUB_PERSONAL_ACCESS_TOKEN` when you want the preconfigured GitHub MCP server from `.pi/mcp.json`.
 7. Use `/mcp` once Pi starts to inspect or reconnect the project-local GitHub MCP server.
 8. Use the project-local role workflow from `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts` so users can switch roles quickly without leaving the main session.
-9. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
+9. In baked repos, prefer the generated repo-local `/bake` prompt for later refreshes and keep `/adopt` only as the compatibility path for explicit existing-repo work.
+10. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
 
 ## Existing repository walkthrough
 
@@ -70,6 +105,7 @@ Existing repos are adopted conservatively:
 - existing scaffold files are skipped by default
 - existing user-authored files are preserved
 - `createdPaths` tells you which files can be safely customized now
+- `skippedPaths` tells you what `pi-harness` intentionally left alone
 
 Optional variants:
 
@@ -88,6 +124,8 @@ pnpm install:local
 pi-harness --mode existing <path> --init-json
 pi-harness doctor <path>
 ```
+
+In baked repos, prefer the repo-local `/bake` prompt for this refresh path and keep `/adopt` as the compatibility alias when older notes still reference adoption language.
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 

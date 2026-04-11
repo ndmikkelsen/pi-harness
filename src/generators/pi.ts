@@ -42,6 +42,7 @@ export function buildPiEntries(): ManagedEntry[] {
       path: '.pi/extensions/role-workflow.ts',
       content: () => template('pi/extensions/role-workflow.ts'),
     },
+    { kind: 'file', path: '.pi/prompts/bake.md', content: () => template('pi/prompts/bake.md') },
     { kind: 'file', path: '.pi/prompts/adopt.md', content: () => template('pi/prompts/adopt.md') },
     { kind: 'file', path: '.pi/prompts/serve.md', content: () => template('pi/prompts/serve.md') },
     { kind: 'file', path: '.pi/prompts/promote.md', content: () => template('pi/prompts/promote.md') },

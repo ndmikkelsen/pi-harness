@@ -246,6 +246,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
+    '.pi/prompts/bake.md',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
     '.pi/prompts/promote.md',
@@ -285,6 +286,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
+    '.pi/prompts/bake.md',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
     '.pi/prompts/promote.md',
@@ -448,6 +450,21 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh']) {
       if (!agentsGuide.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
+      }
+    }
+  }
+
+  const bakePrompt = await readFileIfPresent(targetDir, '.pi/prompts/bake.md');
+  if (bakePrompt !== null) {
+    for (const [token, reason] of [
+      ['canonical repo-local Pi setup surface', 'missing canonical repo-local bake guidance'],
+      ['pi-harness --mode existing . --init-json', 'missing existing-repo bake command'],
+      ['prefer `/bake` as the canonical Pi setup surface', 'missing canonical /bake guidance'],
+      ['Keep `/adopt` available as the compatibility path', 'missing /adopt compatibility guidance'],
+      ['pi-harness doctor <target>', 'missing doctor follow-up guidance'],
+    ] as const) {
+      if (!bakePrompt.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/bake.md', reason);
       }
     }
   }

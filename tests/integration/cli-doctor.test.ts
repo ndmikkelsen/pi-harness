@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -75,6 +75,7 @@ describe('CLI doctor', () => {
         'AGENTS.md',
         '.pi/mcp.json',
         '.pi/extensions/repo-workflows.ts',
+        '.pi/prompts/bake.md',
         '.pi/prompts/serve.md',
         '.pi/skills/bake/SKILL.md',
         'scripts/bootstrap-worktree.sh',
@@ -104,6 +105,40 @@ describe('CLI doctor', () => {
         expect.objectContaining({ name: 'runtime-baseline', status: 'pass' }),
         expect.objectContaining({ name: 'workflow-alignment', status: 'pass' })
       ])
+    );
+  });
+
+
+  it('fails workflow-alignment when the managed bake prompt is missing', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-cli-missing-bake-prompt');
+
+    await rm(path.join(targetDir, '.pi', 'prompts', 'bake.md'));
+
+    const doctorResult = await execFile(process.execPath, [tsxCli, 'src/cli.ts', 'doctor', '--json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    }).catch((error: { stdout?: string }) => error);
+
+    const doctorPayload = JSON.parse(doctorResult.stdout ?? '{}') as {
+      status: string;
+      missing: string[];
+      invalid: Array<{ path: string; reason: string }>;
+      groups: Array<{ name: string; status: string }>;
+    };
+
+    expect(doctorPayload.status).toBe('fail');
+    expect(doctorPayload.missing).toContain('.pi/prompts/bake.md');
+    expect(doctorPayload.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/bake.md',
+          reason: 'missing required workflow artifact'
+        })
+      ])
+    );
+    expect(doctorPayload.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
     );
   });
 

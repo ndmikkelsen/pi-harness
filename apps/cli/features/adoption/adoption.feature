@@ -1,5 +1,8 @@
 Feature: Adopt an existing project into the AI workflow scaffold
 
+  Adopted repositories keep the canonical Pi bake surface in `.pi/skills/bake/SKILL.md`
+  while preserving `.pi/prompts/adopt.md` as the compatibility path for existing-repo refreshes.
+
   Scenario: Add missing managed files without modifying pre-existing scaffold files
     Given an existing project directory with custom root files
     When I apply the scaffold in existing-project mode

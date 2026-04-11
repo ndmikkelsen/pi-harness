@@ -33,4 +33,29 @@ describe('resolveProjectInput', () => {
     expect(result.targetDir).toBe(projectDir);
     expect(result.mode).toBe('existing');
   });
+
+  it('repairs inferred project names when the directory basename is not already a valid slug', async () => {
+    const parentDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-context-'));
+    const projectDir = path.join(parentDir, '123 bad repo');
+    await mkdir(projectDir);
+
+    const result = resolveProjectInput({
+      mode: 'existing',
+      cwd: projectDir
+    });
+
+    expect(result.appName).toBe('project-123-bad-repo');
+    expect(result.targetDir).toBe(projectDir);
+    expect(result.mode).toBe('existing');
+  });
+
+  it('keeps explicit user-provided project names strict', () => {
+    expect(() =>
+      resolveProjectInput({
+        projectArg: '123-bad-name',
+        mode: 'auto',
+        cwd: '/tmp/workspace'
+      })
+    ).toThrow('Project name must be lowercase alphanumeric with hyphens (for example: my-api).');
+  });
 });
