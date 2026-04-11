@@ -1,28 +1,28 @@
 # Progress
 
 ## Work Item
-untracked — merge `origin/main` back into `dev`, refresh the release PR to `main`, and complete the promotion.
+pi-harness-4mj
 
 ## Completed
-- Fast-forwarded local `dev` to `origin/dev`.
-- Merged `origin/main` into `dev` and reconciled conflicts by keeping the current `/bake` runtime, template, docs, and test contract from `dev`.
-- Replaced conflicting tracked handoff artifacts with current-session promotion notes.
-- Ready for release verification and PR refresh to `main`.
+- Fixed generated global `/bake` extension escaping so `pnpm install:local` emits parseable TypeScript.
+- Added regression coverage proving the rendered global extension preserves escaped backslashes and that the generated installed artifact can be imported.
+- Merged the latest `origin/dev` into `fix/bake` so the PR to `dev` can be refreshed cleanly.
 
 ## Changed Files
-- merge-resolution updates across `.pi/*`, `src/*`, `docs/*`, `README.md`, and `tests/*`
+- `src/local-launcher.ts`
+- `tests/unit/local-launcher.test.ts`
+- `tests/integration/global-bake-install.test.ts`
+- `wave.md`
 - `progress.md`
 - `review.md`
-- `wave.md`
 
 ## Verification
-Pending after merge resolution:
+- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
 - `pnpm typecheck`
-- `pnpm test`
-- `pnpm test:bdd`
-- `pnpm test:smoke:dist`
-- `gitleaks detect --source . --config .gitleaks.toml`
+- `pnpm build`
+- `pnpm install:local`
+- `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`
 
 ## Notes
-- Promotion must continue from `dev` through `./scripts/promote.sh`.
-- If the refreshed PR to `main` is mergeable, finish by merging it through GitHub rather than pushing directly to `main`.
+- PR #19 should be mergeable once this merge-from-dev conflict resolution is pushed.
+- Beads bug `pi-harness-4mj` is already closed with verification evidence.
