@@ -48,6 +48,7 @@ async function snapshotForProject(rootDir: string) {
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
     stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
+    bakeScript: await readProjectFile(rootDir, 'scripts', 'bake.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
@@ -136,6 +137,7 @@ describe('scaffold snapshots', () => {
         'config/deploy.yml',
         'docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
+        'scripts/bake.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',
         'scripts/sync-artifacts-to-cognee.sh',
@@ -167,7 +169,7 @@ describe('scaffold snapshots', () => {
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.');
     expect(result.readme).toContain('Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.');
-    expect(result.readme).toContain('Use `.pi/skills/bake/SKILL.md` when adopting or bootstrapping another repository.');
+    expect(result.readme).toContain('Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.');
     expect(result.readme).toContain('pnpm test:bdd');
     expect(result.agents).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(result.agents).toContain('.pi/agents/*');
@@ -189,13 +191,14 @@ describe('scaffold snapshots', () => {
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
     expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
+    expect(result.workflowExtension).toContain("pi.registerCommand('bake'");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
     expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
-    expect(result.bakePrompt).toContain('canonical repo-local Pi setup surface');
-    expect(result.bakePrompt).toContain('pi-harness --mode existing . --init-json');
-    expect(result.bakePrompt).toContain('prefer `/bake` as the canonical Pi setup surface');
-    expect(result.bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
+    expect(result.bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
+    expect(result.bakePrompt).toContain('/skill:bake');
+    expect(result.bakePrompt).toContain('--cleanup-confirm-all');
+    expect(result.bakePrompt).toContain('legacy-ai-frameworks-v1');
     expect(result.bakePrompt).toContain('pi-harness doctor <target>');
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
@@ -211,7 +214,7 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeSkill).toContain('knowledge garden');
     expect(result.redGreenRefactorSkill).toContain('RED');
     expect(result.bakeSkill).toContain(
-      'run `pi-harness --mode existing . --init-json` so you can distinguish `createdPaths` from `skippedPaths`',
+      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
     );
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(result.leadAgent).toContain('plan-change');
@@ -229,6 +232,7 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeBrief).toContain('exec "$BRIDGE" brief "$@"');
     expect(result.syncArtifactsScript).toContain('context.md');
     expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
+    expect(result.bakeScript).toContain('--cleanup-confirm-all');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
     expect(result.serveScript).toContain('run_cmd pnpm test:bdd');
     expect(result.serveScript).toContain('sync-artifacts-to-cognee.sh');

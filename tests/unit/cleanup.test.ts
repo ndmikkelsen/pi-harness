@@ -195,6 +195,29 @@ describe('runCleanup', () => {
   });
 
 
+
+  it('auto-confirms prompt-before-delete entries when cleanupConfirmAll is enabled', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });
+    await writeFile(path.join(targetDir, '.codex', 'templates', 'session-handoff.md'), '# old\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      cleanupConfirmAll: true,
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.summary.promptRequired).toBe(0);
+    expect(result.removedPaths).toEqual(expect.arrayContaining(['.codex']));
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: '.codex', status: 'deleted' }),
+        expect.objectContaining({ path: '.codex/templates/session-handoff.md', status: 'missing' }),
+      ])
+    );
+  });
   it('plans safe deletions during dry-run without touching disk', async () => {
     const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
     await mkdir(path.join(targetDir, '.codex', 'templates'), { recursive: true });

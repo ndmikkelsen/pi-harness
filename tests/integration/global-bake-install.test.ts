@@ -60,9 +60,11 @@ describe('global bake install', () => {
     expect(launcher).toContain('pnpm --dir "$REPO" build');
     expect(launcher).toContain('exec "$TSX" "$SRC" "$@"');
     expect(extension).toContain(`const PI_HARNESS_LAUNCHER = ${JSON.stringify(launcherPath)};`);
-    expect(extension).toContain("const DEFAULT_BAKE_ARGS = ['--init-json'];");
+    expect(extension).toContain("const LEGACY_CLEANUP_MANIFEST = 'legacy-ai-frameworks-v1';");
+    expect(extension).toContain("function buildAutomaticBakeArgs");
+    expect(extension).toContain('--cleanup-confirm-all');
     expect(extension).toContain("pi.registerCommand('bake'");
-    expect(extension).toContain('Run pi-harness for the current directory. Defaults to pi-harness --init-json.');
+    expect(extension).toContain('Auto-detect new vs existing repositories and run pi-harness with Pi-native bake defaults.');
     expect(extension).toContain("ctx.ui.notify('pi-harness /bake finished.')");
 
     const launchResult = await execFile(launcherPath, ['--init-json', '.'], {

@@ -1,40 +1,31 @@
 # Execution Approach
 
 ## Mode
-Direct closeout
+Direct
 
 ## Work Item
-untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
+pi-harness-cw9
 
 ## Knowledge
-- `bd ready --json` returned `[]`.
-- Cognee was skipped because this is a bounded release-conflict fix and repository/PR state is sufficient.
-- The current release PR is `https://github.com/ndmikkelsen/pi-harness/pull/16`.
-- This is a promotion lane on `dev`, so the publish step is `/promote` / `./scripts/promote.sh` rather than feature-branch `/serve`.
+- `bd ready --json` returned `[]`, so the feature work was created in Beads and claimed as `pi-harness-cw9`.
+- Cognee was attempted with `./scripts/cognee-brief.sh "Pi-native /bake or /skill:bake auto-detect new vs existing repo, scaffold greenfield repos, refresh existing repos, remove old AI scaffolding so only pi-harness scaffolding remains"`.
+- Cognee datasets were unavailable (`DatasetNotFoundError`), so repository files and tests remained authoritative.
 
 ## Test Strategy
-Merge-verification only.
-- Surface conflicts locally by merging `origin/main` into `dev`.
-- Resolve only the conflicting handoff artifacts.
-- Re-run the release verification path and push `dev`.
-- Confirm PR #16 returns to a mergeable state.
+Hybrid, integration-led RED -> GREEN -> REFACTOR.
+- RED: add failing coverage for cleanup auto-confirm, generated native `/bake` surfaces, and docs alignment.
+- GREEN: implement cleanup confirmation support, native `/bake` extension/script defaults, and aligned docs/templates.
+- REFACTOR: keep dogfood + template surfaces aligned and rerun targeted verification plus smoke/build coverage.
 
 ## Agents / Chains
-Main session only. The task is small, overlap-heavy, and not worth splitting.
+Main session only. The work touched tightly coupled runtime, template, docs, and test surfaces.
 
 ## Verification
-Completed path:
 - `pnpm typecheck`
 - `pnpm test`
-- `pnpm test:bdd`
+- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 - `pnpm test:smoke:dist`
-- `gitleaks detect --source . --config .gitleaks.toml`
-- `gh pr view 16 --json mergeable,mergeStateStatus`
-
-## Outcome
-- `main` was merged back into `dev` and only the conflicting tracked handoff artifacts were reconciled.
-- `./scripts/promote.sh` pushed `dev` and refreshed PR #16 to `main`.
-- PR #16 is back to a clean, mergeable state.
 
 ## Risks
-- Low: future conflicts on this PR are now most likely only if `main` advances again before merge.
+- Native existing-repo `/bake` is intentionally more aggressive than conservative fallback adoption, so `/adopt` remains as the preserve-existing path.
+- Cleanup auto-confirm is explicitly scoped to curated manifest entries; unexpected non-curated leftovers still require follow-up review.

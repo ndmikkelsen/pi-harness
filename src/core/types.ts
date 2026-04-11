@@ -31,6 +31,7 @@ export interface InitCommandOptions {
   force: boolean;
   mergeRootFiles?: boolean;
   cleanupManifestId?: string;
+  cleanupConfirmAll?: boolean;
   nonInteractive?: boolean;
   skipGit: boolean;
   detectPorts: boolean;

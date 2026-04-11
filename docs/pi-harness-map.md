@@ -20,8 +20,11 @@
 # new repository
 pi-harness my-app --init-json
 
-# existing repository
+# existing repository via conservative fallback
 pi-harness --mode existing . --init-json
+
+# native Pi /bake refresh for an existing repository
+/bake
 
 # audit a repository
 pi-harness doctor .
@@ -30,7 +33,7 @@ pi-harness doctor .
 ## Behavioral summary
 
 - scaffolds a new project directory
-- adopts an existing repository without clobbering user files by default
+- adopts an existing repository conservatively by default and powers native `/bake` refresh flows that replace legacy AI scaffolding with the supported pi-harness baseline
 - emits `AGENTS.md`, `.pi/*`, `scripts/*`, Beads, deployment, and handoff files from one template source
 - validates that a repository still matches the supported Pi-native clean-slate baseline
 

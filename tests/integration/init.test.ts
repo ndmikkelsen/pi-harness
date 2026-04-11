@@ -40,6 +40,7 @@ const requiredRuntimePaths = [
   '.pi/skills/parallel-wave-design/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
+  'scripts/bake.sh',
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
   'scripts/sync-artifacts-to-cognee.sh',
@@ -61,6 +62,7 @@ const existingModeBaselinePaths = [
   '.pi/skills/bake/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
+  'scripts/bake.sh',
   'scripts/sync-artifacts-to-cognee.sh'
 ];
 
@@ -174,18 +176,20 @@ describe('runInit', () => {
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
+    expect(workflowExtension).toContain("registerCommand('bake'");
     expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
     expect(workflowExtension).toContain("registerCommand('cognee-brief'");
+    expect(workflowExtension).toContain('scripts/bake.sh');
     expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
     expect(workflowExtension).toContain('scripts/cognee-brief.sh');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
-    expect(bakePrompt).toContain('canonical repo-local Pi setup surface');
-    expect(bakePrompt).toContain('pi-harness --mode existing . --init-json');
-    expect(bakePrompt).toContain('prefer `/bake` as the canonical Pi setup surface');
-    expect(bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
+    expect(bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
+    expect(bakePrompt).toContain('/skill:bake');
+    expect(bakePrompt).toContain('auto-detect whether the target is `new` or `existing`');
+    expect(bakePrompt).toContain('--cleanup-confirm-all');
     expect(bakePrompt).toContain('pi-harness doctor <target>');
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
@@ -207,6 +211,8 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
+    expect(bakeSkill).toContain('/skill:bake');
+    expect(bakeSkill).toContain('--cleanup-confirm-all');
     expect(bakeSkill).toContain('.pi/settings.json');
     expect(bakeSkill).toContain('.pi/extensions/role-workflow.ts');
     expect(bakeSkill).toContain('.pi/agents/*.md');
@@ -292,6 +298,7 @@ describe('runInit', () => {
     const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
     const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
+    const bakeScript = await readFile(path.join(projectDir, 'scripts', 'bake.sh'), 'utf8');
     const cogneeBriefScript = await readFile(path.join(projectDir, 'scripts', 'cognee-brief.sh'), 'utf8');
     const promoteScript = await readFile(path.join(projectDir, 'scripts', 'promote.sh'), 'utf8');
 
@@ -299,9 +306,10 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("let's serve the dish");
-    expect(bakePrompt).toContain('canonical repo-local Pi setup surface');
-    expect(bakePrompt).toContain('pi-harness --mode existing . --init-json');
-    expect(bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
+    expect(bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
+    expect(bakePrompt).toContain('/skill:bake');
+    expect(bakePrompt).toContain('--cleanup-confirm-all');
+    expect(bakeScript).toContain('--cleanup-confirm-all');
     expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
     expect(adoptPrompt).toContain('--cleanup-manifest legacy-ai-frameworks-v1 --init-json');
     expect(servePrompt).toContain('/serve');

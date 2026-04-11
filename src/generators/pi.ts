@@ -99,6 +99,12 @@ export function buildPiEntries(): ManagedEntry[] {
     },
     {
       kind: 'file',
+      path: 'scripts/bake.sh',
+      content: () => template('pi/scripts/bake.sh'),
+      executable: true,
+    },
+    {
+      kind: 'file',
       path: 'scripts/cognee-bridge.sh',
       content: (context) => template('pi/scripts/cognee-bridge.sh', { APP_SLUG: context.appSlug }),
       executable: true,
