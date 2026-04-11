@@ -1,29 +1,25 @@
 # Review
 
 ## Verdict
-Pass for `pi-harness-cw9`.
+Ready for promotion once post-merge verification passes.
 
 ## What changed
-- `/bake` is now a Pi-native execution path in both the installed global extension and baked repos.
-- Existing-repo native bake runs now refresh managed scaffold files and auto-confirm curated legacy AI-scaffolding cleanup.
-- `/skill:bake` guidance now points at the same native `/bake` contract.
-- Generated docs/templates/doctor checks match the new contract.
+- `origin/main` was merged back into `dev`.
+- Conflicts were resolved in favor of the current `dev` `/bake` implementation and aligned template/dogfood/test surfaces.
+- Tracked handoff artifacts were refreshed to describe the current release session.
 
 ## Risks
-- The aggressive cleanup behavior is intentionally scoped to the curated `legacy-ai-frameworks-v1` manifest plus explicit `--cleanup-confirm-all`; conservative fallback still exists through `/adopt` and raw CLI usage.
-- Custom advanced flag combinations beyond the default `/bake` flow still depend on users choosing the explicit fallback path.
+- Low: the main remaining risk is GitHub-side mergeability or branch-protection requirements on the refreshed `dev` -> `main` PR.
 
 ## Caller-side checks
-- Run `/bake` in an empty directory and confirm it emits new-project scaffold JSON.
-- Run `/bake` in an existing repo containing curated legacy AI scaffolding and confirm only pi-harness baseline files remain.
-- Run `pi-harness doctor <target>` after bake when you want an explicit audit.
+- Run the release verification path on `dev`.
+- Refresh the PR to `main` with `./scripts/promote.sh`.
+- Merge the PR through GitHub only after it reports a clean merge state.
 
 ## Verification evidence
+Pending after merge resolution:
 - `pnpm typecheck`
 - `pnpm test`
-- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
+- `pnpm test:bdd`
 - `pnpm test:smoke:dist`
-
-## Beads / Cognee
-- Active Beads issue: `pi-harness-cw9`
-- Cognee brief fallback recorded because datasets are missing.
+- `gitleaks detect --source . --config .gitleaks.toml`

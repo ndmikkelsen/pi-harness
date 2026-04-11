@@ -1,31 +1,32 @@
 # Execution Approach
 
 ## Mode
-Direct
+Direct closeout
 
 ## Work Item
-pi-harness-cw9
+untracked — merge `origin/main` back into `dev`, refresh the release PR to `main`, and merge it if GitHub allows.
 
 ## Knowledge
-- `bd ready --json` returned `[]`, so the feature work was created in Beads and claimed as `pi-harness-cw9`.
-- Cognee was attempted with `./scripts/cognee-brief.sh "Pi-native /bake or /skill:bake auto-detect new vs existing repo, scaffold greenfield repos, refresh existing repos, remove old AI scaffolding so only pi-harness scaffolding remains"`.
-- Cognee datasets were unavailable (`DatasetNotFoundError`), so repository files and tests remained authoritative.
+- `bd ready --json` returned `[]`.
+- `origin/dev` contained the new `/bake` feature work.
+- `origin/main` contained the latest release commit and had to be merged back into `dev` before promotion.
+- No open `dev` -> `main` PR existed before this session.
 
 ## Test Strategy
-Hybrid, integration-led RED -> GREEN -> REFACTOR.
-- RED: add failing coverage for cleanup auto-confirm, generated native `/bake` surfaces, and docs alignment.
-- GREEN: implement cleanup confirmation support, native `/bake` extension/script defaults, and aligned docs/templates.
-- REFACTOR: keep dogfood + template surfaces aligned and rerun targeted verification plus smoke/build coverage.
-
-## Agents / Chains
-Main session only. The work touched tightly coupled runtime, template, docs, and test surfaces.
+Merge-verification only.
+- Resolve the `origin/main` -> `dev` conflicts.
+- Re-run the release verification path.
+- Run `./scripts/promote.sh` from `dev`.
+- If the resulting PR is mergeable and the user explicitly wants completion, merge it through GitHub.
 
 ## Verification
+Pending after merge resolution:
 - `pnpm typecheck`
 - `pnpm test`
-- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
+- `pnpm test:bdd`
 - `pnpm test:smoke:dist`
+- `gitleaks detect --source . --config .gitleaks.toml`
+- `gh pr view <number> --json mergeable,mergeStateStatus,url`
 
 ## Risks
-- Native existing-repo `/bake` is intentionally more aggressive than conservative fallback adoption, so `/adopt` remains as the preserve-existing path.
-- Cleanup auto-confirm is explicitly scoped to curated manifest entries; unexpected non-curated leftovers still require follow-up review.
+- Low: the release should be straightforward once `dev` is re-verified and the PR is refreshed.
