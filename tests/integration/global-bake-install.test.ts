@@ -67,6 +67,11 @@ describe('global bake install', () => {
     expect(extension).toContain('Auto-detect new vs existing repositories and run pi-harness with Pi-native bake defaults.');
     expect(extension).toContain("ctx.ui.notify('pi-harness /bake finished.')");
 
+    await execFile(process.execPath, [tsxCli, '-e', `import(${JSON.stringify(extensionPath)})`], {
+      cwd: workspace,
+      encoding: 'utf8',
+    });
+
     const launchResult = await execFile(launcherPath, ['--init-json', '.'], {
       cwd: workspace,
       encoding: 'utf8',

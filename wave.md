@@ -1,31 +1,28 @@
 # Execution Approach
 
 ## Mode
-Direct
+Direct bugfix
 
 ## Work Item
-pi-harness-cw9
+pi-harness-4mj — fix generated global `/bake` extension escaping so `pnpm install:local` emits parseable TypeScript.
 
 ## Knowledge
-- `bd ready --json` returned `[]`, so the feature work was created in Beads and claimed as `pi-harness-cw9`.
-- Cognee was attempted with `./scripts/cognee-brief.sh "Pi-native /bake or /skill:bake auto-detect new vs existing repo, scaffold greenfield repos, refresh existing repos, remove old AI scaffolding so only pi-harness scaffolding remains"`.
-- Cognee datasets were unavailable (`DatasetNotFoundError`), so repository files and tests remained authoritative.
+- `bd ready --json` returned `[]`, so the bug was created and claimed as `pi-harness-4mj`.
+- Cognee brief was attempted and unavailable because datasets are not seeded.
+- The generated extension in `~/.pi/agent/extensions/pi-harness-bake/index.ts` was emitting under-escaped backslashes, producing `if (char === '\')` as `if (char === '")` in the installed file and causing Pi startup to fail.
 
 ## Test Strategy
-Hybrid, integration-led RED -> GREEN -> REFACTOR.
-- RED: add failing coverage for cleanup auto-confirm, generated native `/bake` surfaces, and docs alignment.
-- GREEN: implement cleanup confirmation support, native `/bake` extension/script defaults, and aligned docs/templates.
-- REFACTOR: keep dogfood + template surfaces aligned and rerun targeted verification plus smoke/build coverage.
-
-## Agents / Chains
-Main session only. The work touched tightly coupled runtime, template, docs, and test surfaces.
+TDD, narrow regression-first.
+- RED: add tests proving the rendered global extension preserves escaped backslashes and can be parsed/imported after generation.
+- GREEN: fix the escaping in `renderGlobalBakeExtension`.
+- REFACTOR: rebuild and reinstall locally, then import the installed extension to confirm the real artifact parses.
 
 ## Verification
+- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
 - `pnpm typecheck`
-- `pnpm test`
-- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
-- `pnpm test:smoke:dist`
+- `pnpm build`
+- `pnpm install:local`
+- `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`
 
 ## Risks
-- Native existing-repo `/bake` is intentionally more aggressive than conservative fallback adoption, so `/adopt` remains as the preserve-existing path.
-- Cleanup auto-confirm is explicitly scoped to curated manifest entries; unexpected non-curated leftovers still require follow-up review.
+- Low: fix is isolated to generated extension escaping and targeted tests now cover the installed artifact path.
