@@ -52,6 +52,51 @@ describe('CLI init', () => {
     expect(payload.cleanup.status).toBe('not-requested');
   });
 
+  it('uses the canonical repo slug for no-arg init-json flows in linked worktrees', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const mainRepoDir = path.join(workspace, 'canonical-app');
+    const worktreeDir = path.join(workspace, 'feature.bake');
+
+    await mkdir(mainRepoDir, { recursive: true });
+    await execFile('git', ['init', '--initial-branch=main'], { cwd: mainRepoDir });
+    await execFile('git', ['config', 'user.name', 'Pi Harness Tests'], { cwd: mainRepoDir });
+    await execFile('git', ['config', 'user.email', 'pi-harness-tests@example.com'], { cwd: mainRepoDir });
+    await writeFile(path.join(mainRepoDir, 'README.md'), '# canonical app\n', 'utf8');
+    await execFile('git', ['add', 'README.md'], { cwd: mainRepoDir });
+    await execFile('git', ['commit', '-m', 'init'], { cwd: mainRepoDir });
+    await execFile('git', ['worktree', 'add', '-b', 'feature-bake', worktreeDir], { cwd: mainRepoDir });
+
+    const result = await execFile(process.execPath, [tsxCli, path.join(repoRoot, 'src/cli.ts'), '--skip-git', '--init-json'], {
+      cwd: worktreeDir,
+      encoding: 'utf8'
+    });
+
+    const payload = JSON.parse(result.stdout) as {
+      appName: string;
+      mode: string;
+      createdPaths: string[];
+      notes: string[];
+    };
+
+    expect(payload.appName).toBe('canonical-app');
+    expect(payload.mode).toBe('existing');
+    expect(payload.notes).toContain(
+      'Detected linked git worktree; using canonical repo slug "canonical-app" from the main worktree instead of the current worktree directory name.'
+    );
+    expect(payload.createdPaths).toEqual(expect.arrayContaining(['config/deploy.yml', 'config/deploy.cognee.yml', 'scripts/cognee-bridge.sh']));
+    expect(await readFile(path.join(worktreeDir, 'config', 'deploy.cognee.yml'), 'utf8')).toContain('service: canonical-app-cognee');
+    expect(await readFile(path.join(worktreeDir, 'scripts', 'cognee-bridge.sh'), 'utf8')).toContain('canonical-app-cognee.apps.compute.lan');
+
+    const humanResult = await execFile(process.execPath, [tsxCli, path.join(repoRoot, 'src/cli.ts'), '--skip-git'], {
+      cwd: worktreeDir,
+      encoding: 'utf8'
+    });
+
+    expect(humanResult.stdout).toContain(
+      'Detected linked git worktree; using canonical repo slug "canonical-app" from the main worktree instead of the current worktree directory name.'
+    );
+  });
+
   it('supports no-arg init-json flows when the current directory basename is not already a valid slug', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
     const targetDir = path.join(workspace, '123 first bake');

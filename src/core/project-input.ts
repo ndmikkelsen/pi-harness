@@ -1,4 +1,5 @@
-import { existsSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readdirSync, realpathSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -19,6 +20,51 @@ function directoryHasFiles(targetDir: string): boolean {
   }
 
   return readdirSync(targetDir).length > 0;
+}
+
+function gitOutput(targetDir: string, args: string[]): string | null {
+  try {
+    const output = execFileSync('git', args, {
+      cwd: targetDir,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim();
+
+    return output.length > 0 ? output : null;
+  } catch {
+    return null;
+  }
+}
+
+function normalizeExistingPath(value: string): string {
+  try {
+    return realpathSync.native(value);
+  } catch {
+    return path.resolve(value);
+  }
+}
+
+function detectLinkedWorktreeCanonicalRepoName(targetDir: string): string | null {
+  const showTopLevel = gitOutput(targetDir, ['rev-parse', '--show-toplevel']);
+  if (!showTopLevel || normalizeExistingPath(showTopLevel) !== normalizeExistingPath(targetDir)) {
+    return null;
+  }
+
+  const gitCommonDir = gitOutput(targetDir, ['rev-parse', '--git-common-dir']);
+  const gitDir = gitOutput(targetDir, ['rev-parse', '--git-dir']);
+  if (!gitCommonDir || !gitDir) {
+    return null;
+  }
+
+  const resolvedCommonDir = normalizeExistingPath(path.resolve(targetDir, gitCommonDir));
+  const resolvedGitDir = normalizeExistingPath(path.resolve(targetDir, gitDir));
+
+  if (path.basename(resolvedCommonDir) !== '.git' || resolvedCommonDir === resolvedGitDir) {
+    return null;
+  }
+
+  const repoName = path.basename(path.dirname(resolvedCommonDir));
+  return repoName.length > 0 ? repoName : null;
 }
 
 export function resolveProjectInput(options: ResolveProjectInputOptions): ResolvedProjectInput {
@@ -46,10 +92,19 @@ export function resolveProjectInput(options: ResolveProjectInputOptions): Resolv
     throw new Error(`Refusing to scaffold a new project into a non-empty directory: ${targetDir}`);
   }
 
-  const candidateName = explicitProjectName ?? inferProjectName(path.basename(targetDir));
+  const linkedWorktreeCanonicalName = detectLinkedWorktreeCanonicalRepoName(targetDir);
+  const inferredName = linkedWorktreeCanonicalName ?? path.basename(targetDir);
+  const candidateName = explicitProjectName ?? inferProjectName(inferredName);
   if (!candidateName || !isValidProjectName(candidateName)) {
     throw new Error('Project name must be lowercase alphanumeric with hyphens (for example: my-api).');
   }
+
+  const inferenceNotes =
+    linkedWorktreeCanonicalName === null
+      ? []
+      : [
+          `Detected linked git worktree; using canonical repo slug "${candidateName}" from the main worktree instead of the current worktree directory name.`
+        ];
 
   return {
     appName: candidateName,
@@ -57,6 +112,7 @@ export function resolveProjectInput(options: ResolveProjectInputOptions): Resolv
     appTitle: titleCaseFromSlug(candidateName),
     appVar: envVarNameFromSlug(candidateName),
     targetDir,
-    mode: resolvedMode
+    mode: resolvedMode,
+    inferenceNotes
   };
 }
