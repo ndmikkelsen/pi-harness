@@ -20,6 +20,16 @@ export function normalizeProjectName(value: string): string {
     .replace(/^-|-$/g, '');
 }
 
+export function inferProjectName(value: string): string {
+  const normalized = normalizeProjectName(value);
+
+  if (!normalized) {
+    return 'project';
+  }
+
+  return /^[a-z]/.test(normalized) ? normalized : `project-${normalized}`;
+}
+
 export function isValidProjectName(value: string): boolean {
   return /^[a-z][a-z0-9-]*$/.test(value);
 }

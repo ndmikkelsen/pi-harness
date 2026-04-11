@@ -3,7 +3,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 import type { ResolvedProjectInput, ResolveProjectInputOptions } from './types.js';
-import { envVarNameFromSlug, isValidProjectName, normalizeProjectName, titleCaseFromSlug } from './strings.js';
+import { envVarNameFromSlug, inferProjectName, isValidProjectName, titleCaseFromSlug } from './strings.js';
 
 function expandHome(value: string): string {
   return value.startsWith('~/') ? path.join(os.homedir(), value.slice(2)) : value;
@@ -46,7 +46,7 @@ export function resolveProjectInput(options: ResolveProjectInputOptions): Resolv
     throw new Error(`Refusing to scaffold a new project into a non-empty directory: ${targetDir}`);
   }
 
-  const candidateName = explicitProjectName ?? normalizeProjectName(path.basename(targetDir));
+  const candidateName = explicitProjectName ?? inferProjectName(path.basename(targetDir));
   if (!candidateName || !isValidProjectName(candidateName)) {
     throw new Error('Project name must be lowercase alphanumeric with hyphens (for example: my-api).');
   }

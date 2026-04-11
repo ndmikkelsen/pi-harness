@@ -23,6 +23,7 @@ const requiredRuntimePaths = [
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
+  '.pi/prompts/bake.md',
   '.pi/prompts/adopt.md',
   '.pi/prompts/serve.md',
   '.pi/prompts/promote.md',
@@ -54,6 +55,7 @@ const existingModeBaselinePaths = [
   '.pi/agents/lead.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
+  '.pi/prompts/bake.md',
   '.pi/prompts/adopt.md',
   '.pi/prompts/plan-change.md',
   '.pi/skills/bake/SKILL.md',
@@ -146,6 +148,7 @@ describe('runInit', () => {
     const mcpConfig = await readFile(path.join(projectDir, '.pi', 'mcp.json'), 'utf8');
     const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
     const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
+    const bakePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
     const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
     const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
@@ -179,6 +182,11 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(bakePrompt).toContain('canonical repo-local Pi setup surface');
+    expect(bakePrompt).toContain('pi-harness --mode existing . --init-json');
+    expect(bakePrompt).toContain('prefer `/bake` as the canonical Pi setup surface');
+    expect(bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
+    expect(bakePrompt).toContain('pi-harness doctor <target>');
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
     expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
@@ -280,6 +288,7 @@ describe('runInit', () => {
 
     const projectDir = path.join(workspace, 'workflow-app');
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
+    const bakePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8');
     const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
     const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
@@ -290,6 +299,9 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("let's serve the dish");
+    expect(bakePrompt).toContain('canonical repo-local Pi setup surface');
+    expect(bakePrompt).toContain('pi-harness --mode existing . --init-json');
+    expect(bakePrompt).toContain('Keep `/adopt` available as the compatibility path');
     expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
     expect(adoptPrompt).toContain('--cleanup-manifest legacy-ai-frameworks-v1 --init-json');
     expect(servePrompt).toContain('/serve');
