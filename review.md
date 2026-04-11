@@ -1,19 +1,31 @@
-# Review
+# Review Verdict
+
+## Work Item
+untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
 
 ## Verdict
-Pending verification
+Ready to merge
 
 ## Scope Reviewed
-- Merge-conflicted docs/prompts/templates
-- Generator and doctor alignment
-- Integration test expectations for the merged scaffold baseline
+- release PR mergeability against `main`
+- conflicting handoff artifacts only (`progress.md`, `review.md`, `wave.md`)
+- no intended changes to scaffold, runtime, or release-script behavior beyond conflict cleanup
 
 ## Key Checks
-- The merged baseline should still include bake-era naming and serve behavior.
-- The merged baseline should also retain `npm:pi-mcp-adapter`, `.pi/mcp.json`, and the separate `/promote` / `scripts/promote.sh` release flow from `dev`.
-- Dogfood/template parity should remain exact.
+- keep the shipped `dev` branch behavior intact while resolving the merge
+- avoid introducing new release logic while touching only the conflicting notes artifacts
+- confirm the refreshed PR remains a `dev` -> `main` promotion PR with an accurate body
 
-## Verification to Run
-- `pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/promote-script.test.ts tests/integration/serve-script.test.ts tests/integration/cli-doctor.test.ts`
+## Verification Run
 - `pnpm typecheck`
-- `pnpm build`
+- `pnpm test`
+- `pnpm test:bdd`
+- `pnpm test:smoke:dist`
+- `gitleaks detect --source . --config .gitleaks.toml`
+- `gh pr view 16 --json mergeable,mergeStateStatus`
+- `git status --short --branch`
+
+## Outcome
+- Only the conflicting tracked handoff artifacts were reconciled.
+- PR #16 now reports a clean merge state and remains targeted from `dev` to `main`.
+- The PR description was refreshed after promotion so reviewers still have a summary, detailed description, and verification list.

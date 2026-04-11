@@ -35,6 +35,9 @@ async function runRepoScript(
 }
 
 export default function registerRepoWorkflows(pi: ExtensionAPI): void {
+  // Keep canonical repo-local setup and publish workflows prompt-native in `.pi/prompts/*.md`.
+  // This includes `/bake` as the canonical setup surface, `/adopt` for existing-repo
+  // compatibility, and `/serve` / `/promote` for publish flows.
   pi.registerCommand('bootstrap-worktree', {
     description: 'Run scripts/bootstrap-worktree.sh for the current checkout',
     handler: async (_args: string, ctx: CommandContext) => {

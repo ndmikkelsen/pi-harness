@@ -1,26 +1,40 @@
 # Execution Approach
 
 ## Mode
-Direct
+Direct closeout
 
 ## Work Item
-untracked
+untracked — resolve `dev` -> `main` promotion PR conflicts and refresh PR #16
 
 ## Knowledge
-`bd ready --json` returned `[]`. Cognee was skipped because this pass is a bounded `dev` -> `main` conflict-resolution merge and local git state was sufficient.
+- `bd ready --json` returned `[]`.
+- Cognee was skipped because this is a bounded release-conflict fix and repository/PR state is sufficient.
+- The current release PR is `https://github.com/ndmikkelsen/pi-harness/pull/16`.
+- This is a promotion lane on `dev`, so the publish step is `/promote` / `./scripts/promote.sh` rather than feature-branch `/serve`.
 
 ## Test Strategy
 Merge-verification only.
-- Update `dev` with `origin/main` so PR #14 can merge cleanly.
-- Resolve the remaining handoff-artifact conflict without changing the scaffold/runtime contract.
-- Verify the PR becomes mergeable after pushing `dev`.
+- Surface conflicts locally by merging `origin/main` into `dev`.
+- Resolve only the conflicting handoff artifacts.
+- Re-run the release verification path and push `dev`.
+- Confirm PR #16 returns to a mergeable state.
 
 ## Agents / Chains
-Main session only. This was a tiny, overlap-heavy merge-fix task.
+Main session only. The task is small, overlap-heavy, and not worth splitting.
 
 ## Verification
-- Confirm no remaining merge conflicts locally.
-- Push `dev` and verify PR #14 reports `mergeable: MERGEABLE` / clean merge state.
+Completed path:
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm test:bdd`
+- `pnpm test:smoke:dist`
+- `gitleaks detect --source . --config .gitleaks.toml`
+- `gh pr view 16 --json mergeable,mergeStateStatus`
+
+## Outcome
+- `main` was merged back into `dev` and only the conflicting tracked handoff artifacts were reconciled.
+- `./scripts/promote.sh` pushed `dev` and refreshed PR #16 to `main`.
+- PR #16 is back to a clean, mergeable state.
 
 ## Risks
-- The only real risk here was carrying forward stale session artifact text from the conflicting `wave.md` versions.
+- Low: future conflicts on this PR are now most likely only if `main` advances again before merge.

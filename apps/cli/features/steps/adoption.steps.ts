@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -34,6 +35,21 @@ async function applyExistingRepo(world: CliFeatureWorld, options: ExistingRepoOp
 
   world.result = result;
   return result;
+}
+
+function assertCanonicalBakeAndAdoptCompatibility(world: CliFeatureWorld): void {
+  const result = requireResult(world);
+  const targetDir = requireTargetDir(world);
+  const adoptPrompt = readFileSync(path.join(targetDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
+  const bakeSkill = readFileSync(path.join(targetDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
+
+  expect(result.createdPaths).toEqual(expect.arrayContaining(['.pi/prompts/adopt.md', '.pi/skills/bake/SKILL.md']));
+  expect(adoptPrompt).toContain('# Adopt an existing repository with pi-harness');
+  expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
+  expect(bakeSkill).toContain('name: bake');
+  expect(bakeSkill).toContain('# Bake');
+  expect(bakeSkill).toContain('adopt an existing codebase into the scaffold');
+  expect(bakeSkill).toContain('pi-harness --mode existing . --init-json');
 }
 
 export async function givenExistingProjectDirectoryWithCustomRootFiles(world: CliFeatureWorld): Promise<void> {
@@ -113,6 +129,8 @@ export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): vo
       'scripts/cognee-brief.sh'
     ])
   );
+
+  assertCanonicalBakeAndAdoptCompatibility(world);
 }
 
 export async function thenPreExistingScaffoldFilesAreLeftUnchanged(world: CliFeatureWorld): Promise<void> {
@@ -152,6 +170,8 @@ export async function thenCuratedLegacyFilesAreRemovedBeforeNewScaffoldFilesAreC
     expect.arrayContaining([expect.objectContaining({ path: '.codex', status: 'prompt-required' })])
   );
   expect(result.createdPaths).toEqual(expect.arrayContaining(['AGENTS.md', '.pi/settings.json']));
+
+  assertCanonicalBakeAndAdoptCompatibility(world);
 }
 
 export function thenAmbiguousCleanupEntriesAreReportedForConfirmation(world: CliFeatureWorld): void {
@@ -175,6 +195,8 @@ export function thenCodexCompatibilityFilesAreCreated(world: CliFeatureWorld): v
   expect(result.createdPaths).toEqual(
     expect.arrayContaining(['AGENTS.md', '.pi/settings.json', '.pi/prompts/serve.md', 'scripts/bootstrap-worktree.sh'])
   );
+
+  assertCanonicalBakeAndAdoptCompatibility(world);
 }
 
 export async function thenNoOpenCodeCompatibilityFilesAreCreated(world: CliFeatureWorld): Promise<void> {
