@@ -24,11 +24,11 @@ The canonical workflow surfaces are:
 
 - Scaffolded with `pi-harness` v{{HARNESS_VERSION}} on {{GENERATED_ON}}.
 - Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
-- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun `/bake` or `scripts/bake.sh` for the target repo, then customize only the resulting managed outputs you intentionally want to tailor.
+- Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun the user-global `/bake` surface for the target repo, then customize only the resulting managed outputs you intentionally want to tailor.
 - Finish updates with `pi-harness doctor <path>`.
 - This scaffold assumes `pi-harness` is used locally to set up and refresh repos, not consumed as a registry-published package.
 
-## Global-first `/bake` story
+## Global-only `/bake` story
 
 1. Keep a local `pi-harness` checkout on your machine and install the launcher once:
 
@@ -39,8 +39,8 @@ The canonical workflow surfaces are:
    ```
 
 2. `pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`.
-3. That user-global `/bake` surface is the first-bake bootstrapper for untouched repos: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.
-4. After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. In baked repos, prefer the generated repo-local `/bake` command and `scripts/bake.sh`, use `/skill:bake` when you want the same contract explained first, and keep `/adopt` only as the conservative compatibility path.
+3. That user-global `/bake` surface is the setup and refresh entrypoint for repos at every stage: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.
+4. After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. Keep using the user-global `/bake` surface when you want Pi to run setup or refresh flows, use `/skill:bake` when you want the same contract explained from inside the repo, do not expect any scaffolded local prompt or shell fallback for bake, and keep `/adopt` only as the conservative compatibility path.
 
 ## If you are migrating from scaiff
 
@@ -51,7 +51,7 @@ The canonical workflow surfaces are:
 ## Pi setup
 
 1. Install Pi locally: `npm install -g @mariozechner/pi-coding-agent`
-2. Install the global first-bake surface from your local `pi-harness` checkout with `pnpm install && pnpm build && pnpm install:local`.
+2. Install the global `/bake` surface from your local `pi-harness` checkout with `pnpm install && pnpm build && pnpm install:local`.
 3. Start Pi in the repository so it can install any project packages declared in `.pi/settings.json`.
 4. Run `/login` to configure the provider credentials you want Pi to use.
 5. Run `/model` to select the current model.
@@ -62,7 +62,7 @@ The canonical workflow surfaces are:
 
 1. Read `AGENTS.md`.
 2. Review `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, and `.pi/skills/*` for native workflow guidance.
-3. In untouched repos, use the user-global `/bake` surface to bootstrap Pi files; in baked repos, use the generated repo-local `/bake` command or `/skill:bake` guidance for refreshes.
+3. In untouched or baked repos, use the user-global `/bake` surface when you want Pi to run setup or refresh flows; use `/skill:bake` in baked repos when you want the local explanation first.
 4. Keep `/adopt` available as the compatibility path for conservative existing-repo refreshes and older handoff notes.
 5. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.
 6. Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.
@@ -74,7 +74,7 @@ The canonical workflow surfaces are:
 12. Run `bd init` once in the repository before using Beads.
 13. Use `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration.
 14. For user-visible behavior, start with `apps/cli/features/*` and the BDD lane through `pnpm test:bdd`; keep lower-level regression coverage in `tests/*`.
-15. Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.
+15. Use the user-global `/bake` surface for native setup and refreshes, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.
 16. Existing-repo `/bake` runs already apply curated legacy AI-scaffolding cleanup; keep raw `pi-harness` cleanup flags for advanced or manual fallback cases only.
 17. Let an execution or autonomous serving lane run `./scripts/serve.sh` from your feature branch once verification passes; it publishes the branch and ensures a PR to `dev` exists.
 18. When `dev` is ready for release, run `/promote` or `./scripts/promote.sh` from `dev`; it pushes `dev` upstream and ensures a PR to `main` exists or is refreshed.

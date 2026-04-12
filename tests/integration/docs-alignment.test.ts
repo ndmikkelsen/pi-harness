@@ -82,7 +82,6 @@ describe('workflow docs alignment', () => {
         sourcePath: ['src', 'templates', 'pi', 'extensions', 'role-workflow.ts'],
         targetPath: ['.pi', 'extensions', 'role-workflow.ts'],
       },
-      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'bake.md'], targetPath: ['.pi', 'prompts', 'bake.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'adopt.md'], targetPath: ['.pi', 'prompts', 'adopt.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'serve.md'], targetPath: ['.pi', 'prompts', 'serve.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'promote.md'], targetPath: ['.pi', 'prompts', 'promote.md'] },
@@ -120,7 +119,6 @@ describe('workflow docs alignment', () => {
         sourcePath: ['src', 'templates', 'pi', 'scripts', 'bootstrap-worktree.sh'],
         targetPath: ['scripts', 'bootstrap-worktree.sh'],
       },
-      { sourcePath: ['src', 'templates', 'pi', 'scripts', 'bake.sh'], targetPath: ['scripts', 'bake.sh'] },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'cognee-brief.sh'], targetPath: ['scripts', 'cognee-brief.sh'] },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'serve.sh'], targetPath: ['scripts', 'serve.sh'] },
       { sourcePath: ['src', 'templates', 'pi', 'scripts', 'promote.sh'], targetPath: ['scripts', 'promote.sh'] },
@@ -160,8 +158,8 @@ describe('workflow docs alignment', () => {
     const agentsGuide = normalizeDoc(await readRepoFile('AGENTS.md'));
     const piSystem = normalizeDoc(await readRepoFile('.pi', 'SYSTEM.md'));
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
+    const workflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'repo-workflows.ts'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
-    const bakePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'bake.md'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
     const servePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'serve.md'));
     const promotePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'promote.md'));
@@ -193,8 +191,8 @@ describe('workflow docs alignment', () => {
       agentsGuide,
       piSystem,
       leadAgent,
+      workflowExtension,
       roleWorkflowExtension,
-      bakePrompt,
       adoptPrompt,
       servePrompt,
       promotePrompt,
@@ -216,18 +214,21 @@ describe('workflow docs alignment', () => {
     expect(rootReadme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
     expect(rootReadme).toContain('This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.');
     expect(rootReadme).toContain('`pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`.');
-    expect(rootReadme).toContain('That user-global `/bake` surface is the first-bake bootstrapper for untouched repos: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.');
-    expect(rootReadme).toContain('In baked repos, prefer the generated repo-local `/bake` command and `scripts/bake.sh`, use `/skill:bake` when you want the same contract explained first, and keep `/adopt` only as the conservative compatibility path.');
+    expect(rootReadme).toContain('That user-global `/bake` surface is the setup and refresh entrypoint for repos at every stage: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.');
+    expect(rootReadme).toContain('After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. Keep using the user-global `/bake` surface when you want Pi to run setup or refresh flows, use `/skill:bake` when you want the same contract explained from inside the repo, do not expect any scaffolded local prompt or shell fallback for bake, and keep `/adopt` only as the conservative compatibility path.');
+    expect(rootReadme).not.toContain('repo-local `/bake` command');
+    expect(rootReadme).not.toContain('scripts/bake.sh');
     expect(rootReadme).toContain('Run `bd init` once in the repository before using Beads.');
-    expect(rootReadme).toContain('Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.');
+    expect(rootReadme).toContain('Use the user-global `/bake` surface for native setup and refreshes, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.');
     expect(rootReadme).toContain('./scripts/promote.sh');
     expect(rootReadme).toContain('/mcp');
     expect(rootReadme).toContain('pnpm test:bdd');
-    expect(bakeUsage).toContain('1. **User-global first bake.** Install `pi-harness` from a local checkout on your machine so untouched repos can use `/bake` before any repo-local `.pi/*` files exist.');
-    expect(bakeUsage).toContain('2. **Repo-local authority after bake.** Once a repo is scaffolded, the generated `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state become the canonical workflow authority for that repository.');
+    expect(bakeUsage).toContain('1. **User-global execution.** Install `pi-harness` from a local checkout on your machine so any repo can use `/bake` before or after repo-local `.pi/*` files exist.');
+    expect(bakeUsage).toContain('2. **Repo-local explanation after bake.** Once a repo is scaffolded, the generated `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state become the canonical workflow authority for that repository, while `/skill:bake` explains how that repo expects setup and refresh work to happen.');
     expect(bakeUsage).toContain('The user-global layer should stay thin. It exists to route `/bake` into the right `pi-harness` flow for the target repository');
-    expect(bakeUsage).toContain('`.pi/extensions/repo-workflows.ts` exposes the repo-local `/bake` command');
-    expect(bakeUsage).toContain('`scripts/bake.sh` is the repo-local executable backend for `/bake`');
+    expect(bakeUsage).toContain('`.pi/skills/bake/SKILL.md` explains the repo-local setup/refresh contract and points users back to the user-global `/bake` surface when they want execution');
+    expect(bakeUsage).not.toContain('repo-local `/bake` command');
+    expect(bakeUsage).not.toContain('scripts/bake.sh');
     expect(agentsGuide).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(agentsGuide).toContain('.pi/agents/*');
     expect(agentsGuide).toContain('/role <name>');
@@ -242,10 +243,11 @@ describe('workflow docs alignment', () => {
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
     expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
-    expect(bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
-    expect(bakePrompt).toContain('/skill:bake');
-    expect(adoptPrompt).toContain('Use this prompt when you need the existing-repo refresh path or compatibility alias for older baked repos.');
-    expect(adoptPrompt).toContain('For baked repos, prefer `/bake` as the canonical Pi setup surface.');
+    expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
+    expect(workflowExtension).not.toContain("registerCommand('bake'");
+    expect(workflowExtension).not.toContain('scripts/bake.sh');
+    expect(adoptPrompt).toContain('Use this prompt when you need the conservative existing-repo refresh path or a compatibility alias for older baked-repo notes.');
+    expect(adoptPrompt).toContain('For baked repos, prefer the user-global `/bake` command for execution and `/skill:bake` when you want the contract explained first.');
     expect(adoptPrompt).toContain('Preserve existing-repo conservatism: customize only `createdPaths` by default and do not rewrite preserved scaffold files unless the user explicitly asks.');
     expect(servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked, differ from `STICKYNOTE.example.md`, and include a completed-work summary under `## Completed This Session`.');
     expect(servePrompt).toContain('Use `/serve` as the canonical Pi-native entrypoint and let it drive `./scripts/serve.sh --commit-message "<message>"` when publish is allowed.');
@@ -265,7 +267,7 @@ describe('workflow docs alignment', () => {
     expect(beadsSkill).toContain(
       '5. close the issue only after verification passes: `bd close <id> --reason "Verified: <evidence>" --json`',
     );
-    expect(bakeSkill).toContain('/bake` or `/skill:bake');
+    expect(bakeSkill).toContain('user-global `/bake` command or repo-local `/skill:bake` guidance');
     expect(bakeSkill).toContain('--cleanup-confirm-all');
     expect(bakeSkill).toContain(
       'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
@@ -274,7 +276,8 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('4. `.pi/extensions/role-workflow.ts`');
     expect(bakeSkill).toContain('Cognee brief if `scripts/cognee-brief.sh` already exists');
     expect(bakeSkill).toContain('6. `.pi/agents/*.chain.md`');
-    expect(bakeSkill).toContain('8. `.pi/prompts/bake.md`');
+    expect(bakeSkill).toContain('8. `.pi/prompts/adopt.md`');
+    expect(bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(leadAgent).toContain('Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");

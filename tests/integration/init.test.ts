@@ -23,7 +23,6 @@ const requiredRuntimePaths = [
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
-  '.pi/prompts/bake.md',
   '.pi/prompts/adopt.md',
   '.pi/prompts/serve.md',
   '.pi/prompts/promote.md',
@@ -40,7 +39,6 @@ const requiredRuntimePaths = [
   '.pi/skills/parallel-wave-design/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
-  'scripts/bake.sh',
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
   'scripts/sync-artifacts-to-cognee.sh',
@@ -56,13 +54,11 @@ const existingModeBaselinePaths = [
   '.pi/agents/lead.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
-  '.pi/prompts/bake.md',
   '.pi/prompts/adopt.md',
   '.pi/prompts/plan-change.md',
   '.pi/skills/bake/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
   'scripts/bootstrap-worktree.sh',
-  'scripts/bake.sh',
   'scripts/sync-artifacts-to-cognee.sh'
 ];
 
@@ -88,6 +84,8 @@ describe('runInit', () => {
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(result.createdPaths).toContain('.beads/hooks/post-checkout');
     expect(result.createdPaths).toContain('STICKYNOTE.example.md');
+    expect(result.createdPaths).not.toContain('.pi/prompts/bake.md');
+    expect(result.createdPaths).not.toContain('scripts/bake.sh');
     expect(result.createdPaths).not.toContain('.opencode/worktree.jsonc');
     expect(result.createdPaths).not.toContain('.planning/TRACEABILITY.md');
     expect(result.createdPaths).not.toContain('CONSTITUTION.md');
@@ -150,7 +148,6 @@ describe('runInit', () => {
     const mcpConfig = await readFile(path.join(projectDir, '.pi', 'mcp.json'), 'utf8');
     const workflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
     const roleWorkflowExtension = await readFile(path.join(projectDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
-    const bakePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
     const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
     const syncArtifactsScript = await readFile(path.join(projectDir, 'scripts', 'sync-artifacts-to-cognee.sh'), 'utf8');
@@ -176,21 +173,18 @@ describe('runInit', () => {
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
-    expect(workflowExtension).toContain("registerCommand('bake'");
+    expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
+    expect(workflowExtension).not.toContain("registerCommand('bake'");
     expect(workflowExtension).toContain("registerCommand('bootstrap-worktree'");
     expect(workflowExtension).toContain("registerCommand('cognee-brief'");
-    expect(workflowExtension).toContain('scripts/bake.sh');
+    expect(workflowExtension).not.toContain('scripts/bake.sh');
     expect(workflowExtension).toContain('scripts/bootstrap-worktree.sh');
     expect(workflowExtension).toContain('scripts/cognee-brief.sh');
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
-    expect(bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
-    expect(bakePrompt).toContain('/skill:bake');
-    expect(bakePrompt).toContain('auto-detect whether the target is `new` or `existing`');
-    expect(bakePrompt).toContain('--cleanup-confirm-all');
-    expect(bakePrompt).toContain('pi-harness doctor <target>');
+    await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
     expect(servePrompt).toContain('Keep `/serve` prompt-native; do not shadow it with a project-local extension command.');
@@ -212,6 +206,7 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
     expect(bakeSkill).toContain('/skill:bake');
+    expect(bakeSkill).toContain('Do not create or preserve a repo-local `.pi/prompts/bake.md`; `/bake` is global-only');
     expect(bakeSkill).toContain('--cleanup-confirm-all');
     expect(bakeSkill).toContain('.pi/settings.json');
     expect(bakeSkill).toContain('.pi/extensions/role-workflow.ts');
@@ -294,11 +289,9 @@ describe('runInit', () => {
 
     const projectDir = path.join(workspace, 'workflow-app');
     const agentsGuide = await readFile(path.join(projectDir, 'AGENTS.md'), 'utf8');
-    const bakePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8');
     const adoptPrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'adopt.md'), 'utf8');
     const servePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'serve.md'), 'utf8');
     const promotePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'promote.md'), 'utf8');
-    const bakeScript = await readFile(path.join(projectDir, 'scripts', 'bake.sh'), 'utf8');
     const cogneeBriefScript = await readFile(path.join(projectDir, 'scripts', 'cognee-brief.sh'), 'utf8');
     const promoteScript = await readFile(path.join(projectDir, 'scripts', 'promote.sh'), 'utf8');
 
@@ -306,10 +299,8 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("let's serve the dish");
-    expect(bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
-    expect(bakePrompt).toContain('/skill:bake');
-    expect(bakePrompt).toContain('--cleanup-confirm-all');
-    expect(bakeScript).toContain('--cleanup-confirm-all');
+    await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
+    await expect(readFile(path.join(projectDir, 'scripts', 'bake.sh'), 'utf8')).rejects.toThrow();
     expect(adoptPrompt).toContain('pi-harness --mode existing . --init-json');
     expect(adoptPrompt).toContain('--cleanup-manifest legacy-ai-frameworks-v1 --init-json');
     expect(servePrompt).toContain('/serve');
@@ -370,6 +361,8 @@ describe('runInit', () => {
     expect(result.createdPaths).not.toContain('.gitignore');
     expect(result.createdPaths).not.toContain('.env.example');
     expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
+    expect(result.createdPaths).not.toContain('.pi/prompts/bake.md');
+    expect(result.createdPaths).not.toContain('scripts/bake.sh');
     expect(result.cleanup.enabled).toBe(false);
   });
 

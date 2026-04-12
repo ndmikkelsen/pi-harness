@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, writeFile } from 'node:fs/promises';
+import { access, mkdir, mkdtemp, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 
@@ -16,6 +16,8 @@ const legacyGsdWorkflowRule = manifest.entries.find((entry) => entry.id === 'leg
 const legacyBroadCogneeSync = manifest.entries.find((entry) => entry.id === 'legacy-broad-cognee-sync')!.path;
 const legacyPlanningSyncBackend = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-backend')!.path;
 const legacyPlanningSyncWrapper = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-wrapper')!.path;
+const legacyRepoLocalBakePrompt = manifest.entries.find((entry) => entry.id === 'legacy-repo-local-bake-prompt')!.path;
+const legacyRepoLocalBakeScript = manifest.entries.find((entry) => entry.id === 'legacy-repo-local-bake-script')!.path;
 
 describe('cleanup manifests', () => {
   it('exposes the curated legacy cleanup manifest', () => {
@@ -30,7 +32,9 @@ describe('cleanup manifests', () => {
         expect.objectContaining({ path: legacyGsdWorkflowRule, disposition: 'prompt-before-delete' }),
         expect.objectContaining({ path: legacyBroadCogneeSync, disposition: 'safe-delete' }),
         expect.objectContaining({ path: legacyPlanningSyncBackend, disposition: 'safe-delete' }),
-        expect.objectContaining({ path: legacyPlanningSyncWrapper, disposition: 'safe-delete' })
+        expect.objectContaining({ path: legacyPlanningSyncWrapper, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyRepoLocalBakePrompt, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyRepoLocalBakeScript, disposition: 'safe-delete' })
       ])
     );
   });
@@ -165,6 +169,34 @@ describe('runCleanup', () => {
         expect.objectContaining({ path: '.rules/patterns/gsd-workflow.md', status: 'deleted' })
       ])
     );
+  });
+
+  it('deletes stale repo-local bake artifacts during non-interactive cleanup', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.pi', 'prompts'), { recursive: true });
+    await mkdir(path.join(targetDir, 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, legacyRepoLocalBakePrompt), '# stale bake prompt\n', 'utf8');
+    await writeFile(path.join(targetDir, legacyRepoLocalBakeScript), '#!/usr/bin/env bash\n', 'utf8');
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      nonInteractive: true
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toEqual(
+      expect.arrayContaining([legacyRepoLocalBakePrompt, legacyRepoLocalBakeScript])
+    );
+    expect(result.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ path: legacyRepoLocalBakePrompt, status: 'deleted' }),
+        expect.objectContaining({ path: legacyRepoLocalBakeScript, status: 'deleted' })
+      ])
+    );
+    await expect(access(path.join(targetDir, legacyRepoLocalBakePrompt))).rejects.toThrow();
+    await expect(access(path.join(targetDir, legacyRepoLocalBakeScript))).rejects.toThrow();
   });
 
   it('deletes deprecated planning-sync scripts even when the parent legacy runtime directory still requires confirmation', async () => {

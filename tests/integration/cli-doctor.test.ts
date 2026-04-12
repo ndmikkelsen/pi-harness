@@ -13,7 +13,11 @@ const execFile = promisify(execFileCallback);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 
-async function scaffoldProject(workspace: string, projectArg: string): Promise<string> {
+async function scaffoldProject(
+  workspace: string,
+  projectArg: string,
+  options: { keepRepoLocalBakePrompt?: boolean } = {}
+): Promise<string> {
   await runInit({
     cwd: workspace,
     projectArg,
@@ -24,7 +28,13 @@ async function scaffoldProject(workspace: string, projectArg: string): Promise<s
     detectPorts: false
   });
 
-  return path.join(workspace, projectArg);
+  const targetDir = path.join(workspace, projectArg);
+
+  if (!options.keepRepoLocalBakePrompt) {
+    await rm(path.join(targetDir, '.pi', 'prompts', 'bake.md'), { force: true });
+  }
+
+  return targetDir;
 }
 
 describe('CLI doctor', () => {
@@ -75,7 +85,6 @@ describe('CLI doctor', () => {
         'AGENTS.md',
         '.pi/mcp.json',
         '.pi/extensions/repo-workflows.ts',
-        '.pi/prompts/bake.md',
         '.pi/prompts/serve.md',
         '.pi/skills/bake/SKILL.md',
         'scripts/bootstrap-worktree.sh',
@@ -83,6 +92,8 @@ describe('CLI doctor', () => {
       ])
     );
     expect(initPayload.skippedPaths).toContain('README.md');
+
+    await rm(path.join(targetDir, '.pi', 'prompts', 'bake.md'), { force: true });
 
     const doctorResult = await execFile(
       process.execPath,
@@ -109,11 +120,11 @@ describe('CLI doctor', () => {
   });
 
 
-  it('fails workflow-alignment when the managed bake prompt is missing', async () => {
+  it('fails workflow-alignment when a repo-local /bake prompt shadows the global-only contract', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
-    const targetDir = await scaffoldProject(workspace, 'doctor-cli-missing-bake-prompt');
+    const targetDir = await scaffoldProject(workspace, 'doctor-cli-shadowed-bake-prompt');
 
-    await rm(path.join(targetDir, '.pi', 'prompts', 'bake.md'));
+    await writeFile(path.join(targetDir, '.pi', 'prompts', 'bake.md'), '# shadowed bake prompt\n', 'utf8');
 
     const doctorResult = await execFile(process.execPath, [tsxCli, 'src/cli.ts', 'doctor', '--json', targetDir], {
       cwd: repoRoot,
@@ -128,12 +139,12 @@ describe('CLI doctor', () => {
     };
 
     expect(doctorPayload.status).toBe('fail');
-    expect(doctorPayload.missing).toContain('.pi/prompts/bake.md');
+    expect(doctorPayload.missing).not.toContain('.pi/prompts/bake.md');
     expect(doctorPayload.invalid).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
           path: '.pi/prompts/bake.md',
-          reason: 'missing required workflow artifact'
+          reason: 'shadowing repo-local `/bake` prompt present; keep `/bake` user-global and use `/skill:bake` for baked repos'
         })
       ])
     );

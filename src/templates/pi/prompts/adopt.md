@@ -1,8 +1,8 @@
 # Adopt an existing repository with pi-harness
 
-Use this prompt when you need the existing-repo refresh path or compatibility alias for older baked repos.
+Use this prompt when you need the conservative existing-repo refresh path or a compatibility alias for older baked-repo notes.
 
-For baked repos, prefer `/bake` as the canonical Pi setup surface. Keep `/adopt` for compatibility when the user explicitly asks to adopt or refresh an existing repository, or when older notes still reference `/adopt`.
+For baked repos, prefer the user-global `/bake` command for execution and `/skill:bake` when you want the contract explained first. Keep `/adopt` for compatibility when the user explicitly asks to adopt or refresh an existing repository, when older notes still reference `/adopt`, or when preserve-existing behavior is the goal.
 
 ## Steps
 1. Confirm the repository should be treated as `existing`, not `new`.
@@ -15,5 +15,6 @@ For baked repos, prefer `/bake` as the canonical Pi setup surface. Keep `/adopt`
 ## Guardrails
 - Do not use `--force` by default.
 - Do not merge root files unless the user explicitly requests `--merge-root-files`.
+- If the user wants the standard bake defaults, point them to the user-global `/bake` command or `/skill:bake` instead of implying a repo-local `/bake` prompt exists.
 - Keep provider/model setup inside Pi runtime configuration rather than changing the scaffold identity.
 - Preserve existing-repo conservatism: customize only `createdPaths` by default and do not rewrite preserved scaffold files unless the user explicitly asks.
