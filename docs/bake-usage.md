@@ -6,12 +6,12 @@
 The supported runtime is provider-agnostic and built around `AGENTS.md`, `.pi/*`, plain repo scripts, Beads, and optional Cognee acceleration.
 Project-local subagent support is typically shared through `.pi/settings.json` with `npm:pi-subagents`, while project-local MCP support can ride through `npm:pi-mcp-adapter` plus a tracked `.pi/mcp.json` for repo-specific servers.
 
-## Global-first `/bake` story
+## User-global `/bake` story
 
-The `/bake` story has two layers:
+The `/bake` story has one executable surface and one repo-local explanation layer:
 
-1. **User-global first bake.** Install `pi-harness` from a local checkout on your machine so untouched repos can use `/bake` before any repo-local `.pi/*` files exist.
-2. **Repo-local authority after bake.** Once a repo is scaffolded, the generated `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state become the canonical workflow authority for that repository.
+1. **User-global execution.** Install `pi-harness` from a local checkout on your machine so any repo can use `/bake` before or after repo-local `.pi/*` files exist.
+2. **Repo-local explanation after bake.** Once a repo is scaffolded, the generated `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state become the canonical workflow authority for that repository, while `/skill:bake` explains how that repo expects setup and refresh work to happen.
 
 The user-global layer should stay thin. It exists to route `/bake` into the right `pi-harness` flow for the target repository, not to carry repo-specific policy, provider defaults, or a second copy of scaffold rules.
 
@@ -28,7 +28,7 @@ pnpm install:local
 That gives you:
 - a `pi-harness` launcher in `~/.local/bin`
 - a user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`
-- a first-bake entrypoint that can run in untouched repos without depending on repo-local `.pi/*`
+- a setup/refresh entrypoint that can run in untouched or baked repos without depending on any generated local bake command
 
 Keep provider and model setup in Pi runtime configuration: use `/login`, `/model`, `.pi/settings.json`, and `~/.pi/agent/models.json` instead of baking providers into scaffold files.
 
@@ -44,17 +44,16 @@ Keep provider and model setup in Pi runtime configuration: use `/login`, `/model
 
 After the first bake succeeds, treat the generated repo-local files as canonical:
 - `AGENTS.md` owns workflow authority
-- `.pi/extensions/repo-workflows.ts` exposes the repo-local `/bake` command
-- `scripts/bake.sh` is the repo-local executable backend for `/bake`
-- `.pi/prompts/bake.md` and `.pi/skills/bake/SKILL.md` document the same `/bake` / `/skill:bake` contract
+- `.pi/skills/bake/SKILL.md` explains the repo-local setup/refresh contract and points users back to the user-global `/bake` surface when they want execution
+- baked repos do not scaffold any local bake prompt or shell fallback; `/skill:bake` is the local explanation path
 - `.pi/prompts/adopt.md` remains the compatibility path for conservative existing-repo refreshes and older handoff notes
 - `scripts/*`, Beads state, and repo docs carry the project-specific execution details
 
-The user-global `/bake` extension remains a bootstrapper. Once a repo is baked, repo-local `/bake` execution and repo-local docs should describe the contract.
+The user-global `/bake` extension remains the executable surface. Once a repo is baked, repo-local docs and `/skill:bake` should describe the contract.
 
 ## Current-state runbook
 
-1. Use the user-global `/bake` surface for the first bake in untouched repos, then prefer the generated repo-local `/bake` command or `/skill:bake` guidance in baked repos.
+1. Use the user-global `/bake` surface for both the first bake in untouched repos and later refreshes in baked repos; use `/skill:bake` in baked repos when you want the local explanation first.
 2. Let `/bake` auto-detect `new` vs `existing`; use raw `pi-harness` commands only as an advanced fallback.
 3. Run `pi-harness doctor <target>`.
 4. Run `bd init` once in the target repo if Beads has not been initialized yet.
@@ -90,7 +89,7 @@ What to do next:
 6. Fill in `.env` with placeholders from `.env.example`, including `GITHUB_PERSONAL_ACCESS_TOKEN` when you want the preconfigured GitHub MCP server from `.pi/mcp.json`.
 7. Use `/mcp` once Pi starts to inspect or reconnect the project-local GitHub MCP server.
 8. Use the project-local role workflow from `.pi/agents/*`, `.pi/agents/*.chain.md`, and `.pi/extensions/role-workflow.ts` so users can switch roles quickly without leaving the main session.
-9. In baked repos, prefer the generated repo-local `/bake` command for later refreshes, use `/skill:bake` when you want the same contract explained first, and keep `/adopt` only as the compatibility path for explicit preserve-existing work.
+9. In baked repos, keep using the user-global `/bake` surface for later refreshes, use `/skill:bake` when you want the same contract explained first, and keep `/adopt` only as the compatibility path for explicit preserve-existing work.
 10. When the repo changes user-visible behavior, start from `apps/cli/features/*` and keep the BDD lane runnable with `pnpm test:bdd`.
 
 ## Existing repository walkthrough
@@ -122,11 +121,11 @@ pi-harness --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --non-in
 pnpm install
 pnpm build
 pnpm install:local
-# then run /bake in the target repo or ./scripts/bake.sh
+# then run the user-global /bake in the target repo
 pi-harness doctor <path>
 ```
 
-In baked repos, prefer the repo-local `/bake` command for this refresh path and keep `/adopt` as the compatibility alias when older notes still reference adoption language.
+In baked repos, keep using the user-global `/bake` surface for this refresh path, use `/skill:bake` when you want the repo-local explanation first, and keep `/adopt` as the compatibility alias when older notes still reference adoption language.
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 

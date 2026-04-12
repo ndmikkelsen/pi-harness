@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { chmod, mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
+import { access, chmod, mkdir, mkdtemp, readFile, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -14,7 +14,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
-const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/bake.sh', 'scripts/sync-artifacts-to-cognee.sh'];
+const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
@@ -215,6 +215,39 @@ exit 0
     expect(envExample).toContain('# AI workflow scaffold');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
     expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
+  });
+
+  it('removes stale repo-local bake artifacts during existing-repo refresh', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-stale-bake-artifacts');
+
+    await mkdir(path.join(targetDir, '.pi', 'prompts'), { recursive: true });
+    await mkdir(path.join(targetDir, 'scripts'), { recursive: true });
+    await writeFile(path.join(targetDir, '.pi', 'prompts', 'bake.md'), '# stale bake prompt\n', 'utf8');
+    await writeFile(path.join(targetDir, 'scripts', 'bake.sh'), '#!/usr/bin/env bash\n', 'utf8');
+
+    const result = await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--cleanup-manifest', 'legacy-ai-frameworks-v1', '--init-json', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const payload = JSON.parse(result.stdout) as {
+      cleanup: {
+        status: string;
+        removedPaths: string[];
+      };
+    };
+
+    expect(payload.cleanup.status).toBe('applied');
+    expect(payload.cleanup.removedPaths).toEqual(
+      expect.arrayContaining(['.pi/prompts/bake.md', 'scripts/bake.sh'])
+    );
+    await expect(access(path.join(targetDir, '.pi', 'prompts', 'bake.md'))).rejects.toThrow();
+    await expect(access(path.join(targetDir, 'scripts', 'bake.sh'))).rejects.toThrow();
   });
 
   it('reports curated cleanup removals in init-json output', async () => {

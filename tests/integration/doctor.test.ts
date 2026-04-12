@@ -7,7 +7,11 @@ import { describe, expect, it } from 'vitest';
 import { formatDoctorReport, runDoctor } from '../../src/commands/doctor.js';
 import { runInit } from '../../src/commands/init.js';
 
-async function scaffoldProject(workspace: string, projectArg: string): Promise<string> {
+async function scaffoldProject(
+  workspace: string,
+  projectArg: string,
+  options: { keepRepoLocalBakePrompt?: boolean } = {}
+): Promise<string> {
   await runInit({
     cwd: workspace,
     projectArg,
@@ -18,7 +22,13 @@ async function scaffoldProject(workspace: string, projectArg: string): Promise<s
     detectPorts: false
   });
 
-  return path.join(workspace, projectArg);
+  const targetDir = path.join(workspace, projectArg);
+
+  if (!options.keepRepoLocalBakePrompt) {
+    await rm(path.join(targetDir, '.pi', 'prompts', 'bake.md'), { force: true });
+  }
+
+  return targetDir;
 }
 
 async function auditProject(workspace: string, targetDir: string, json = false) {
@@ -190,6 +200,33 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/skills/harness/SKILL.md',
           reason: 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'
+        })
+      ])
+    );
+  });
+
+  it('fails when stale repo-local bake artifacts shadow the global-only contract', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-shadowed-bake-artifacts');
+
+    await writeFile(path.join(targetDir, '.pi', 'prompts', 'bake.md'), '# shadowed bake prompt\n', 'utf8');
+    await writeFile(path.join(targetDir, 'scripts', 'bake.sh'), '#!/usr/bin/env bash\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/bake.md',
+          reason: 'shadowing repo-local `/bake` prompt present; keep `/bake` user-global and use `/skill:bake` for baked repos'
+        }),
+        expect.objectContaining({
+          path: 'scripts/bake.sh',
+          reason: 'stale repo-local bake backend present; keep `/bake` user-global and use `/skill:bake` for baked repos'
         })
       ])
     );
@@ -559,6 +596,38 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/repo-workflows.ts',
           reason: 'shadowing `/serve` extension command present; keep `/serve` prompt-native'
+        })
+      ])
+    );
+  });
+
+  it('fails when the repo workflow extension shadows the global-only /bake flow', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-bake-shadow');
+
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    const shadow = `
+  pi.registerCommand('bake', {
+    description: 'shadow',
+    handler: async (_args: string, ctx: CommandContext) => {
+      ctx.ui.notify('shadow');
+    },
+  });
+`;
+    await writeFile(extensionPath, extension.replace('\n}\n', `${shadow}}\n`), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'runtime-baseline', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/extensions/repo-workflows.ts',
+          reason: 'shadowing `/bake` extension command present; keep `/bake` user-global'
         })
       ])
     );

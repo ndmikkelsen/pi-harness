@@ -1,29 +1,49 @@
-# Plan
+# Implementation Plan
 
 ## Work Item
-pi-harness-cw9 — Pi-native `/bake` auto-detects repo mode and refreshes repos to the pi-harness baseline.
+untracked — make `/bake` global-only.
 
-## Acceptance Criteria
-1. `/bake` decides `new` vs `existing` automatically for the current directory or an explicit target path.
-2. Existing-repo `/bake` runs refresh managed scaffold files and remove curated legacy AI scaffolding so the result matches the supported pi-harness baseline.
-3. Baked repos expose a native Pi `/bake` entrypoint instead of requiring raw CLI flags.
-4. `/skill:bake` guidance points to the same native `/bake` contract.
-5. Generated docs, prompts, skills, scripts, and tests verify the new behavior.
+## Knowledge Inputs
+- Cognee brief attempted and unavailable because datasets are not seeded.
+- Local evidence from `README.md`, `docs/bake-usage.md`, `.pi/extensions/repo-workflows.ts`, `.pi/prompts/bake.md`, `.pi/skills/bake/SKILL.md`, `src/local-launcher.ts`, `src/templates/**`, `src/commands/doctor.ts`, and integration tests.
+
+## Goal
+Keep the Pi-native `/bake` entrypoint global-only while removing baked-repo-local `/bake` command collisions and duplicated backend assumptions.
+
+## Approach
+1. Preserve the user-global launcher installed by `pnpm install:local` as the only `/bake` slash-command implementation.
+2. Remove baked-repo-local `/bake` surfaces that currently collide: repo extension registration, local `/bake` prompt, and duplicated backend script.
+3. Keep repo-local `/skill:bake` guidance, but rewrite it to explain the global `/bake` contract instead of advertising a local slash command.
+4. Update scaffold generation, doctor validation, and focused integration tests to match the new global-only contract.
 
 ## Test Strategy
-Hybrid, integration-led RED -> GREEN -> REFACTOR.
-- RED: targeted integration/unit tests for cleanup confirmation, global `/bake` extension generation, scaffolded repo `/bake` script/extension output, and docs alignment.
-- GREEN: implement cleanup auto-confirm support, native `/bake` script + extension, and update docs/prompts/skills.
-- REFACTOR: align doctor checks and repo/template copies, then rerun the narrow verification slice.
+Hybrid, integration-led.
 
-## Planned Steps
-1. Add targeted RED coverage for cleanup auto-confirm and native `/bake` outputs.
-2. Extend cleanup/init plumbing with an explicit auto-confirm option for curated cleanup manifests.
-3. Implement smart `/bake` defaults in the installed global Pi extension.
-4. Add scaffolded repo-native `/bake` support (`scripts/bake.sh` + `.pi/extensions/repo-workflows.ts`).
-5. Update bake docs/prompts/skills/README/doctor guidance to make `/bake` and `/skill:bake` canonical.
-6. Run targeted verification, update progress artifacts, and close the Beads issue only after passing.
+## RED
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/cli-doctor.test.ts tests/integration/doctor.test.ts`
+  - Current failures should demonstrate that the scaffold still expects repo-local `/bake` surfaces.
 
-## Notes
-- `bd ready --json` returned no ready work, so this feature was created and claimed as `pi-harness-cw9`.
-- Cognee brief was attempted but unavailable because datasets are not seeded.
+## GREEN
+- Remove repo-local `/bake` command/backend generation and local prompt collision.
+- Update docs/skills and doctor expectations to describe `/bake` as user-global-only while preserving `/skill:bake` guidance.
+
+## REFACTOR
+- Simplify repo-local `repo-workflows.ts` so it only exposes non-bake utility commands.
+- Remove now-dead bake script references and keep template parity clean.
+
+## Tasks
+1. Runtime/scaffold surface: remove repo-local `/bake` registration and `scripts/bake.sh` generation while preserving other repo-local utility commands.
+2. Docs/skills/prompts: rewrite repo docs and baked-repo guidance for global-only `/bake`; remove the local `.pi/prompts/bake.md` slash collision; keep `/skill:bake` guidance coherent.
+3. Doctor/tests: update doctor rules and focused integration expectations so baked repos no longer require local `/bake` surfaces.
+
+## Dependencies
+- Decide the contract first: global `/bake` remains canonical, baked repos no longer ship a local `/bake` command or local `/bake` prompt.
+- If `.pi/prompts/bake.md` is removed, all generator, doctor, and scaffold tests that require it must be updated in the same change wave.
+
+## Verification
+- `pnpm test -- tests/integration/global-bake-install.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/cli-init.test.ts tests/integration/cli-doctor.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts`
+
+## Risks
+- Docs/tests may still imply `scripts/bake.sh` remains a supported fallback; that wording must be made consistent.
+- The scaffold may still want to ship `/skill:bake` guidance, so prompt removal must not accidentally remove the explain-first path.
+- Doctor should ideally fail on repo-local `/bake` shadowing once the new contract is in place.

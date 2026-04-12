@@ -1,28 +1,32 @@
 # Execution Approach
 
 ## Mode
-Direct
+Parallel wave
 
 ## Work Item
 untracked
 
 ## Knowledge
-Cognee skipped. This was a scoped regression fix around `/bake` name inference in git worktrees, and local source/tests were sufficient.
+Cognee attempted with `./scripts/cognee-brief.sh "make /bake global-only remove repo-local /bake command and local collisions while keeping global scaffolding workflow"` and was unavailable because datasets are not seeded. Wave shape is based on repository evidence from `README.md`, `.pi/prompts/bake.md`, `.pi/skills/bake/SKILL.md`, `.pi/extensions/repo-workflows.ts`, `src/local-launcher.ts`, `src/templates/**`, `src/commands/doctor.ts`, and the integration test suite.
 
 ## Test Strategy
-TDD.
-- RED: add coverage proving no-arg `/bake` in a linked git worktree should use the canonical repo slug, not the worktree directory name.
-- GREEN: infer the scaffold name from git's common directory when the target is a worktree root.
-- REFACTOR: keep non-git and explicit-name flows unchanged, then verify with narrow unit/integration runs.
+Hybrid, integration-led.
+- RED: focused integration failures should confirm the current scaffold still ships repo-local `/bake` surfaces and duplicate local docs/doctor expectations.
+- GREEN: remove repo-local `/bake` command/backend surfaces, keep the user-global launcher authoritative, and realign docs/doctor/tests around the new global-only contract.
+- REFACTOR: keep repo-local `bootstrap-worktree` and `cognee-brief` utility commands intact while simplifying baked-repo setup guidance.
 
 ## Agents / Chains
-Main session only. The fix is localized to project-input inference plus targeted tests.
+Parallel build wave with isolated worktrees after lead-level wave shaping:
+1. Runtime/scaffold surface task: remove repo-local `/bake` command/backend from scaffolded repos while preserving non-bake repo utilities.
+2. Docs/skills/prompts task: rewrite baked-repo guidance around global-only `/bake`, keep `/skill:bake` as guidance, and remove the local `/bake` prompt collision.
+3. Doctor/tests task: update scaffold/runtime validation and focused integration expectations to match the new contract.
 
 ## Verification
-- `pnpm test -- tests/unit/project-context.test.ts tests/integration/cli-init.test.ts`
-- `pnpm build`
-- `node dist/src/cli.js --skip-git --init-json`
-- `node dist/src/cli.js --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --dry-run --init-json`
+Caller-side verification after the wave:
+- `pnpm test -- tests/integration/global-bake-install.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/cli-init.test.ts tests/integration/cli-doctor.test.ts tests/integration/doctor.test.ts tests/integration/docs-alignment.test.ts`
 
 ## Risks
-- Git worktree detection depends on `git rev-parse --show-toplevel` and `--git-common-dir`; non-git or unusual bare-repo paths intentionally fall back to the target directory basename.
+- Removing repo-local `/bake` touches generated scaffold surfaces, dogfood copies, and doctor assumptions at once.
+- `.pi/prompts/bake.md` likely needs removal or renaming to avoid reintroducing a local `/bake` slash command.
+- `scripts/bake.sh` removal may ripple through init/snapshot tests and any docs that still describe it as a supported fallback.
+- The global launcher contract in `src/local-launcher.ts` and `tests/integration/global-bake-install.test.ts` must remain intact while local collisions are removed.
