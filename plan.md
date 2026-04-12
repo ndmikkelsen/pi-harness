@@ -1,29 +1,33 @@
-# Plan
+# Implementation Plan
 
 ## Work Item
-pi-harness-cw9 — Pi-native `/bake` auto-detects repo mode and refreshes repos to the pi-harness baseline.
+untracked — allow `pin feat/new-feature` to create a worktree from `dev` in an existing repo before `bd init`.
 
-## Acceptance Criteria
-1. `/bake` decides `new` vs `existing` automatically for the current directory or an explicit target path.
-2. Existing-repo `/bake` runs refresh managed scaffold files and remove curated legacy AI scaffolding so the result matches the supported pi-harness baseline.
-3. Baked repos expose a native Pi `/bake` entrypoint instead of requiring raw CLI flags.
-4. `/skill:bake` guidance points to the same native `/bake` contract.
-5. Generated docs, prompts, skills, scripts, and tests verify the new behavior.
+## Goal
+Stop uninitialized Beads checkout hooks from aborting `git worktree add`, while preserving normal Beads hook behavior after initialization.
 
 ## Test Strategy
-Hybrid, integration-led RED -> GREEN -> REFACTOR.
-- RED: targeted integration/unit tests for cleanup confirmation, global `/bake` extension generation, scaffolded repo `/bake` script/extension output, and docs alignment.
-- GREEN: implement cleanup auto-confirm support, native `/bake` script + extension, and update docs/prompts/skills.
-- REFACTOR: align doctor checks and repo/template copies, then rerun the narrow verification slice.
+TDD.
 
-## Planned Steps
-1. Add targeted RED coverage for cleanup auto-confirm and native `/bake` outputs.
-2. Extend cleanup/init plumbing with an explicit auto-confirm option for curated cleanup manifests.
-3. Implement smart `/bake` defaults in the installed global Pi extension.
-4. Add scaffolded repo-native `/bake` support (`scripts/bake.sh` + `.pi/extensions/repo-workflows.ts`).
-5. Update bake docs/prompts/skills/README/doctor guidance to make `/bake` and `/skill:bake` canonical.
-6. Run targeted verification, update progress artifacts, and close the Beads issue only after passing.
+## RED
+- Add or run a focused integration case showing worktree creation fails when the Beads hook fires before initialization.
+- Command: `pnpm test -- tests/integration/bootstrap-worktree.test.ts`
 
-## Notes
-- `bd ready --json` returned no ready work, so this feature was created and claimed as `pi-harness-cw9`.
-- Cognee brief was attempted but unavailable because datasets are not seeded.
+## GREEN
+- Update the tracked Beads post-checkout hook and template copy so `bd hooks run post-checkout` only runs when Beads runtime state exists.
+- Keep `scripts/bootstrap-worktree.sh` execution in place for both initialized and uninitialized repos.
+
+## REFACTOR
+- Use the same guard in the dogfood hook and template hook.
+- Keep follow-on regression checks green for init/scaffold/doctor coverage.
+
+## Files
+- `.beads/hooks/post-checkout`
+- `src/templates/root/beads-hooks/post-checkout`
+- `tests/integration/bootstrap-worktree.test.ts`
+
+## Caller Verification
+- `pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts`
+
+## Risks
+- The initialization guard depends on current Beads runtime markers (`.beads/dolt` or `.beads/redirect`). If Beads changes that contract later, this hook guard must change with it.

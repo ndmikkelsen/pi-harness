@@ -42,7 +42,6 @@ export function buildPiEntries(): ManagedEntry[] {
       path: '.pi/extensions/role-workflow.ts',
       content: () => template('pi/extensions/role-workflow.ts'),
     },
-    { kind: 'file', path: '.pi/prompts/bake.md', content: () => template('pi/prompts/bake.md') },
     { kind: 'file', path: '.pi/prompts/adopt.md', content: () => template('pi/prompts/adopt.md') },
     { kind: 'file', path: '.pi/prompts/serve.md', content: () => template('pi/prompts/serve.md') },
     { kind: 'file', path: '.pi/prompts/promote.md', content: () => template('pi/prompts/promote.md') },
@@ -95,12 +94,6 @@ export function buildPiEntries(): ManagedEntry[] {
       kind: 'file',
       path: 'scripts/bootstrap-worktree.sh',
       content: () => template('pi/scripts/bootstrap-worktree.sh'),
-      executable: true,
-    },
-    {
-      kind: 'file',
-      path: 'scripts/bake.sh',
-      content: () => template('pi/scripts/bake.sh'),
       executable: true,
     },
     {

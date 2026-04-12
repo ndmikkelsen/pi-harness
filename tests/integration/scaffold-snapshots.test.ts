@@ -37,7 +37,6 @@ async function snapshotForProject(rootDir: string) {
     leadAgent: await readProjectFile(rootDir, '.pi', 'agents', 'lead.md'),
     roleWorkflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'role-workflow.ts'),
     workflowExtension: await readProjectFile(rootDir, '.pi', 'extensions', 'repo-workflows.ts'),
-    bakePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'bake.md'),
     servePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'serve.md'),
     promotePrompt: await readProjectFile(rootDir, '.pi', 'prompts', 'promote.md'),
     beadsSkill: await readProjectFile(rootDir, '.pi', 'skills', 'beads', 'SKILL.md'),
@@ -48,7 +47,6 @@ async function snapshotForProject(rootDir: string) {
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
     stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
-    bakeScript: await readProjectFile(rootDir, 'scripts', 'bake.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
     cogneeBrief: await readProjectFile(rootDir, 'scripts', 'cognee-brief.sh'),
     syncArtifactsScript: await readProjectFile(rootDir, 'scripts', 'sync-artifacts-to-cognee.sh'),
@@ -112,7 +110,6 @@ describe('scaffold snapshots', () => {
         '.pi/agents/ship-change.chain.md',
         '.pi/extensions/repo-workflows.ts',
         '.pi/extensions/role-workflow.ts',
-        '.pi/prompts/bake.md',
         '.pi/prompts/adopt.md',
         '.pi/prompts/serve.md',
         '.pi/prompts/promote.md',
@@ -137,7 +134,6 @@ describe('scaffold snapshots', () => {
         'config/deploy.yml',
         'docker/Dockerfile.cognee',
         'scripts/bootstrap-worktree.sh',
-        'scripts/bake.sh',
         'scripts/cognee-bridge.sh',
         'scripts/cognee-brief.sh',
         'scripts/sync-artifacts-to-cognee.sh',
@@ -169,7 +165,8 @@ describe('scaffold snapshots', () => {
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.');
     expect(result.readme).toContain('Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.');
-    expect(result.readme).toContain('Use `/bake` for native setup, and use `.pi/skills/bake/SKILL.md` or `/skill:bake` when you want the same contract explained before execution.');
+    expect(result.readme).toContain('In untouched or baked repos, use the user-global `/bake` surface when you want Pi to run setup or refresh flows; use `/skill:bake` in baked repos when you want the local explanation first.');
+    expect(result.readme).not.toContain('scripts/bake.sh');
     expect(result.readme).toContain('pnpm test:bdd');
     expect(result.agents).toContain('Workflow authority lives in this file, `.pi/*`, native Beads state, and repo-local handoff notes.');
     expect(result.agents).toContain('.pi/agents/*');
@@ -191,15 +188,12 @@ describe('scaffold snapshots', () => {
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
     expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
-    expect(result.workflowExtension).toContain("pi.registerCommand('bake'");
+    expect(result.workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
+    expect(result.workflowExtension).not.toContain("pi.registerCommand('bake'");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
     expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
-    expect(result.bakePrompt).toContain('Use `/bake` as the canonical Pi-native entrypoint');
-    expect(result.bakePrompt).toContain('/skill:bake');
-    expect(result.bakePrompt).toContain('--cleanup-confirm-all');
-    expect(result.bakePrompt).toContain('legacy-ai-frameworks-v1');
-    expect(result.bakePrompt).toContain('pi-harness doctor <target>');
+    expect(result.files).not.toContain('.pi/prompts/bake.md');
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
@@ -216,6 +210,7 @@ describe('scaffold snapshots', () => {
     expect(result.bakeSkill).toContain(
       'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
     );
+    expect(result.bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(result.leadAgent).toContain('plan-change');
     expect(result.leadAgent).toContain('worktree: true');
@@ -232,7 +227,7 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeBrief).toContain('exec "$BRIDGE" brief "$@"');
     expect(result.syncArtifactsScript).toContain('context.md');
     expect(result.syncArtifactsScript).toContain('Cognee unavailable - skipping artifact sync');
-    expect(result.bakeScript).toContain('--cleanup-confirm-all');
+    expect(result.files).not.toContain('scripts/bake.sh');
     expect(result.postCheckoutHook).toContain('scripts/bootstrap-worktree.sh');
     expect(result.serveScript).toContain('run_cmd pnpm test:bdd');
     expect(result.serveScript).toContain('sync-artifacts-to-cognee.sh');

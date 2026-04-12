@@ -1,23 +1,31 @@
-# Review
+# Review Verdict
 
-## Verdict
-Ready to merge to `dev` once the refreshed PR updates on GitHub.
+## Work Item
+untracked
 
-## What changed
-- The escaping bug in the generated global Pi `/bake` extension is fixed.
-- Narrow regression coverage now protects the generated extension output and installed artifact import path.
-- The feature branch has been refreshed with the latest `origin/dev` state.
+## Summary
+Ready to serve.
+
+The fix addresses the actual blocker in the `pin -> git worktree add -> post-checkout hook` path:
+- uninitialized existing repos no longer fail just because `bd` is installed
+- initialized repos still run the Beads post-checkout hook
+- genuine initialized-hook failures still propagate after worktree bootstrap
+
+## What Changed
+- The tracked Beads post-checkout hook now determines whether Beads is actually initialized by checking runtime markers in the current checkout and canonical main worktree.
+- The scaffold template uses the same guard, so new or refreshed repos inherit the fix.
+- Integration coverage now proves both the uninitialized success path and the initialized failure path.
 
 ## Risks
-- Low: the change is isolated to generated extension escaping and protected by focused regression coverage.
+- The guard relies on current Beads runtime markers (`.beads/dolt` or `.beads/redirect`). If Beads changes its local runtime layout, this hook condition will need an update.
+- Already-baked repos need the updated hook content to benefit from this fix.
 
-## Caller-side checks
-- Confirm PR #19 reports a clean merge state after the refreshed branch push.
-- Merge PR #19 to `dev`, then continue promotion from `dev` to `main`.
+## Suggested Verification
+Already completed:
 
-## Verification evidence
-- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
-- `pnpm typecheck`
-- `pnpm build`
-- `pnpm install:local`
-- `node node_modules/tsx/dist/cli.mjs -e 'import("/Users/naynay/.pi/agent/extensions/pi-harness-bake/index.ts")'`
+```bash
+pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts
+```
+
+## Verdict
+No blocker found for serving this branch.

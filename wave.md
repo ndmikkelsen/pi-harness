@@ -7,22 +7,20 @@ Direct
 untracked
 
 ## Knowledge
-Cognee skipped. This was a scoped regression fix around `/bake` name inference in git worktrees, and local source/tests were sufficient.
+Cognee skipped. The failure was already narrow and locally diagnosable from the Beads post-checkout hook, bootstrap script, and worktree integration tests.
 
 ## Test Strategy
 TDD.
-- RED: add coverage proving no-arg `/bake` in a linked git worktree should use the canonical repo slug, not the worktree directory name.
-- GREEN: infer the scaffold name from git's common directory when the target is a worktree root.
-- REFACTOR: keep non-git and explicit-name flows unchanged, then verify with narrow unit/integration runs.
+- RED: reproduce the worktree failure as an integration case where the Beads hook fires in an uninitialized existing repo during `git worktree add`.
+- GREEN: make the Beads hook run only when Beads local runtime state exists for the current checkout or the canonical main worktree.
+- REFACTOR: keep initialized-hook behavior intact, including propagated hook failures and worktree bootstrap after hook execution.
 
 ## Agents / Chains
-Main session only. The fix is localized to project-input inference plus targeted tests.
+None. This was a small direct change touching the tracked Beads hook template, the dogfood hook copy, and focused integration coverage.
 
 ## Verification
-- `pnpm test -- tests/unit/project-context.test.ts tests/integration/cli-init.test.ts`
-- `pnpm build`
-- `node dist/src/cli.js --skip-git --init-json`
-- `node dist/src/cli.js --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --dry-run --init-json`
+- `pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts`
 
 ## Risks
-- Git worktree detection depends on `git rev-parse --show-toplevel` and `--git-common-dir`; non-git or unusual bare-repo paths intentionally fall back to the target directory basename.
+- The hook now treats Beads local runtime markers (`.beads/dolt` or `.beads/redirect`) as the initialization signal. If a future `bd` version changes that contract, the guard and tests will need to move with it.
+- Existing repos with already-tracked older hook content need this updated hook file to pick up the no-`bd init` safeguard.

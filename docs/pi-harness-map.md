@@ -10,7 +10,7 @@
 - `src/core/**` - reusable helpers and policies
 - `src/generators/**` - managed output definitions
 - `src/templates/**` - scaffold source of truth
-- `.pi/**` - dogfooded Pi-native runtime layer
+- `.pi/**` - dogfooded Pi-native runtime layer, including repo-local `/skill:bake` explanation for the user-global `/bake` flow
 - `scripts/**` - dogfooded operational backends
 - `tests/**` and `apps/cli/features/**` - regression and BDD coverage
 
@@ -23,7 +23,7 @@ pi-harness my-app --init-json
 # existing repository via conservative fallback
 pi-harness --mode existing . --init-json
 
-# native Pi /bake refresh for an existing repository
+# user-global Pi /bake setup or refresh from inside a Pi session
 /bake
 
 # audit a repository
@@ -33,8 +33,8 @@ pi-harness doctor .
 ## Behavioral summary
 
 - scaffolds a new project directory
-- adopts an existing repository conservatively by default and powers native `/bake` refresh flows that replace legacy AI scaffolding with the supported pi-harness baseline
-- emits `AGENTS.md`, `.pi/*`, `scripts/*`, Beads, deployment, and handoff files from one template source
+- adopts an existing repository conservatively by default and powers the user-global Pi `/bake` setup/refresh flow that can replace legacy AI scaffolding with the supported pi-harness baseline
+- emits `AGENTS.md`, `.pi/*`, `scripts/*`, Beads, deployment, and handoff files from one template source without requiring a generated repo-local `/bake` command
 - validates that a repository still matches the supported Pi-native clean-slate baseline
 
 ## Guardrails

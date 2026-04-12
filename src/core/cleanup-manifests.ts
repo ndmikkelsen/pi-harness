@@ -114,6 +114,20 @@ const LEGACY_AI_FRAMEWORKS_V1: CleanupManifest = {
       reason: 'deprecated mythological workflow role replaced by `.pi/agents/review.md`',
     },
     {
+      id: 'legacy-repo-local-bake-prompt',
+      path: '.pi/prompts/bake.md',
+      kind: 'file',
+      disposition: 'safe-delete',
+      reason: 'stale repo-local `/bake` prompt shadowed by the user-global `/bake` surface; use `/skill:bake` for baked repos',
+    },
+    {
+      id: 'legacy-repo-local-bake-script',
+      path: 'scripts/bake.sh',
+      kind: 'file',
+      disposition: 'safe-delete',
+      reason: 'stale repo-local bake shell fallback replaced by the user-global `/bake` surface',
+    },
+    {
       id: 'legacy-codex-runtime-dir',
       path: '.codex',
       kind: 'directory',

@@ -34,9 +34,11 @@ function createDoctorContext(targetDir: string): ScaffoldContext {
   };
 }
 
+const GLOBAL_ONLY_BAKE_PATHS = new Set(['.pi/prompts/bake.md', 'scripts/bake.sh']);
+
 function managedFileEntries(targetDir: string): ManagedFile[] {
   return buildManagedEntries(createDoctorContext(targetDir)).filter(
-    (entry): entry is ManagedFile => entry.kind === 'file',
+    (entry): entry is ManagedFile => entry.kind === 'file' && !GLOBAL_ONLY_BAKE_PATHS.has(entry.path),
   );
 }
 
@@ -247,7 +249,6 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
-    '.pi/prompts/bake.md',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
     '.pi/prompts/promote.md',
@@ -287,7 +288,6 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
     '.pi/extensions/role-workflow.ts',
-    '.pi/prompts/bake.md',
     '.pi/prompts/adopt.md',
     '.pi/prompts/serve.md',
     '.pi/prompts/promote.md',
@@ -436,10 +436,13 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const extension = await readFileIfPresent(targetDir, '.pi/extensions/repo-workflows.ts');
   if (extension !== null) {
-    for (const token of ["registerCommand('bake'", "registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bake.sh', 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
+    for (const token of ["registerCommand('bootstrap-worktree'", "registerCommand('cognee-brief'", 'scripts/bootstrap-worktree.sh', 'scripts/cognee-brief.sh']) {
       if (!extension.includes(token)) {
         pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', `missing native workflow command glue: ${token}`);
       }
+    }
+    if (extension.includes("registerCommand('bake'")) {
+      pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', 'shadowing `/bake` extension command present; keep `/bake` user-global');
     }
     if (extension.includes("registerCommand('serve'")) {
       pushRuntimeInvalid(invalid, '.pi/extensions/repo-workflows.ts', 'shadowing `/serve` extension command present; keep `/serve` prompt-native');
@@ -455,19 +458,20 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
-  const bakePrompt = await readFileIfPresent(targetDir, '.pi/prompts/bake.md');
-  if (bakePrompt !== null) {
-    for (const [token, reason] of [
-      ['Use `/bake` as the canonical Pi-native entrypoint', 'missing canonical /bake entrypoint guidance'],
-      ['/skill:bake', 'missing /skill:bake guidance'],
-      ['auto-detect whether the target is `new` or `existing`', 'missing bake auto-detect guidance'],
-      ['legacy-ai-frameworks-v1', 'missing legacy cleanup guidance'],
-      ['pi-harness doctor <target>', 'missing doctor follow-up guidance'],
-    ] as const) {
-      if (!bakePrompt.includes(token)) {
-        pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/bake.md', reason);
-      }
-    }
+  if (await fileExists(targetDir, '.pi/prompts/bake.md')) {
+    pushAlignmentInvalid(
+      alignmentInvalid,
+      '.pi/prompts/bake.md',
+      'shadowing repo-local `/bake` prompt present; keep `/bake` user-global and use `/skill:bake` for baked repos',
+    );
+  }
+
+  if (await fileExists(targetDir, 'scripts/bake.sh')) {
+    pushAlignmentInvalid(
+      alignmentInvalid,
+      'scripts/bake.sh',
+      'stale repo-local bake backend present; keep `/bake` user-global and use `/skill:bake` for baked repos',
+    );
   }
 
   const adoptPrompt = await readFileIfPresent(targetDir, '.pi/prompts/adopt.md');

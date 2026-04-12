@@ -1,8 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
@@ -10,6 +10,107 @@ import { LOCAL_LAUNCHER_NAMES, renderGlobalBakeExtension, renderLauncherScript }
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
+
+interface ExecutedExtensionResult {
+  registeredCommand: string;
+  description: string | null;
+  execCalls: Array<{
+    command: string;
+    args: string[];
+  }>;
+  notifications: string[];
+}
+
+function executeRenderedBakeExtension(options: {
+  args: string;
+  cwd: string;
+  hasUI?: boolean;
+  launcherPath?: string;
+}): ExecutedExtensionResult {
+  const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-rendered-ext-'));
+  const extensionPath = path.join(workspace, 'index.ts');
+  const probePath = path.join(workspace, 'probe.ts');
+
+  try {
+    writeFileSync(
+      extensionPath,
+      renderGlobalBakeExtension({ launcherPath: options.launcherPath ?? '/tmp/pi-harness' }),
+      'utf8',
+    );
+    writeFileSync(
+      probePath,
+      `// @ts-nocheck
+async function main() {
+  const [, , extensionUrl, inputJson] = process.argv;
+  const { default: register } = await import(extensionUrl);
+  const input = JSON.parse(inputJson);
+  const execCalls = [];
+  const notifications = [];
+  let registeredCommand = null;
+  let description = null;
+  let handler = null;
+
+  register({
+    exec: async (command, args) => {
+      execCalls.push({ command, args });
+      return null;
+    },
+    registerCommand: (name, options) => {
+      registeredCommand = name;
+      description = options.description ?? null;
+      handler = options.handler;
+    },
+  });
+
+  if (typeof handler !== 'function') {
+    throw new Error('rendered extension did not register a /bake handler');
+}
+
+  await handler(input.args, {
+    cwd: input.cwd,
+    hasUI: input.hasUI,
+    ui: {
+      notify(message) {
+        notifications.push(message);
+      },
+    },
+  });
+
+  process.stdout.write(JSON.stringify({ registeredCommand, description, execCalls, notifications }));
+}
+
+main().catch((error) => {
+  process.stderr.write(String(error instanceof Error ? error.stack ?? error.message : error));
+  process.exit(1);
+});
+`,
+      'utf8',
+    );
+
+    const stdout = execFileSync(
+      process.execPath,
+      [
+        tsxCli,
+        probePath,
+        pathToFileURL(extensionPath).href,
+        JSON.stringify({
+          args: options.args,
+          cwd: options.cwd,
+          hasUI: options.hasUI ?? true,
+        }),
+      ],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: 'pipe',
+      },
+    );
+
+    return JSON.parse(stdout) as ExecutedExtensionResult;
+  } finally {
+    rmSync(workspace, { recursive: true, force: true });
+  }
+}
 
 describe('renderLauncherScript', () => {
   it('renders a wrapper that targets the selected repo', () => {
@@ -68,6 +169,86 @@ describe('renderGlobalBakeExtension', () => {
           stdio: 'pipe',
         });
       }).not.toThrow();
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('auto-detects new targets without injecting existing-repo cleanup defaults', () => {
+    const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-new-target-'));
+
+    try {
+      const result = executeRenderedBakeExtension({
+        args: 'fresh-app',
+        cwd: workspace,
+      });
+
+      expect(result).toEqual({
+        registeredCommand: 'bake',
+        description: 'Auto-detect new vs existing repositories and run pi-harness with Pi-native bake defaults.',
+        execCalls: [
+          {
+            command: '/tmp/pi-harness',
+            args: ['fresh-app', '--init-json'],
+          },
+        ],
+        notifications: ['pi-harness /bake finished.'],
+      });
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('auto-detects existing targets and injects cleanup defaults', () => {
+    const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-existing-target-'));
+    const existingDir = path.join(workspace, 'existing-app');
+
+    try {
+      mkdirSync(existingDir, { recursive: true });
+      writeFileSync(path.join(existingDir, 'README.md'), '# existing\n', 'utf8');
+
+      const result = executeRenderedBakeExtension({
+        args: 'existing-app',
+        cwd: workspace,
+        hasUI: false,
+      });
+
+      expect(result.execCalls).toEqual([
+        {
+          command: '/tmp/pi-harness',
+          args: [
+            '--mode',
+            'existing',
+            '--force',
+            '--cleanup-manifest',
+            'legacy-ai-frameworks-v1',
+            '--cleanup-confirm-all',
+            'existing-app',
+            '--init-json',
+          ],
+        },
+      ]);
+      expect(result.notifications).toEqual([]);
+    } finally {
+      rmSync(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps explicit control flags intact while still appending --init-json', () => {
+    const workspace = mkdtempSync(path.join(os.tmpdir(), 'pi-harness-explicit-flags-'));
+
+    try {
+      const result = executeRenderedBakeExtension({
+        args: '--mode existing "repo with spaces"',
+        cwd: workspace,
+      });
+
+      expect(result.execCalls).toEqual([
+        {
+          command: '/tmp/pi-harness',
+          args: ['--mode', 'existing', 'repo with spaces', '--init-json'],
+        },
+      ]);
     } finally {
       rmSync(workspace, { recursive: true, force: true });
     }
