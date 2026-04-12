@@ -1,5 +1,5 @@
 import { execFile as execFileCallback } from 'node:child_process';
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -151,6 +151,57 @@ describe('CLI doctor', () => {
     expect(doctorPayload.groups).toEqual(
       expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
     );
+  });
+
+
+  it('can self-heal a stale Beads post-checkout hook with doctor --fix before re-auditing', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-cli-fix-hook');
+
+    await writeFile(
+      path.join(targetDir, '.beads', 'hooks', 'post-checkout'),
+      [
+        '#!/bin/sh',
+        'repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"',
+        '_bd_exit=0',
+        'if command -v bd >/dev/null 2>&1; then',
+        '  export BD_GIT_HOOK=1',
+        '  bd hooks run post-checkout "$@"',
+        '  _bd_exit=$?',
+        'fi',
+        'if [ -n "$repo_root" ] && [ -x "$repo_root/scripts/bootstrap-worktree.sh" ]; then',
+        '  "$repo_root/scripts/bootstrap-worktree.sh" --quiet || true',
+        'fi',
+        'if [ "$_bd_exit" -ne 0 ]; then',
+        '  exit "$_bd_exit"',
+        'fi',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const doctorResult = await execFile(process.execPath, [tsxCli, 'src/cli.ts', 'doctor', '--fix', '--json', targetDir], {
+      cwd: repoRoot,
+      encoding: 'utf8'
+    });
+
+    const doctorPayload = JSON.parse(doctorResult.stdout) as {
+      status: string;
+      invalid: Array<{ path: string; reason: string }>;
+    };
+    const repairedHook = await readFile(path.join(targetDir, '.beads', 'hooks', 'post-checkout'), 'utf8');
+
+    expect(doctorPayload.status).toBe('pass');
+    expect(doctorPayload.invalid).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.beads/hooks/post-checkout',
+          reason: 'missing Beads initialization guard for worktree-safe hook execution'
+        })
+      ])
+    );
+    expect(repairedHook).toContain('beads_initialized=0');
+    expect(repairedHook).toContain('bootstrap-worktree.sh');
   });
 
   it('prints pi-native guidance in the human-readable doctor report', async () => {

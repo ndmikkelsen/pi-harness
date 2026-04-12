@@ -1,10 +1,15 @@
 #!/usr/bin/env node
 
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
+
 import { Command, InvalidArgumentError } from 'commander';
 
 import { DEFAULT_POLICY, type ProjectMode } from './core/policy.js';
 import { formatDoctorReport, runDoctor } from './commands/doctor.js';
 import { formatInitReport, runInit } from './commands/init.js';
+
+const LEGACY_CLEANUP_MANIFEST = 'legacy-ai-frameworks-v1';
 
 function parseMode(value: string): ProjectMode {
   if (value === 'auto' || value === 'new' || value === 'existing') {
@@ -12,6 +17,31 @@ function parseMode(value: string): ProjectMode {
   }
 
   throw new InvalidArgumentError('Mode must be one of: auto, new, existing.');
+}
+
+function directoryHasFiles(targetDir: string): boolean {
+  return existsSync(targetDir) && readdirSync(targetDir).length > 0;
+}
+
+async function autoFixDoctorTarget(cwd: string, targetArg: string): Promise<boolean> {
+  const targetDir = path.resolve(cwd, targetArg);
+  const targetHasFiles = directoryHasFiles(targetDir);
+
+  const result = await runInit({
+    cwd,
+    targetArg,
+    mode: targetHasFiles ? 'existing' : 'auto',
+    dryRun: false,
+    force: targetHasFiles,
+    mergeRootFiles: false,
+    cleanupManifestId: targetHasFiles ? LEGACY_CLEANUP_MANIFEST : undefined,
+    cleanupConfirmAll: targetHasFiles,
+    nonInteractive: targetHasFiles,
+    skipGit: false,
+    detectPorts: false,
+  });
+
+  return result.cleanup.status !== 'blocked';
 }
 
 const program = new Command();
@@ -76,12 +106,28 @@ program
   .description('Audit whether a repository matches the pi-native scaffold baseline.')
   .argument('[target]', 'target directory', '.')
   .option('--json', 'emit machine-readable JSON output', false)
+  .option('--fix', 'refresh the target with /bake-equivalent defaults before re-running doctor when audit failures are found', false)
   .action(async (targetArg: string, options) => {
-    const result = await runDoctor({
+    let result = await runDoctor({
       cwd: process.cwd(),
       targetArg,
       json: options.json,
     });
+
+    let fixAttempted = false;
+    let fixApplied = false;
+    if (options.fix && result.status === 'fail') {
+      fixAttempted = true;
+      const fixed = await autoFixDoctorTarget(process.cwd(), targetArg);
+      if (fixed) {
+        result = await runDoctor({
+          cwd: process.cwd(),
+          targetArg,
+          json: options.json,
+        });
+        fixApplied = true;
+      }
+    }
 
     if (options.json) {
       process.stdout.write(`${JSON.stringify(result, null, 2)}\n`);
@@ -91,6 +137,11 @@ program
       return;
     }
 
+    if (fixApplied) {
+      process.stdout.write('Applied an automatic scaffold refresh with /bake-equivalent defaults before re-running doctor.\n\n');
+    } else if (fixAttempted) {
+      process.stdout.write('Attempted an automatic scaffold refresh with /bake-equivalent defaults, but blocking issues remain.\n\n');
+    }
     process.stdout.write(formatDoctorReport(result));
     if (result.status === 'fail') {
       process.exitCode = 1;

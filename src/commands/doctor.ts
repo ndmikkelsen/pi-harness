@@ -119,7 +119,7 @@ function buildRecommendations(
 
   if (warnings.alignmentWarnings.length > 0 || warnings.alignmentInvalid.length > 0) {
     recommendations.push(
-      `Refresh the scaffold workflow baseline in ${targetLabel}: rerun \`pi-harness --mode existing ${targetLabel} --force --init-json\`, restore the expected Pi-native workflow assets, remove stale legacy runtime artifacts, and rerun \`pi-harness doctor ${targetLabel}\`.`,
+      `Refresh the scaffold workflow baseline in ${targetLabel}: rerun \`pi-harness doctor --fix ${targetLabel}\` for the shell-side self-heal path, or use \`pi-harness --mode existing ${targetLabel} --force --init-json\` to refresh managed assets directly, then rerun \`pi-harness doctor ${targetLabel}\`.`,
     );
   }
 
@@ -132,6 +132,18 @@ function pushAlignmentInvalid(invalid: DoctorIssue[], pathValue: string, reason:
 
 function pushRuntimeInvalid(invalid: DoctorIssue[], pathValue: string, reason: string): void {
   invalid.push({ path: pathValue, reason, category: 'runtime', severity: 'fail' });
+}
+
+function hasWorktreeSafeBeadsInitializationGuard(content: string): boolean {
+  if (!content.includes('bd hooks run post-checkout')) {
+    return true;
+  }
+
+  if (content.includes('beads_initialized')) {
+    return true;
+  }
+
+  return content.includes('BEADS_DIR') && content.includes('/dolt') && content.includes('/redirect');
 }
 
 function validateSkillFrontmatter(
@@ -725,6 +737,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const beadsPostCheckout = await readFileIfPresent(targetDir, '.beads/hooks/post-checkout');
   if (beadsPostCheckout !== null && !beadsPostCheckout.includes('bootstrap-worktree.sh')) {
     pushAlignmentInvalid(alignmentInvalid, '.beads/hooks/post-checkout', 'missing worktree bootstrap fallback reference');
+  }
+  if (beadsPostCheckout !== null && !hasWorktreeSafeBeadsInitializationGuard(beadsPostCheckout)) {
+    pushAlignmentInvalid(alignmentInvalid, '.beads/hooks/post-checkout', 'missing Beads initialization guard for worktree-safe hook execution');
   }
 
   const fallbackPostCheckout = await readFileIfPresent(targetDir, 'scripts/hooks/post-checkout');
