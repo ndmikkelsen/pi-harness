@@ -251,6 +251,46 @@ describe('runDoctor', () => {
     );
   });
 
+
+  it('fails when the Beads post-checkout hook still runs bd before initialization', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-hook-init-guard');
+
+    await writeFile(
+      path.join(targetDir, '.beads', 'hooks', 'post-checkout'),
+      [
+        '#!/bin/sh',
+        'repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"',
+        '_bd_exit=0',
+        'if command -v bd >/dev/null 2>&1; then',
+        '  export BD_GIT_HOOK=1',
+        '  bd hooks run post-checkout "$@"',
+        '  _bd_exit=$?',
+        'fi',
+        'if [ -n "$repo_root" ] && [ -x "$repo_root/scripts/bootstrap-worktree.sh" ]; then',
+        '  "$repo_root/scripts/bootstrap-worktree.sh" --quiet || true',
+        'fi',
+        'if [ "$_bd_exit" -ne 0 ]; then',
+        '  exit "$_bd_exit"',
+        'fi',
+        ''
+      ].join('\n'),
+      'utf8'
+    );
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.beads/hooks/post-checkout',
+          reason: 'missing Beads initialization guard for worktree-safe hook execution'
+        })
+      ])
+    );
+  });
+
   it('fails when the promote prompt loses main PR guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-promote-prompt-guidance');
