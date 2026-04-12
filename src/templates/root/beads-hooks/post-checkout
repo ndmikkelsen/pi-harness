@@ -1,8 +1,36 @@
 #!/usr/bin/env sh
 # --- BEGIN BEADS INTEGRATION v0.57.0 ---
 # This section is managed by beads. Do not remove these markers.
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+git_common_dir="$(git rev-parse --git-common-dir 2>/dev/null || true)"
+main_root="$repo_root"
+if [ -n "$git_common_dir" ] && [ -n "$repo_root" ]; then
+  case "$git_common_dir" in
+    /*) main_root="$(dirname "$git_common_dir")" ;;
+    *) main_root="$(cd "$repo_root/$git_common_dir/.." 2>/dev/null && pwd || printf '%s' "$repo_root")" ;;
+  esac
+fi
+
+beads_dir="${BEADS_DIR:-}"
+if [ -z "$beads_dir" ] && [ -n "$repo_root" ]; then
+  beads_dir="$repo_root/.beads"
+fi
+
+canonical_beads_dir="$beads_dir"
+if [ -n "$main_root" ]; then
+  canonical_beads_dir="$main_root/.beads"
+fi
+
+beads_initialized=0
+for candidate in "$beads_dir" "$canonical_beads_dir"; do
+  if [ -n "$candidate" ] && { [ -d "$candidate/dolt" ] || [ -f "$candidate/redirect" ]; }; then
+    beads_initialized=1
+    break
+  fi
+done
+
 _bd_exit=0
-if command -v bd >/dev/null 2>&1; then
+if command -v bd >/dev/null 2>&1 && [ "$beads_initialized" -eq 1 ]; then
   export BD_GIT_HOOK=1
   bd hooks run post-checkout "$@"
   _bd_exit=$?
@@ -10,10 +38,9 @@ fi
 # --- END BEADS INTEGRATION ---
 
 # --- BEGIN PI HARNESS WORKTREE HOOK ---
-# Beads runs first. The Pi Harness bootstrap runs after the Beads hook and is
-# safe to invoke even when worktree bootstrap already ran earlier in checkout
-# or worktree creation.
-repo_root="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+# Beads runs first when the repository has been initialized. The Pi Harness
+# bootstrap runs after the Beads hook and is safe to invoke even when worktree
+# bootstrap already ran earlier in checkout or worktree creation.
 if [ -n "$repo_root" ] && [ -x "$repo_root/scripts/bootstrap-worktree.sh" ]; then
   "$repo_root/scripts/bootstrap-worktree.sh" --quiet || true
 fi
