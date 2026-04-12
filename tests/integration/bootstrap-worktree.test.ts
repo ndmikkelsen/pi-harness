@@ -35,6 +35,17 @@ exit 0
 async function seedWorktreeFixture(repoDir: string, commitMessage: string) {
   const bootstrapScript = await readFile(path.join(repoRoot, 'scripts', 'bootstrap-worktree.sh'), 'utf8');
   const postCheckoutHook = await readFile(path.join(repoRoot, '.beads', 'hooks', 'post-checkout'), 'utf8');
+  const beadsConfig = await readFile(path.join(repoRoot, '.beads', 'config.yaml'), 'utf8');
+  const beadsMetadata = JSON.stringify(
+    {
+      database: 'dolt',
+      backend: 'dolt',
+      dolt_mode: 'server',
+      dolt_database: 'pi_harness_worktree_fixture'
+    },
+    null,
+    2
+  );
 
   expect(bootstrapScript).not.toContain('/gsd-');
   expect(bootstrapScript).not.toContain('.planning/STATE.md');
@@ -45,6 +56,8 @@ async function seedWorktreeFixture(repoDir: string, commitMessage: string) {
 
   await writeFile(path.join(repoDir, 'scripts', 'bootstrap-worktree.sh'), bootstrapScript, 'utf8');
   await writeFile(path.join(repoDir, '.beads', 'hooks', 'post-checkout'), postCheckoutHook, 'utf8');
+  await writeFile(path.join(repoDir, '.beads', 'config.yaml'), beadsConfig, 'utf8');
+  await writeFile(path.join(repoDir, '.beads', 'metadata.json'), beadsMetadata, 'utf8');
   await writeFile(path.join(repoDir, '.envrc'), '# direnv fixture\n', 'utf8');
   await writeFile(path.join(repoDir, 'STICKYNOTE.example.md'), '# Sticky fixture\n', 'utf8');
   await writeFile(path.join(repoDir, '.kamal', 'secrets.example'), 'EXAMPLE=1\n', 'utf8');
@@ -170,6 +183,39 @@ describe('bootstrap-worktree hook', () => {
     }
   });
 
+  it('skips the Beads hook before bd init so worktree creation still succeeds', { timeout: 15000 }, async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-no-beads-db-'));
+    const repoDir = path.join(workspace, 'repo');
+    const worktreeDir = path.join(workspace, 'repo.feature');
+    const binDir = path.join(workspace, 'bin');
+
+    await mkdir(repoDir, { recursive: true });
+    await mkdir(binDir, { recursive: true });
+    await initGitRepo(repoDir);
+    await seedWorktreeFixture(repoDir, 'chore: seed uninitialized beads fixture');
+    await writeBdStub(binDir, 23);
+
+    try {
+      await addLinkedWorktree(repoDir, worktreeDir, 'feat/test-worktree-no-beads-db', binDir);
+
+      const envStat = await lstat(path.join(worktreeDir, '.env'));
+      const kamalSecretsStat = await lstat(path.join(worktreeDir, '.kamal', 'secrets'));
+      const stickyNoteStat = await lstat(path.join(worktreeDir, 'STICKYNOTE.md'));
+      const envTarget = await readlink(path.join(worktreeDir, '.env'));
+      const kamalSecretsTarget = await readlink(path.join(worktreeDir, '.kamal', 'secrets'));
+      const stickyNoteTarget = await readlink(path.join(worktreeDir, 'STICKYNOTE.md'));
+
+      expect(envStat.isSymbolicLink()).toBe(true);
+      expect(await realpath(envTarget)).toBe(await realpath(path.join(repoDir, '.env')));
+      expect(kamalSecretsStat.isSymbolicLink()).toBe(true);
+      expect(await realpath(kamalSecretsTarget)).toBe(await realpath(path.join(repoDir, '.kamal', 'secrets')));
+      expect(stickyNoteStat.isSymbolicLink()).toBe(true);
+      expect(await realpath(stickyNoteTarget)).toBe(await realpath(path.join(repoDir, 'STICKYNOTE.md')));
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
   it('still bootstraps the worktree before returning a non-zero Beads hook status', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-worktree-degraded-'));
     const repoDir = path.join(workspace, 'repo');
@@ -180,6 +226,7 @@ describe('bootstrap-worktree hook', () => {
     await mkdir(binDir, { recursive: true });
     await initGitRepo(repoDir);
     await seedWorktreeFixture(repoDir, 'chore: seed degraded hook fixture');
+    await mkdir(path.join(repoDir, '.beads', 'dolt'), { recursive: true });
     await writeBdStub(binDir);
 
     try {
