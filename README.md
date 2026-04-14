@@ -22,7 +22,7 @@ The canonical workflow surfaces are:
 
 ## Bake baseline
 
-- Scaffolded with `pi-harness` v0.1.0 on 2026-04-05.
+- Scaffolded with `pi-harness` v0.1.0 on 2026-04-14.
 - Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
 - Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun the user-global `/bake` surface for the target repo, then customize only the resulting managed outputs you intentionally want to tailor.
 - Finish updates with `pi-harness doctor <path>`.

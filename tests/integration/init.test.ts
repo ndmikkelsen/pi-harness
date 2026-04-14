@@ -391,10 +391,12 @@ describe('runInit', () => {
     const targetDir = path.join(workspace, 'existing-project-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
+    const envrcPath = path.join(targetDir, '.envrc');
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
     await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
 
     const result = await runInit({
       cwd: workspace,
@@ -409,12 +411,50 @@ describe('runInit', () => {
 
     const gitignore = await readFile(gitignorePath, 'utf8');
     const envExample = await readFile(envExamplePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
+    expect(result.createdPaths).toContain('.envrc');
     expect(gitignore).toContain('dist/');
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('EXISTING_ONLY=true');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
+  });
+
+  it('merges root files before forced refresh overwrites managed files', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
+    const targetDir = path.join(workspace, 'existing-project-force-merge');
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const envrcPath = path.join(targetDir, '.envrc');
+
+    await mkdir(targetDir, { recursive: true });
+    await writeFile(gitignorePath, 'dist/\ncustom-cache/\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      mode: 'existing',
+      dryRun: false,
+      force: true,
+      skipGit: true,
+      detectPorts: false,
+      mergeRootFiles: true,
+    });
+
+    const gitignore = await readFile(gitignorePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
+
+    expect(result.createdPaths).toContain('.gitignore');
+    expect(result.createdPaths).toContain('.envrc');
+    expect(gitignore).toContain('custom-cache/');
+    expect(gitignore).toContain('.kamal/secrets');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
   });
 
   it('supports cleanup guidance for adopted repositories without removing ambiguous files by default', async () => {

@@ -12,7 +12,7 @@ Use this skill when the user wants the user-global `/bake` command or repo-local
 - Use the user-global `/bake` command or repo-local `/skill:bake` guidance first; do not make users memorize raw `pi-harness` flags for normal setup work.
 - Do not create or preserve a repo-local `.pi/prompts/bake.md`; `/bake` is global-only and `/skill:bake` is the explain-first baked-repo surface.
 - `/bake` should auto-detect whether the target is `new` or `existing`.
-- For existing repos, `/bake` should refresh managed files and remove curated legacy AI scaffolding with `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json`.
+- For existing repos, `/bake` should refresh managed files and remove curated legacy AI scaffolding with `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json`.
 - Keep `/adopt` only as the conservative compatibility path when the user explicitly wants preserve-existing behavior.
 - Keep provider/model setup inside Pi runtime configuration rather than changing the scaffold identity.
 - Treat Cognee as lane-aware: attempt a Cognee brief for planning or research when `scripts/cognee-brief.sh` exists, and continue only when local repo evidence remains sufficient if Cognee is unavailable.
@@ -23,7 +23,7 @@ Use this skill when the user wants the user-global `/bake` command or repo-local
 1. Determine the target path and whether the user wants the user-global `/bake` execution path or repo-local `/skill:bake` guidance first.
 2. If you are in `/skill:bake`, explain that the user-global `/bake` command auto-detects `new` vs `existing`, then invoke the same global `/bake` flow when execution is requested.
 3. For a new target, `/bake` runs the equivalent of `pi-harness --init-json`.
-4. For an existing target, `/bake` runs the equivalent of `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json` so baked repos refresh managed scaffold files instead of silently preserving stale ones.
+4. For an existing target, `/bake` runs the equivalent of `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json` so baked repos refresh managed scaffold files instead of silently preserving stale ones.
 5. Use `/adopt` only when the user explicitly wants the conservative `pi-harness --mode existing . --init-json` preserve-existing path.
 6. Run `pi-harness doctor <target>` after setup when you need an explicit audit.
 7. Summarize what was created, what was refreshed, what was removed, and any follow-up gaps.

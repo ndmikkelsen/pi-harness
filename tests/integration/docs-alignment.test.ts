@@ -295,7 +295,7 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('user-global `/bake` command or repo-local `/skill:bake` guidance');
     expect(bakeSkill).toContain('--cleanup-confirm-all');
     expect(bakeSkill).toContain(
-      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
+      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json',
     );
     expect(bakeSkill).toContain('3. `.pi/mcp.json`');
     expect(bakeSkill).toContain('4. `.pi/extensions/role-workflow.ts`');

@@ -191,10 +191,12 @@ exit 0
     const targetDir = path.join(workspace, 'existing-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
+    const envrcPath = path.join(targetDir, '.envrc');
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
     await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
 
     const result = await execFile(
       process.execPath,
@@ -208,13 +210,50 @@ exit 0
     const payload = JSON.parse(result.stdout) as { createdPaths: string[] };
     const gitignore = await readFile(gitignorePath, 'utf8');
     const envExample = await readFile(envExamplePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
 
     expect(payload.createdPaths).toContain('.gitignore');
     expect(payload.createdPaths).toContain('.env.example');
+    expect(payload.createdPaths).toContain('.envrc');
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('# AI workflow scaffold');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
     expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
+  });
+
+  it('merges root files even when force is set for existing repos', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
+    const targetDir = path.join(workspace, 'existing-force-merge');
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const envrcPath = path.join(targetDir, '.envrc');
+
+    await mkdir(targetDir, { recursive: true });
+    await writeFile(gitignorePath, 'dist/\ncustom-cache/\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
+
+    const result = await execFile(
+      process.execPath,
+      [tsxCli, 'src/cli.ts', '--mode', 'existing', '--force', '--merge-root-files', '--init-json', targetDir],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8'
+      }
+    );
+
+    const payload = JSON.parse(result.stdout) as { createdPaths: string[] };
+    const gitignore = await readFile(gitignorePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
+
+    expect(payload.createdPaths).toContain('.gitignore');
+    expect(payload.createdPaths).toContain('.envrc');
+    expect(gitignore).toContain('custom-cache/');
+    expect(gitignore).toContain('.kamal/secrets');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
   });
 
   it('removes stale repo-local bake artifacts during existing-repo refresh', async () => {
