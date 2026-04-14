@@ -49,6 +49,18 @@ The active role in the main session is injected by `.pi/extensions/role-workflow
 - Cognee is the knowledge garden: attempt `./scripts/cognee-brief.sh "<query>"` before broad planning or repo-wide exploration when local context is not already enough.
 - Test-first development is explicit: choose BDD for user-visible behavior, TDD for lower-level logic, or hybrid when both are needed.
 - Implementation work follows RED -> GREEN -> REFACTOR.
+- Provider and model choice stay in Pi runtime. Repo files should name logical capability profiles, not provider-pinned model IDs.
+
+## Workflow capability profiles
+
+The workflow uses logical capability profiles declared in `.pi/settings.json`.
+They let roles and helpers express **what kind of model/tooling they need** without hardcoding provider strings into scaffold files.
+
+- model profiles describe intent such as `orchestrate-deep`, `plan-deep`, `build-balanced`, or `review-strict`
+- tool profiles describe runtime surfaces such as `orchestrator`, `planning-collab`, `implementation-write`, `repo-map`, or `research-web`
+- Pi runtime configuration still decides which real provider/model backs each profile in your environment
+
+Use `.pi/settings.json` as the project-local catalog, and use `~/.pi/agent/models.json`, `/model`, or other Pi runtime setup to bind real models.
 
 ## Saved chains
 
@@ -56,6 +68,76 @@ These chains can be launched from `/agents` or via the `subagent` tool:
 
 - `plan-change` - `explore -> plan`
 - `ship-change` - `explore -> plan -> build -> review`
+
+## Structured handoff contract
+
+The workflow reuses a small shared artifact set instead of creating a separate planning tree:
+
+- `context.md`
+- `plan.md`
+- `progress.md`
+- `review.md`
+- `wave.md`
+
+Every artifact should carry:
+- active Beads issue context or an explicit `untracked` note
+- Cognee brief status when planning or research used it
+- the chosen BDD/TDD strategy when it affects the work
+- `Inputs Consumed`
+- `Allowed Files`
+- `Non-Goals`
+- `Decisions`
+- `Open Questions`
+- `Requested Follow-up`
+- `Caller Verification`
+- `Escalate If`
+
+Use this minimum delegation unit when one agent hands off to another:
+
+```md
+## Delegation Unit: <short-id>
+- Owner: <role/helper>
+- Goal: <one sentence>
+- Allowed Files:
+  - path/one
+  - path/two
+- Non-Goals:
+  - explicit exclusions
+- Inputs:
+  - context.md
+  - plan.md
+- Output:
+  - artifact to update
+- RED:
+  - narrow failing check
+- GREEN Target:
+  - smallest passing change
+- Caller Verification:
+  - final narrow proof
+- Escalate If:
+  - conditions that require returning to the caller
+```
+
+## Bounded collaboration patterns
+
+Use bounded collaboration instead of free-form agent chatter.
+
+### 1) Explore -> plan with one evidence follow-up
+Use when the planner needs one more code or test lookup before the plan is safe.
+
+### 2) Research -> plan
+Use `context-mapper` for repo mapping, then `web-researcher` only if external evidence is truly needed, then `task-planner` or `plan`.
+
+### 3) Compare -> adjudicate
+Use `/parallel` for two bounded views, then hand the outputs to `review` or `lead` for synthesis.
+
+```text
+/parallel code-scout "inspect API surface" -> code-scout "inspect test surface"
+/run review Adjudicate the two findings and recommend the safest next step
+```
+
+### 4) Parallel implementation wave
+Use only when ownership is explicit, contracts are sequenced, and the caller can verify the whole wave afterward.
 
 ## Advanced usage
 
@@ -93,25 +175,12 @@ For ad hoc parallel work:
 /parallel code-scout "inspect frontend auth" -> code-scout "inspect backend auth"
 ```
 
-## Artifact contract
-
-The workflow reuses a small shared artifact set instead of creating a separate planning tree:
-
-- `context.md`
-- `plan.md`
-- `progress.md`
-- `review.md`
-- `wave.md`
-
-Every artifact should carry:
-- active Beads issue context or an explicit `untracked` note
-- Cognee brief status when planning or research used it
-- the chosen BDD/TDD strategy when it affects the work
-
 ## Guardrails
 
 - child subagents do not run project-wide build, test, or lint commands
 - child subagents may run narrow scoped RED/GREEN commands for their assigned slice
 - keep delegated work at about 3-5 files per task
 - use `worktree: true` when parallel work should be isolated
+- middle-tier delegation is bounded to one explicit follow-up hop unless the caller says otherwise
+- compare/adjudicate loops should be explicit, not free-form chatter
 - the caller owns final verification, Beads closure, and landing

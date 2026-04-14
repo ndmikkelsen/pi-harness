@@ -534,6 +534,52 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when project settings lose the role-workflow extension registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow-extension-registration');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    settings.extensions = settings.extensions.filter((entry: string) => entry !== '.pi/extensions/role-workflow.ts');
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing extension registration for role-workflow.ts'
+        })
+      ])
+    );
+  });
+
+  it('fails when project settings lose pi-web-access package registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-web-access-package');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    settings.packages = settings.packages.filter((entry: string) => entry !== 'npm:pi-web-access');
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing package registration for npm:pi-web-access'
+        })
+      ])
+    );
+  });
+
   it('fails when the project MCP config loses the GitHub server token wiring', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-mcp-config');

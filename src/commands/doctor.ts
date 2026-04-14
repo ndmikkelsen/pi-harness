@@ -196,6 +196,76 @@ function validateAgentFrontmatter(
   }
 }
 
+
+function readFrontmatterFields(content: string): Record<string, string> {
+  const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---\n/);
+  if (frontmatterMatch === null) {
+    return {};
+  }
+
+  const fields: Record<string, string> = {};
+  for (const line of frontmatterMatch[1].split('\n')) {
+    const lineMatch = line.match(/^([\w-]+):\s*(.*)$/);
+    if (!lineMatch) {
+      continue;
+    }
+    fields[lineMatch[1]] = lineMatch[2].trim();
+  }
+
+  return fields;
+}
+
+type ParsedWorkflowSettings = {
+  packages: string[];
+  extensions: string[];
+  capabilityProfiles: {
+    modelProfiles: Record<string, unknown>;
+    toolProfiles: Record<string, { tools?: unknown; packages?: unknown; purpose?: unknown }>;
+  };
+};
+
+function parseWorkflowSettings(content: string): ParsedWorkflowSettings | null {
+  try {
+    const parsed = JSON.parse(content) as Record<string, unknown>;
+    const packages = Array.isArray(parsed.packages) ? parsed.packages.filter((item): item is string => typeof item === 'string') : [];
+    const extensions = Array.isArray(parsed.extensions) ? parsed.extensions.filter((item): item is string => typeof item === 'string') : [];
+    const capabilityProfilesRaw = (parsed.capabilityProfiles ?? {}) as Record<string, unknown>;
+    const modelProfiles = capabilityProfilesRaw.modelProfiles && typeof capabilityProfilesRaw.modelProfiles === 'object'
+      ? (capabilityProfilesRaw.modelProfiles as Record<string, unknown>)
+      : {};
+    const toolProfiles = capabilityProfilesRaw.toolProfiles && typeof capabilityProfilesRaw.toolProfiles === 'object'
+      ? (capabilityProfilesRaw.toolProfiles as Record<string, { tools?: unknown; packages?: unknown; purpose?: unknown }>)
+      : {};
+
+    return {
+      packages,
+      extensions,
+      capabilityProfiles: {
+        modelProfiles,
+        toolProfiles,
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+function hasNamedProfile(
+  settings: ParsedWorkflowSettings | null,
+  profileType: 'modelProfiles' | 'toolProfiles',
+  profileName: string,
+): boolean {
+  if (settings === null) {
+    return false;
+  }
+
+  return Object.prototype.hasOwnProperty.call(settings.capabilityProfiles[profileType], profileName);
+}
+
+function hasWebTooling(content: string): boolean {
+  return ['web_search', 'fetch_content', 'get_search_content'].some((token) => content.includes(token));
+}
+
 export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorResult> {
   const targetDir = path.resolve(options.cwd, options.targetArg ?? '.');
   const targetLabel = path.relative(options.cwd, targetDir) || '.';
@@ -407,15 +477,32 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   }
 
   const settings = await readFileIfPresent(targetDir, '.pi/settings.json');
+  const parsedSettings = settings === null ? null : parseWorkflowSettings(settings);
   if (settings !== null) {
-    if (!settings.includes('repo-workflows.ts')) {
-      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing extension registration for repo-workflows.ts');
-    }
-    if (!settings.includes('npm:pi-subagents')) {
-      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-subagents');
-    }
-    if (!settings.includes('npm:pi-mcp-adapter')) {
-      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-mcp-adapter');
+    if (parsedSettings === null) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', 'invalid JSON in workflow settings');
+    } else {
+      if (!parsedSettings.extensions.includes('.pi/extensions/repo-workflows.ts')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing extension registration for repo-workflows.ts');
+      }
+      if (!parsedSettings.extensions.includes('.pi/extensions/role-workflow.ts')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing extension registration for role-workflow.ts');
+      }
+      if (!parsedSettings.packages.includes('npm:pi-subagents')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-subagents');
+      }
+      if (!parsedSettings.packages.includes('npm:pi-mcp-adapter')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-mcp-adapter');
+      }
+      if (!parsedSettings.packages.includes('npm:pi-web-access')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-web-access');
+      }
+      if (Object.keys(parsedSettings.capabilityProfiles.modelProfiles).length === 0) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing model capability profiles');
+      }
+      if (Object.keys(parsedSettings.capabilityProfiles.toolProfiles).length === 0) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing tool capability profiles');
+      }
     }
   }
 
@@ -445,19 +532,59 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const leadAgent = await readFileIfPresent(targetDir, '.pi/agents/lead.md');
   if (leadAgent !== null) {
     validateAgentFrontmatter(alignmentInvalid, '.pi/agents/lead.md', leadAgent, 'lead');
-    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid']) {
+    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid', 'toolProfile: orchestrator', 'modelProfile: orchestrate-deep', 'maxSubagentDepth: 2', '## Delegation Units']) {
       if (!leadAgent.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/agents/lead.md', `missing Pi role guidance: ${token}`);
       }
     }
   }
 
+  const exploreAgent = await readFileIfPresent(targetDir, '.pi/agents/explore.md');
+  if (exploreAgent !== null) {
+    validateAgentFrontmatter(alignmentInvalid, '.pi/agents/explore.md', exploreAgent, 'explore');
+    for (const token of ['toolProfile: repo-investigation', 'modelProfile: investigate-fast', 'maxSubagentDepth: 1', 'subagent', 'Requested Follow-up', 'Allowed Files']) {
+      if (!exploreAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/explore.md', `missing Pi role guidance: ${token}`);
+      }
+    }
+  }
+
+  const planAgent = await readFileIfPresent(targetDir, '.pi/agents/plan.md');
+  if (planAgent !== null) {
+    validateAgentFrontmatter(alignmentInvalid, '.pi/agents/plan.md', planAgent, 'plan');
+    for (const token of ['toolProfile: planning-collab', 'modelProfile: plan-deep', 'maxSubagentDepth: 1', 'subagent', '## Delegation Units', 'Requested Follow-up']) {
+      if (!planAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/plan.md', `missing Pi role guidance: ${token}`);
+      }
+    }
+  }
+
+  const buildAgent = await readFileIfPresent(targetDir, '.pi/agents/build.md');
+  if (buildAgent !== null) {
+    validateAgentFrontmatter(alignmentInvalid, '.pi/agents/build.md', buildAgent, 'build');
+    for (const token of ['toolProfile: implementation-write', 'modelProfile: build-balanced', 'maxSubagentDepth: 0', 'Allowed Files', 'Caller Verification']) {
+      if (!buildAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/build.md', `missing Pi role guidance: ${token}`);
+      }
+    }
+  }
+
+  const reviewAgent = await readFileIfPresent(targetDir, '.pi/agents/review.md');
+  if (reviewAgent !== null) {
+    validateAgentFrontmatter(alignmentInvalid, '.pi/agents/review.md', reviewAgent, 'review');
+    for (const token of ['toolProfile: review-readonly', 'modelProfile: review-strict', 'maxSubagentDepth: 1', 'subagent', '## Handoff Compliance', 'Requested Follow-up']) {
+      if (!reviewAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/review.md', `missing Pi role guidance: ${token}`);
+      }
+    }
+  }
+
   for (const helperAgent of [
-    { path: '.pi/agents/code-scout.md', name: 'code-scout' },
-    { path: '.pi/agents/task-planner.md', name: 'task-planner' },
-    { path: '.pi/agents/implementer.md', name: 'implementer' },
-    { path: '.pi/agents/web-researcher.md', name: 'web-researcher' },
-    { path: '.pi/agents/context-mapper.md', name: 'context-mapper' },
+    { path: '.pi/agents/code-scout.md', name: 'code-scout', toolProfile: 'scout-fast', modelProfile: 'investigate-fast' },
+    { path: '.pi/agents/task-planner.md', name: 'task-planner', toolProfile: 'planning-collab', modelProfile: 'plan-deep' },
+    { path: '.pi/agents/implementer.md', name: 'implementer', toolProfile: 'implementation-write', modelProfile: 'build-balanced' },
+    { path: '.pi/agents/web-researcher.md', name: 'web-researcher', toolProfile: 'research-web', modelProfile: 'research-web' },
+    { path: '.pi/agents/context-mapper.md', name: 'context-mapper', toolProfile: 'repo-map', modelProfile: 'context-balanced' },
   ]) {
     const content = await readFileIfPresent(targetDir, helperAgent.path);
     if (content === null) {
@@ -465,17 +592,36 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
     validateAgentFrontmatter(alignmentInvalid, helperAgent.path, content, helperAgent.name);
     const lower = content.toLowerCase();
+    const frontmatter = readFrontmatterFields(content);
     if (content.includes('model:')) {
       pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'helper agent should stay model-agnostic; configure the active Pi model at runtime');
     }
     if (lower.includes('claude') || lower.includes('anthropic')) {
       pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'helper agent should not hardcode Claude/Anthropic references; use runtime model selection');
     }
+    if (frontmatter.toolProfile !== helperAgent.toolProfile) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, `missing helper tool profile: ${helperAgent.toolProfile}`);
+    }
+    if (frontmatter.modelProfile !== helperAgent.modelProfile) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, `missing helper model profile: ${helperAgent.modelProfile}`);
+    }
+    if (!hasNamedProfile(parsedSettings, 'toolProfiles', helperAgent.toolProfile)) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', `missing tool capability profile: ${helperAgent.toolProfile}`);
+    }
+    if (!hasNamedProfile(parsedSettings, 'modelProfiles', helperAgent.modelProfile)) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', `missing model capability profile: ${helperAgent.modelProfile}`);
+    }
+    if (hasWebTooling(content) && parsedSettings !== null && !parsedSettings.packages.includes('npm:pi-web-access')) {
+      pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing package registration for npm:pi-web-access');
+    }
+    if (helperAgent.name == 'context-mapper' && hasWebTooling(content)) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'context-mapper should stay repo-focused; use web-researcher for external lookup');
+    }
   }
 
   const roleWorkflowExtension = await readFileIfPresent(targetDir, '.pi/extensions/role-workflow.ts');
   if (roleWorkflowExtension !== null) {
-    for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES']) {
+    for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES', 'loadWorkflowSettings', 'toolProfile', 'modelProfile', 'capabilityProfiles']) {
       if (!roleWorkflowExtension.includes(token)) {
         pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', `missing role workflow glue: ${token}`);
       }
@@ -573,6 +719,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (planChangePrompt !== null && !planChangePrompt.includes('RED -> GREEN -> REFACTOR')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing test-first planning guidance');
   }
+  if (planChangePrompt !== null && !planChangePrompt.includes('Allowed Files')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing structured handoff guidance');
+  }
 
   const shipChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/ship-change.md');
   if (shipChangePrompt !== null && !shipChangePrompt.includes('explore -> plan -> build -> review')) {
@@ -581,10 +730,16 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (shipChangePrompt !== null && !shipChangePrompt.includes('RED -> GREEN -> REFACTOR')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing test-first execution guidance');
   }
+  if (shipChangePrompt !== null && !shipChangePrompt.includes('Allowed Files')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing structured handoff guidance');
+  }
 
   const parallelWavePrompt = await readFileIfPresent(targetDir, '.pi/prompts/parallel-wave.md');
   if (parallelWavePrompt !== null && !parallelWavePrompt.includes('worktree: true')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing isolated parallel-wave guidance');
+  }
+  if (parallelWavePrompt !== null && !parallelWavePrompt.includes('Allowed Files')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing structured parallel-wave guidance');
   }
 
   const reviewChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/review-change.md');
@@ -639,42 +794,32 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
-  const redGreenRefactorSkill = await readFileIfPresent(targetDir, '.pi/skills/red-green-refactor/SKILL.md');
-  if (redGreenRefactorSkill !== null) {
-    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', redGreenRefactorSkill, 'red-green-refactor');
-    for (const token of ['apps/cli/features/', 'pnpm test:bdd', 'RED', 'GREEN', 'REFACTOR']) {
-      if (!redGreenRefactorSkill.includes(token)) {
-        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', `missing red-green-refactor guidance: ${token}`);
+  const subagentWorkflowSkill = await readFileIfPresent(targetDir, '.pi/skills/subagent-workflow/SKILL.md');
+  if (subagentWorkflowSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', subagentWorkflowSkill, 'subagent-workflow');
+    for (const token of ['Allowed Files', 'Requested Follow-up', 'Escalate If', 'Delegation Unit', 'lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR']) {
+      if (!subagentWorkflowSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', `missing Pi subagent guidance: ${token}`);
       }
     }
   }
 
   const parallelWaveSkill = await readFileIfPresent(targetDir, '.pi/skills/parallel-wave-design/SKILL.md');
   if (parallelWaveSkill !== null) {
-    validateSkillFrontmatter(
-      alignmentInvalid,
-      '.pi/skills/parallel-wave-design/SKILL.md',
-      parallelWaveSkill,
-      'parallel-wave-design',
-    );
-    for (const token of ['3-5 files', 'project-wide build, test, or lint', 'worktree: true']) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/parallel-wave-design/SKILL.md', parallelWaveSkill, 'parallel-wave-design');
+    for (const token of ['Allowed Files', 'Escalate If', 'compare/adjudicate', '3-5 files', 'project-wide build, test, or lint', 'worktree: true']) {
       if (!parallelWaveSkill.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/skills/parallel-wave-design/SKILL.md', `missing Pi subagent guidance: ${token}`);
       }
     }
   }
 
-  const subagentWorkflowSkill = await readFileIfPresent(targetDir, '.pi/skills/subagent-workflow/SKILL.md');
-  if (subagentWorkflowSkill !== null) {
-    validateSkillFrontmatter(
-      alignmentInvalid,
-      '.pi/skills/subagent-workflow/SKILL.md',
-      subagentWorkflowSkill,
-      'subagent-workflow',
-    );
-    for (const token of ['lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR']) {
-      if (!subagentWorkflowSkill.includes(token)) {
-        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', `missing role workflow guidance: ${token}`);
+  const redGreenRefactorSkill = await readFileIfPresent(targetDir, '.pi/skills/red-green-refactor/SKILL.md');
+  if (redGreenRefactorSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', redGreenRefactorSkill, 'red-green-refactor');
+    for (const token of ['apps/cli/features/', 'pnpm test:bdd', 'RED', 'GREEN', 'REFACTOR']) {
+      if (!redGreenRefactorSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/red-green-refactor/SKILL.md', `missing red-green-refactor guidance: ${token}`);
       }
     }
   }

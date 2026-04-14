@@ -185,6 +185,9 @@ describe('runInit', () => {
     expect(systemPrompt).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(settings).toContain('npm:pi-subagents');
     expect(settings).toContain('npm:pi-mcp-adapter');
+    expect(settings).toContain('npm:pi-web-access');
+    expect(settings).toContain('.pi/extensions/role-workflow.ts');
+    expect(settings).toContain('capabilityProfiles');
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
@@ -199,6 +202,8 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(roleWorkflowExtension).toContain('toolProfile');
+    expect(roleWorkflowExtension).toContain('modelProfile');
     await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
@@ -238,6 +243,7 @@ describe('runInit', () => {
     const redGreenRefactorSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'), 'utf8');
     expect(cogneeSkill).toContain('./scripts/cognee-brief.sh');
     expect(redGreenRefactorSkill).toContain('pnpm test:bdd');
+    expect(await readFile(path.join(projectDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'), 'utf8')).toContain('Allowed Files');
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {

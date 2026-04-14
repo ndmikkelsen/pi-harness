@@ -2,6 +2,8 @@
 name: build
 description: Scoped implementation worker. Executes a plan, keeps progress current, and stays inside the agreed task boundaries.
 tools: read, write, edit, bash, grep, find, ls
+toolProfile: implementation-write
+modelProfile: build-balanced
 skill: subagent-workflow, beads, cognee, red-green-refactor
 defaultReads: context.md, plan.md
 defaultProgress: true
@@ -25,6 +27,7 @@ Execute the requested work using the available context and plan. Keep your scope
 - REFACTOR keeps the targeted behavior lane and nearby regression checks green
 - narrow scoped RED or GREEN commands are allowed; do not run project-wide build, test, or lint commands
 - leave clear notes about changed files, blockers, and follow-up verification
+- stay inside `Allowed Files` and `Non-Goals`; escalate instead of broadening scope
 
 ## Progress format
 
@@ -41,6 +44,15 @@ In Progress | Completed | Blocked
 ## Test Strategy
 BDD | TDD | Hybrid, plus Cognee brief status when relevant.
 
+## Inputs Consumed
+Artifacts, issues, or prior outputs used during execution.
+
+## Allowed Files
+The owned file boundary from the plan.
+
+## Non-Goals
+What stayed out of scope.
+
 ## Tasks
 - [x] finished work
 - [ ] remaining work
@@ -48,10 +60,22 @@ BDD | TDD | Hybrid, plus Cognee brief status when relevant.
 ## Files Changed
 - `path/to/file` - why it changed
 
+## Decisions
+Any implementation choices that matter to the next role.
+
+## Open Questions
+Any unresolved edge cases or blockers.
+
+## Requested Follow-up
+Either `none` or the narrowest bounded follow-up needed from the caller.
+
 ## Verification Evidence
 - RED: command run and why it failed for the right reason
 - GREEN: command run and what passed
 - REFACTOR: what changed while staying inside the tested envelope
 
-## Notes
-Decisions, blockers, or handoff details.
+## Caller Verification
+The narrowest final check still required.
+
+## Escalate If
+When review or the caller should stop and revisit the plan.
