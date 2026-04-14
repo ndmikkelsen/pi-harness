@@ -1,9 +1,149 @@
 {
   "packages": [
     "npm:pi-subagents",
-    "npm:pi-mcp-adapter"
+    "npm:pi-mcp-adapter",
+    "npm:pi-web-access"
   ],
   "extensions": [
-    ".pi/extensions/repo-workflows.ts"
-  ]
+    ".pi/extensions/repo-workflows.ts",
+    ".pi/extensions/role-workflow.ts"
+  ],
+  "capabilityProfiles": {
+    "modelProfiles": {
+      "orchestrate-deep": {
+        "purpose": "routing, tradeoffs, and wave shaping",
+        "runtimeSelection": "map this profile to your strongest orchestration model in Pi runtime"
+      },
+      "investigate-fast": {
+        "purpose": "fast repo recon and constraint mapping",
+        "runtimeSelection": "map this profile to a fast low-cost model in Pi runtime"
+      },
+      "plan-deep": {
+        "purpose": "implementation planning and decomposition",
+        "runtimeSelection": "map this profile to a strong reasoning model in Pi runtime"
+      },
+      "build-balanced": {
+        "purpose": "tool-using implementation inside bounded scope",
+        "runtimeSelection": "map this profile to a reliable coding model in Pi runtime"
+      },
+      "review-strict": {
+        "purpose": "critical review, adjudication, and risk discovery",
+        "runtimeSelection": "map this profile to your strongest review model in Pi runtime"
+      },
+      "research-web": {
+        "purpose": "web research and synthesis",
+        "runtimeSelection": "map this profile to a model that performs well with search-heavy tasks"
+      },
+      "context-balanced": {
+        "purpose": "requirements-to-code mapping across repo evidence",
+        "runtimeSelection": "map this profile to a balanced analysis model in Pi runtime"
+      }
+    },
+    "toolProfiles": {
+      "orchestrator": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent",
+          "write"
+        ],
+        "purpose": "routing, wave shaping, and artifact updates"
+      },
+      "repo-investigation": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent",
+          "write"
+        ],
+        "purpose": "repo recon plus one bounded follow-up"
+      },
+      "planning-collab": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "subagent",
+          "write"
+        ],
+        "purpose": "planning and bounded specialist follow-up"
+      },
+      "implementation-write": {
+        "tools": [
+          "read",
+          "write",
+          "edit",
+          "bash",
+          "grep",
+          "find",
+          "ls"
+        ],
+        "purpose": "scoped implementation"
+      },
+      "review-readonly": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent"
+        ],
+        "purpose": "read-only review and evidence-gathering follow-up"
+      },
+      "scout-fast": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "write"
+        ],
+        "purpose": "fast scoped code scouting"
+      },
+      "repo-map": {
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "write"
+        ],
+        "purpose": "requirement-to-code mapping without external lookup"
+      },
+      "research-web": {
+        "tools": [
+          "read",
+          "write",
+          "web_search",
+          "fetch_content",
+          "get_search_content"
+        ],
+        "packages": [
+          "npm:pi-web-access"
+        ],
+        "purpose": "external research and synthesis"
+      },
+      "github-mcp": {
+        "tools": [
+          "read",
+          "write",
+          "mcp:github"
+        ],
+        "packages": [
+          "npm:pi-mcp-adapter"
+        ],
+        "purpose": "GitHub MCP-backed pull request, issue, branch, and repository operations"
+      }
+    }
+  }
 }

@@ -223,6 +223,7 @@ describe('renderGlobalBakeExtension', () => {
             '--cleanup-manifest',
             'legacy-ai-frameworks-v1',
             '--cleanup-confirm-all',
+            '--merge-root-files',
             'existing-app',
             '--init-json',
           ],

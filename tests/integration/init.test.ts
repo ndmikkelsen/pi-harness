@@ -19,6 +19,12 @@ const requiredRuntimePaths = [
   '.pi/agents/plan.md',
   '.pi/agents/build.md',
   '.pi/agents/review.md',
+  '.pi/agents/code-scout.md',
+  '.pi/agents/task-planner.md',
+  '.pi/agents/implementer.md',
+  '.pi/agents/web-researcher.md',
+  '.pi/agents/context-mapper.md',
+  '.pi/agents/github-operator.md',
   '.pi/agents/plan-change.chain.md',
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
@@ -52,6 +58,12 @@ const existingModeBaselinePaths = [
   '.pi/settings.json',
   '.pi/mcp.json',
   '.pi/agents/lead.md',
+  '.pi/agents/code-scout.md',
+  '.pi/agents/task-planner.md',
+  '.pi/agents/implementer.md',
+  '.pi/agents/web-researcher.md',
+  '.pi/agents/context-mapper.md',
+  '.pi/agents/github-operator.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
@@ -155,6 +167,12 @@ describe('runInit', () => {
     const envExample = await readFile(path.join(projectDir, '.env.example'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const bakeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
+    const codeScoutAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'code-scout.md'), 'utf8');
+    const taskPlannerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'task-planner.md'), 'utf8');
+    const implementerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'implementer.md'), 'utf8');
+    const webResearcherAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'web-researcher.md'), 'utf8');
+    const contextMapperAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'context-mapper.md'), 'utf8');
+    const githubOperatorAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'github-operator.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(agentsGuide).toContain('.pi/extensions/*');
@@ -165,13 +183,19 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
+    expect(agentsGuide).toContain('When a user explicitly asks to use an MCP');
     expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(systemPrompt).toContain('Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
     expect(systemPrompt).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
+    expect(systemPrompt).toContain('prefer the configured MCP adapter path first');
     expect(settings).toContain('npm:pi-subagents');
     expect(settings).toContain('npm:pi-mcp-adapter');
+    expect(settings).toContain('npm:pi-web-access');
+    expect(settings).toContain('.pi/extensions/role-workflow.ts');
+    expect(settings).toContain('capabilityProfiles');
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
+    expect(mcpConfig).toContain('directTools');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
     expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(workflowExtension).not.toContain("registerCommand('bake'");
@@ -184,6 +208,8 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(roleWorkflowExtension).toContain('toolProfile');
+    expect(roleWorkflowExtension).toContain('modelProfile');
     await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
@@ -205,6 +231,14 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
+    expect(featChangePrompt).toContain('MCP adapter-first route');
+    expect(githubOperatorAgent).toContain('mcp:github');
+    expect(githubOperatorAgent).toContain('toolProfile: github-mcp');
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, githubOperatorAgent]) {
+      expect(helperAgent).not.toContain('model:');
+      expect(helperAgent.toLowerCase()).not.toContain('claude');
+      expect(helperAgent.toLowerCase()).not.toContain('anthropic');
+    }
     expect(bakeSkill).toContain('/skill:bake');
     expect(bakeSkill).toContain('Do not create or preserve a repo-local `.pi/prompts/bake.md`; `/bake` is global-only');
     expect(bakeSkill).toContain('--cleanup-confirm-all');
@@ -218,6 +252,7 @@ describe('runInit', () => {
     const redGreenRefactorSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'red-green-refactor', 'SKILL.md'), 'utf8');
     expect(cogneeSkill).toContain('./scripts/cognee-brief.sh');
     expect(redGreenRefactorSkill).toContain('pnpm test:bdd');
+    expect(await readFile(path.join(projectDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'), 'utf8')).toContain('Allowed Files');
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
@@ -371,10 +406,12 @@ describe('runInit', () => {
     const targetDir = path.join(workspace, 'existing-project-merge');
     const gitignorePath = path.join(targetDir, '.gitignore');
     const envExamplePath = path.join(targetDir, '.env.example');
+    const envrcPath = path.join(targetDir, '.envrc');
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
     await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
 
     const result = await runInit({
       cwd: workspace,
@@ -389,12 +426,50 @@ describe('runInit', () => {
 
     const gitignore = await readFile(gitignorePath, 'utf8');
     const envExample = await readFile(envExamplePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
+    expect(result.createdPaths).toContain('.envrc');
     expect(gitignore).toContain('dist/');
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('EXISTING_ONLY=true');
     expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
+  });
+
+  it('merges root files before forced refresh overwrites managed files', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
+    const targetDir = path.join(workspace, 'existing-project-force-merge');
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const envrcPath = path.join(targetDir, '.envrc');
+
+    await mkdir(targetDir, { recursive: true });
+    await writeFile(gitignorePath, 'dist/\ncustom-cache/\n', 'utf8');
+    await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
+
+    const result = await runInit({
+      cwd: workspace,
+      projectArg: targetDir,
+      mode: 'existing',
+      dryRun: false,
+      force: true,
+      skipGit: true,
+      detectPorts: false,
+      mergeRootFiles: true,
+    });
+
+    const gitignore = await readFile(gitignorePath, 'utf8');
+    const envrc = await readFile(envrcPath, 'utf8');
+
+    expect(result.createdPaths).toContain('.gitignore');
+    expect(result.createdPaths).toContain('.envrc');
+    expect(gitignore).toContain('custom-cache/');
+    expect(gitignore).toContain('.kamal/secrets');
+    expect(envrc).toContain('# custom envrc');
+    expect(envrc).toContain('export FOO=bar');
+    expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
   });
 
   it('supports cleanup guidance for adopted repositories without removing ambiguous files by default', async () => {

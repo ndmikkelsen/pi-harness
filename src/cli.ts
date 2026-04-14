@@ -55,7 +55,7 @@ program
   .option('--init-json', 'emit machine-readable JSON output for scaffold runs', false)
   .option('--dry-run', 'show planned changes without writing files', false)
   .option('--force', 'overwrite managed files', false)
-  .option('--merge-root-files', 'in existing-project mode, merge scaffold entries into .gitignore and .env.example', false)
+  .option('--merge-root-files', 'in existing-project mode, merge scaffold entries into .gitignore, .env.example, and .envrc', false)
   .option('--cleanup-manifest <id>', 'in existing-project mode, apply a curated cleanup manifest before scaffolding')
   .option('--cleanup-confirm-all', 'auto-confirm prompt-before-delete entries from the selected cleanup manifest', false)
   .option('--non-interactive', 'disable prompts and report prompt-required cleanup actions instead', false)

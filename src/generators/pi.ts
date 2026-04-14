@@ -30,6 +30,12 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'file', path: '.pi/agents/plan.md', content: () => template('pi/agents/plan.md') },
     { kind: 'file', path: '.pi/agents/build.md', content: () => template('pi/agents/build.md') },
     { kind: 'file', path: '.pi/agents/review.md', content: () => template('pi/agents/review.md') },
+    { kind: 'file', path: '.pi/agents/code-scout.md', content: () => template('pi/agents/code-scout.md') },
+    { kind: 'file', path: '.pi/agents/task-planner.md', content: () => template('pi/agents/task-planner.md') },
+    { kind: 'file', path: '.pi/agents/implementer.md', content: () => template('pi/agents/implementer.md') },
+    { kind: 'file', path: '.pi/agents/web-researcher.md', content: () => template('pi/agents/web-researcher.md') },
+    { kind: 'file', path: '.pi/agents/context-mapper.md', content: () => template('pi/agents/context-mapper.md') },
+    { kind: 'file', path: '.pi/agents/github-operator.md', content: () => template('pi/agents/github-operator.md') },
     { kind: 'file', path: '.pi/agents/plan-change.chain.md', content: () => template('pi/agents/plan-change.chain.md') },
     { kind: 'file', path: '.pi/agents/ship-change.chain.md', content: () => template('pi/agents/ship-change.chain.md') },
     {

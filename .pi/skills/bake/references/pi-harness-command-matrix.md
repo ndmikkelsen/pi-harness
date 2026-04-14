@@ -67,3 +67,16 @@ pi-harness doctor <target>
 ```
 
 When you update an existing repo, record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
+
+## scaiff compatibility
+
+- `pi-harness` replaces `scaiff`; install and invoke `pi-harness` directly
+- there is no separate `scaiff` package or CLI alias to keep old commands alive
+- if a repo still has curated `scaiff`-era leftovers, remove them deliberately with `--cleanup-manifest legacy-ai-frameworks-v1`
+
+## Defaults
+
+- avoid `--force` unless the user explicitly wants managed files regenerated
+- use `--cleanup-manifest legacy-ai-frameworks-v1` only when the user explicitly wants curated legacy AI-framework files removed
+- use `--non-interactive` in automation so prompt-required cleanup entries are reported instead of guessed
+- in existing repos, use `createdPaths` from the JSON output to decide what can be safely customized

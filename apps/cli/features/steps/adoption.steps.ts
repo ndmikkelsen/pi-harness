@@ -49,7 +49,7 @@ function assertCanonicalBakeAndAdoptCompatibility(world: CliFeatureWorld): void 
   expect(bakeSkill).toContain('name: bake');
   expect(bakeSkill).toContain('# Bake');
   expect(bakeSkill).toContain('/skill:bake');
-  expect(bakeSkill).toContain('pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json');
+  expect(bakeSkill).toContain('pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json');
 }
 
 export async function givenExistingProjectDirectoryWithCustomRootFiles(world: CliFeatureWorld): Promise<void> {
