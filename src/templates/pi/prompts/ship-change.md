@@ -12,6 +12,7 @@ Requirements:
 - choose BDD, TDD, or hybrid explicitly and follow RED -> GREEN -> REFACTOR
 - child subagents may run narrow scoped RED or GREEN commands, but do not ask them to run project-wide build, test, or lint commands
 - use the structured handoff contract: `Inputs Consumed`, `Allowed Files`, `Non-Goals`, `Requested Follow-up`, `Caller Verification`, and `Escalate If`
+- for explicit MCP requests, use the MCP adapter path first; if MCP is unavailable, record the fallback reason explicitly in artifacts and the final summary
 - keep bounded collaboration explicit; ask for one scoped follow-up when needed instead of silently broadening work
 - keep final verification in the main session
 - return the review verdict plus the narrowest caller-side verification command

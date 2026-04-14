@@ -35,6 +35,7 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'file', path: '.pi/agents/implementer.md', content: () => template('pi/agents/implementer.md') },
     { kind: 'file', path: '.pi/agents/web-researcher.md', content: () => template('pi/agents/web-researcher.md') },
     { kind: 'file', path: '.pi/agents/context-mapper.md', content: () => template('pi/agents/context-mapper.md') },
+    { kind: 'file', path: '.pi/agents/github-operator.md', content: () => template('pi/agents/github-operator.md') },
     { kind: 'file', path: '.pi/agents/plan-change.chain.md', content: () => template('pi/agents/plan-change.chain.md') },
     { kind: 'file', path: '.pi/agents/ship-change.chain.md', content: () => template('pi/agents/ship-change.chain.md') },
     {

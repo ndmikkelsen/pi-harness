@@ -45,6 +45,7 @@ async function snapshotForProject(rootDir: string) {
     bakeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'bake', 'SKILL.md'),
     parallelSkill: await readProjectFile(rootDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md'),
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
+    githubOperatorAgent: await readProjectFile(rootDir, '.pi', 'agents', 'github-operator.md'),
     stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
@@ -111,6 +112,7 @@ describe('scaffold snapshots', () => {
         '.pi/agents/implementer.md',
         '.pi/agents/web-researcher.md',
         '.pi/agents/context-mapper.md',
+        '.pi/agents/github-operator.md',
         '.pi/agents/plan-change.chain.md',
         '.pi/agents/ship-change.chain.md',
         '.pi/extensions/repo-workflows.ts',
@@ -183,21 +185,24 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(result.agents).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
+    expect(result.agents).toContain('When a user explicitly asks to use an MCP');
     expect(JSON.parse(result.settings)).toEqual({
       packages: ['npm:pi-subagents', 'npm:pi-mcp-adapter', 'npm:pi-web-access'],
       extensions: ['.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts'],
       capabilityProfiles: {
         modelProfiles: expect.any(Object),
-        toolProfiles: expect.any(Object),
+        toolProfiles: expect.objectContaining({ 'github-mcp': expect.any(Object) }),
       },
     });
     expect(result.mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(result.mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
+    expect(result.mcpConfig).toContain('directTools');
     expect(result.system).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(result.system).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
     expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
+    expect(result.system).toContain('prefer the configured MCP adapter path first');
     expect(result.workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(result.workflowExtension).not.toContain("pi.registerCommand('bake'");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
@@ -226,9 +231,11 @@ describe('scaffold snapshots', () => {
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(result.leadAgent).toContain('plan-change');
     expect(result.leadAgent).toContain('worktree: true');
+    expect(result.leadAgent).toContain('MCP-capable path first');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
     expect(result.subagentWorkflowSkill).toContain('Allowed Files');
+    expect(result.subagentWorkflowSkill).toContain('MCP-backed execution first');
     expect(result.stickyNoteExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
     expect(result.stickyNoteExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
     expect(result.stickyNoteExample).toContain('- Checks still needed before serving:');
@@ -266,6 +273,7 @@ describe('scaffold snapshots', () => {
       result.bakeSkill,
       result.parallelSkill,
       result.subagentWorkflowSkill,
+      result.githubOperatorAgent,
     ]) {
       expectNoLegacyRuntimeReferences(content);
     }

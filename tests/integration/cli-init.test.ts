@@ -14,7 +14,7 @@ const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..'
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
-const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/agents/code-scout.md', '.pi/agents/task-planner.md', '.pi/agents/implementer.md', '.pi/agents/web-researcher.md', '.pi/agents/context-mapper.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
+const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/agents/code-scout.md', '.pi/agents/task-planner.md', '.pi/agents/implementer.md', '.pi/agents/web-researcher.md', '.pi/agents/context-mapper.md', '.pi/agents/github-operator.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {

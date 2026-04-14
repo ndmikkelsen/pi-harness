@@ -41,6 +41,7 @@ The canonical project surfaces are:
 - Do not mirror repo-local handoff or plan notes into runtime-specific directories.
 - Keep provider and model choice out of the scaffold contract; configure Pi runtime instead.
 - Keep shared Pi packages in `.pi/settings.json`; do not hardcode machine-specific extension install paths.
+- When a user explicitly asks to use an MCP or names a configured MCP-backed system like GitHub MCP, use the configured MCP adapter path first and only fall back to shell/CLI tools when MCP is unavailable and that fallback is stated explicitly.
 - Observe a real RED -> GREEN -> REFACTOR loop before broad production changes when the task requires implementation.
 - When the user asks for `task table`, format the response as a Markdown table with columns `ID | Priority | Status | Title`.
 

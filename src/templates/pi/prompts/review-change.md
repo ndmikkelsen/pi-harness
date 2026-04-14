@@ -11,5 +11,6 @@ Requirements:
 - validate the active Beads acceptance criteria when available
 - focus on correctness, architecture, edge cases, Cognee-derived assumptions, and verification gaps
 - call out whether RED -> GREEN -> REFACTOR evidence is convincing for the chosen BDD/TDD strategy
+- verify that any explicit MCP request used the MCP adapter first, and that any shell fallback was justified by MCP unavailability and called out explicitly
 
 Return the verdict, risks, missing acceptance criteria, and the narrowest caller-side verification path.

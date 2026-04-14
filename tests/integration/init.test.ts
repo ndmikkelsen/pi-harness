@@ -24,6 +24,7 @@ const requiredRuntimePaths = [
   '.pi/agents/implementer.md',
   '.pi/agents/web-researcher.md',
   '.pi/agents/context-mapper.md',
+  '.pi/agents/github-operator.md',
   '.pi/agents/plan-change.chain.md',
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
@@ -62,6 +63,7 @@ const existingModeBaselinePaths = [
   '.pi/agents/implementer.md',
   '.pi/agents/web-researcher.md',
   '.pi/agents/context-mapper.md',
+  '.pi/agents/github-operator.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
@@ -170,6 +172,7 @@ describe('runInit', () => {
     const implementerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'implementer.md'), 'utf8');
     const webResearcherAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'web-researcher.md'), 'utf8');
     const contextMapperAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'context-mapper.md'), 'utf8');
+    const githubOperatorAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'github-operator.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(agentsGuide).toContain('.pi/extensions/*');
@@ -180,9 +183,11 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
     expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
+    expect(agentsGuide).toContain('When a user explicitly asks to use an MCP');
     expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(systemPrompt).toContain('Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*`');
     expect(systemPrompt).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
+    expect(systemPrompt).toContain('prefer the configured MCP adapter path first');
     expect(settings).toContain('npm:pi-subagents');
     expect(settings).toContain('npm:pi-mcp-adapter');
     expect(settings).toContain('npm:pi-web-access');
@@ -190,6 +195,7 @@ describe('runInit', () => {
     expect(settings).toContain('capabilityProfiles');
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
+    expect(mcpConfig).toContain('directTools');
     expect(settings).toContain('.pi/extensions/repo-workflows.ts');
     expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(workflowExtension).not.toContain("registerCommand('bake'");
@@ -225,7 +231,10 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
-    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent]) {
+    expect(featChangePrompt).toContain('MCP adapter-first route');
+    expect(githubOperatorAgent).toContain('mcp:github');
+    expect(githubOperatorAgent).toContain('toolProfile: github-mcp');
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, githubOperatorAgent]) {
       expect(helperAgent).not.toContain('model:');
       expect(helperAgent.toLowerCase()).not.toContain('claude');
       expect(helperAgent.toLowerCase()).not.toContain('anthropic');

@@ -4,125 +4,106 @@
 Parallel wave
 
 ## Work Item
-- Feature: `pi-harness-vyv.6`
-- Active task: `pi-harness-vyv.6.1`
+`pi-harness-vyv.7`
 
 ## Knowledge
-Cognee attempted and unavailable (`DatasetNotFoundError: No datasets found`). Repository evidence from workflow docs, agent prompts, settings, extension glue, and doctor/tests is sufficient for local execution.
+- Execution Surface target: MCP adapter first when explicitly requested; shell fallback only with explicit reason.
+Cognee attempted and unavailable (`DatasetNotFoundError`). Local repo evidence is sufficient.
 
 ## Test Strategy
-TDD with focused scaffold/runtime verification.
-- RED: add targeted integration expectations for capability profiles, role-workflow registration, structured handoff guidance, and doctor drift detection.
-- GREEN: update workflow docs/prompts/settings/extension/doctor to satisfy the new expectations.
-- REFACTOR: align templates, docs, and doctor checks while keeping the targeted suite green.
+Hybrid, led by TDD on workflow/scaffold drift.
+- RED: targeted integration tests fail for missing MCP-first policy, missing GitHub MCP-native helper/capability alignment, and missing doctor/test enforcement.
+- GREEN: update policy/routing surfaces, add the MCP-native helper and capability metadata, and extend doctor/tests.
+- REFACTOR: mirror dogfood/template updates and keep wording aligned.
 
 ## Agents / Chains
-Parallel scout wave completed for design:
-- `code-scout` mapped structured handoff + bounded collaboration surfaces.
-- `code-scout` mapped capability profile + tool alignment + doctor surfaces.
+Parallel scout wave already completed:
+- `code-scout` mapped policy/routing surfaces.
+- `code-scout` mapped MCP helper/capability/verification surfaces.
 
-Planned implementation waves:
-1. `pi-harness-vyv.6.2` — workflow contract + bounded collaboration
-2. `pi-harness-vyv.6.3` — capability profiles + tool alignment + doctor
-3. `pi-harness-vyv.6.4` — verification + scaffold parity
+Implementation will stay mostly direct in the main session because the change is tightly coupled across policy, helper, generator, doctor, and test surfaces.
 
 ## Delegation Units
 
-### Delegation Unit: design-contract
+### Delegation Unit: policy-routing
 - Owner: `lead`
-- Goal: convert the user request into a Beads-backed design spec and bounded wave plan
+- Goal: add MCP-first policy and routing guidance to canonical workflow files
 - Allowed Files:
-  - `plan.md`
-  - `wave.md`
-  - `docs/pi-agentic-workflow-design.md`
+  - `AGENTS.md`
+  - `.pi/SYSTEM.md`
+  - `.pi/agents/lead.md`
+  - `.pi/skills/subagent-workflow/SKILL.md`
+  - `.pi/prompts/feat-change.md`
+  - `.pi/prompts/plan-change.md`
+  - `.pi/prompts/ship-change.md`
+  - `.pi/prompts/review-change.md`
+  - template mirrors under `src/templates/pi/`
 - Non-Goals:
-  - do not change scaffold/runtime code yet
+  - do not add provider-pinned model behavior
 - Inputs:
-  - `README.md`
+  - `context.md`
   - `docs/pi-subagent-workflow.md`
-  - `.pi/settings.json`
-  - `.pi/extensions/role-workflow.ts`
-  - `src/commands/doctor.ts`
 - Output:
-  - updated planning/design artifacts
+  - updated workflow policy/routing surfaces
 - RED:
-  - none; planning artifact wave
+  - targeted docs/init/scaffold expectations fail because MCP-first wording is absent
 - Caller Verification:
-  - artifacts reflect Beads IDs, waves, and acceptance criteria
+  - targeted integration docs/scaffold tests
 - Escalate If:
-  - the design requires unsupported runtime hooks
+  - policy wording conflicts with existing global-only prompt/serve rules
 
-### Delegation Unit: implementation-wave-2
-- Owner: `lead` with bounded child support
-- Goal: add the structured handoff contract and bounded collaboration semantics
+### Delegation Unit: github-mcp-helper
+- Owner: `lead`
+- Goal: add a GitHub MCP-native helper and capability metadata
 - Allowed Files:
-  - workflow docs/skills/prompts
-  - role/helper prompts
-  - saved chain guidance
+  - `.pi/agents/*github*.md`
+  - `.pi/settings.json`
+  - `.pi/mcp.json`
+  - `src/generators/pi.ts`
+  - template mirrors under `src/templates/pi/`
 - Non-Goals:
-  - do not add provider-pinned model IDs
+  - do not add shell fallback logic as the default path
 - Inputs:
-  - `docs/pi-agentic-workflow-design.md`
+  - `context.md`
   - `plan.md`
 - Output:
-  - updated workflow contract surfaces
+  - helper/capability surfaces aligned to MCP-first behavior
 - RED:
-  - targeted docs/init/scaffold tests fail for missing structured handoff content
+  - init/scaffold tests fail because the helper/profile do not exist
 - Caller Verification:
-  - targeted integration tests covering docs + scaffold alignment
+  - targeted integration/init/scaffold tests
 - Escalate If:
-  - role recursion would exceed bounded depth or touch build fanout
+  - `pi-subagents` MCP tool declaration semantics require a different helper naming or tool shape
 
-### Delegation Unit: implementation-wave-3
-- Owner: `lead` with bounded child support
-- Goal: add capability profiles, tool alignment, and doctor drift detection
-- Allowed Files:
-  - `.pi/settings.json`
-  - `.pi/extensions/role-workflow.ts`
-  - helper agent prompts
-  - `src/commands/doctor.ts`
-  - mirrored template surfaces
-- Non-Goals:
-  - do not enforce provider-specific model resolution in scaffold files
-- Inputs:
-  - `docs/pi-agentic-workflow-design.md`
-  - targeted RED tests
-- Output:
-  - runtime-facing capability profile baseline
-- RED:
-  - targeted init/doctor tests fail for missing web-access package, role-workflow registration, and profile tokens
-- Caller Verification:
-  - targeted integration/doctor suite
-- Escalate If:
-  - profile resolution requires unsupported extension APIs
-
-### Delegation Unit: implementation-wave-4
+### Delegation Unit: doctor-verification
 - Owner: `lead`
-- Goal: align verification, scaffold parity, and docs
+- Goal: add drift detection and focused tests for MCP-first workflow behavior
 - Allowed Files:
-  - `tests/integration/*`
-  - any changed mirrored template files needed for parity
+  - `src/commands/doctor.ts`
+  - `tests/integration/doctor.test.ts`
+  - `tests/integration/init.test.ts`
+  - `tests/integration/scaffold-snapshots.test.ts`
+  - `tests/integration/docs-alignment.test.ts`
 - Non-Goals:
-  - do not broaden into project-wide behavior changes unrelated to workflow assets
+  - do not broaden into unrelated runtime checks
 - Inputs:
-  - completed waves 2 and 3
+  - updated policy/helper surfaces
 - Output:
-  - passing targeted verification
+  - passing targeted regression coverage
 - RED:
-  - already observed in targeted integration failures
+  - targeted integration suite fails for missing helper/policy/drift checks
 - Caller Verification:
   - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
 - Escalate If:
-  - failures point to unrelated scaffold regressions
+  - drift detection needs repo-wide test expansion beyond the targeted workflow suite
 
 ## Verification
-Current RED observed with:
-
+Initial RED target:
 ```bash
 pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts
 ```
 
 ## Risks
-- Main-session model selection may remain advisory/profile-based because the extension API exposes tool + thinking control but not a direct model setter.
-- Role recursion must stay bounded; `build` remains leaf-based.
-- Dogfood/template drift is the main maintenance risk, so parity checks must land in the same change.
+- MCP is extension-backed, so policy alone is insufficient; helper and doctor surfaces must land together.
+- A too-generic helper name may blur the distinction between GitHub MCP and open-web research.
+- Token-only doctor checks may be too weak if `.pi/mcp.json` structure changes later.

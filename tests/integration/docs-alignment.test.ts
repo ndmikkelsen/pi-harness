@@ -87,6 +87,10 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'agents', 'context-mapper.md'],
       },
       {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'github-operator.md'],
+        targetPath: ['.pi', 'agents', 'github-operator.md'],
+      },
+      {
         sourcePath: ['src', 'templates', 'pi', 'agents', 'plan-change.chain.md'],
         targetPath: ['.pi', 'agents', 'plan-change.chain.md'],
       },
@@ -183,6 +187,7 @@ describe('workflow docs alignment', () => {
     const implementerAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'implementer.md'));
     const webResearcherAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'web-researcher.md'));
     const contextMapperAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'context-mapper.md'));
+    const githubOperatorAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'github-operator.md'));
     const workflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'repo-workflows.ts'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
@@ -262,12 +267,14 @@ describe('workflow docs alignment', () => {
     );
     expect(agentsGuide).toContain('Only execution or autonomous serving lanes should run `./scripts/serve.sh`.');
     expect(agentsGuide).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
+    expect(agentsGuide).toContain('When a user explicitly asks to use an MCP');
     expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(piSystem).toContain('Use `AGENTS.md` as the primary project instruction file.');
     expect(piSystem).toContain(
       'Prefer project-local `.pi/agents/*`, `.pi/extensions/*`, `.pi/prompts/*`, `.pi/skills/*`, and `scripts/*` before inventing ad hoc workflow glue.',
     );
     expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
+    expect(piSystem).toContain('prefer the configured MCP adapter path first');
     expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(workflowExtension).not.toContain("registerCommand('bake'");
     expect(workflowExtension).not.toContain('scripts/bake.sh');
@@ -304,7 +311,7 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('8. `.pi/prompts/adopt.md`');
     expect(bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
-    expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, and `context-mapper` are available for narrow delegation.');
+    expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, and `github-operator` are available for narrow delegation.');
     for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent]) {
       expect(helperAgent).not.toContain('model:');
       expect(helperAgent.toLowerCase()).not.toContain('claude');

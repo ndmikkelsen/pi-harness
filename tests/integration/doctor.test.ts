@@ -125,6 +125,28 @@ describe('runDoctor', () => {
     );
   });
 
+
+  it('fails when AGENTS.md loses MCP-first workflow guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-policy');
+
+    const agentsPath = path.join(targetDir, 'AGENTS.md');
+    const agents = await readFile(agentsPath, 'utf8');
+    await writeFile(agentsPath, agents.replace('When a user explicitly asks to use an MCP', 'When a user explicitly asks to use MCP'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: 'AGENTS.md',
+          reason: 'missing Pi-native workflow reference: When a user explicitly asks to use an MCP'
+        })
+      ])
+    );
+  });
+
   it('fails when a helper agent hardcodes a Claude model pin', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-helper-agent-model');
@@ -617,6 +639,72 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/settings.json',
           reason: 'missing package registration for npm:pi-subagents'
+        })
+      ])
+    );
+  });
+
+
+  it('fails when the GitHub MCP helper loses explicit mcp:github tooling', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-github-operator-tools');
+
+    const helperPath = path.join(targetDir, '.pi', 'agents', 'github-operator.md');
+    const helper = await readFile(helperPath, 'utf8');
+    await writeFile(helperPath, helper.replace('mcp:github', 'bash'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/github-operator.md',
+          reason: 'missing helper MCP tool declaration: mcp:github'
+        })
+      ])
+    );
+  });
+
+  it('fails when project settings lose the github-mcp capability profile', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-github-mcp-profile');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    delete settings.capabilityProfiles.toolProfiles['github-mcp'];
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing tool capability profile: github-mcp'
+        })
+      ])
+    );
+  });
+
+  it('fails when the project MCP config loses direct GitHub tools support', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-mcp-direct-tools');
+
+    const mcpConfigPath = path.join(targetDir, '.pi', 'mcp.json');
+    const mcpConfig = await readFile(mcpConfigPath, 'utf8');
+    await writeFile(mcpConfigPath, mcpConfig.replace('"directTools": true', '"directTools": false'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/mcp.json',
+          reason: 'missing GitHub MCP direct tools flag'
         })
       ])
     );

@@ -27,7 +27,7 @@ Prefer these project-local roles and chains when they fit:
 - roles: `explore`, `plan`, `build`, `review`
 - saved chains: `plan-change`, `ship-change`
 
-Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, and `context-mapper` are available for narrow delegation.
+Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, and `github-operator` are available for narrow delegation.
 Builtin `reviewer` remains an acceptable generic fallback when a project-local role or helper is missing or clearly weaker for the task.
 
 ## Operating sequence
@@ -38,7 +38,8 @@ Builtin `reviewer` remains an acceptable generic fallback when a project-local r
 4. Decide whether the work should be BDD-first, TDD-first, or hybrid.
 5. Decide whether the task is best handled directly, through a saved chain, through a bounded compare/adjudicate loop, or through a parallel wave.
 6. Prefer reusing existing artifacts instead of repeating exploration.
-7. Only launch parallel work after file ownership, contracts, test strategy, and dependencies are explicit.
+7. If the request explicitly requires MCP behavior, route to an MCP-capable path first and only allow shell fallback when MCP is unavailable and the fallback reason is recorded explicitly.
+8. Only launch parallel work after file ownership, contracts, test strategy, and dependencies are explicit.
 
 ## Delegation rules
 
