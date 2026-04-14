@@ -13,6 +13,7 @@ Requirements:
 - choose BDD, TDD, or hybrid explicitly
 - include RED -> GREEN -> REFACTOR checkpoints and the narrowest caller-side verification path
 - use the structured handoff contract: `Inputs Consumed`, `Allowed Files`, `Non-Goals`, `Requested Follow-up`, `Caller Verification`, and `Escalate If`
+- when the request explicitly asks for MCP behavior, state the planned MCP adapter-first route and only allow shell fallback when MCP is unavailable and called out explicitly
 - when evidence is missing, request one bounded follow-up instead of expanding scope silently
 
 Return the plan summary, important file paths, issue context, knowledge-brief status, test strategy, verification guidance, requested follow-up, and open risks.

@@ -19,6 +19,7 @@ Requirements:
   - `parallel-wave` only when tasks are truly independent and ownership boundaries are explicit
 - keep delegated tasks to about 3-5 files
 - do not ask child subagents to run project-wide build, test, or lint commands
+- if the request explicitly asks for MCP behavior, require an MCP adapter-first route and only permit shell fallback when MCP is unavailable and the fallback reason is explicit
 - keep final verification, Beads closeout, and serving in the main session
 
 Return:
@@ -30,6 +31,7 @@ Return:
 - explicit RED command
 - smallest GREEN target
 - REFACTOR guardrails
+- chosen execution surface: `MCP adapter first` | `shell fallback required (reason)` when relevant
 - artifact expectations (`context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md`) when relevant
 - narrowest caller-side verification command
 - open risks or blockers

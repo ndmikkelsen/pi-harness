@@ -41,37 +41,108 @@
     },
     "toolProfiles": {
       "orchestrator": {
-        "tools": ["read", "grep", "find", "ls", "bash", "subagent", "write"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent",
+          "write"
+        ],
         "purpose": "routing, wave shaping, and artifact updates"
       },
       "repo-investigation": {
-        "tools": ["read", "grep", "find", "ls", "bash", "subagent", "write"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent",
+          "write"
+        ],
         "purpose": "repo recon plus one bounded follow-up"
       },
       "planning-collab": {
-        "tools": ["read", "grep", "find", "ls", "subagent", "write"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "subagent",
+          "write"
+        ],
         "purpose": "planning and bounded specialist follow-up"
       },
       "implementation-write": {
-        "tools": ["read", "write", "edit", "bash", "grep", "find", "ls"],
+        "tools": [
+          "read",
+          "write",
+          "edit",
+          "bash",
+          "grep",
+          "find",
+          "ls"
+        ],
         "purpose": "scoped implementation"
       },
       "review-readonly": {
-        "tools": ["read", "grep", "find", "ls", "bash", "subagent"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "subagent"
+        ],
         "purpose": "read-only review and evidence-gathering follow-up"
       },
       "scout-fast": {
-        "tools": ["read", "grep", "find", "ls", "bash", "write"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "write"
+        ],
         "purpose": "fast scoped code scouting"
       },
       "repo-map": {
-        "tools": ["read", "grep", "find", "ls", "bash", "write"],
+        "tools": [
+          "read",
+          "grep",
+          "find",
+          "ls",
+          "bash",
+          "write"
+        ],
         "purpose": "requirement-to-code mapping without external lookup"
       },
       "research-web": {
-        "tools": ["read", "write", "web_search", "fetch_content", "get_search_content"],
-        "packages": ["npm:pi-web-access"],
+        "tools": [
+          "read",
+          "write",
+          "web_search",
+          "fetch_content",
+          "get_search_content"
+        ],
+        "packages": [
+          "npm:pi-web-access"
+        ],
         "purpose": "external research and synthesis"
+      },
+      "github-mcp": {
+        "tools": [
+          "read",
+          "write",
+          "mcp:github"
+        ],
+        "packages": [
+          "npm:pi-mcp-adapter"
+        ],
+        "purpose": "GitHub MCP-backed pull request, issue, branch, and repository operations"
       }
     }
   }

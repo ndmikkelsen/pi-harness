@@ -36,6 +36,7 @@ These project-local helper subagents are available for narrow ad hoc delegation.
 - `implementer` - generic implementation helper for isolated execution tasks
 - `web-researcher` - focused external research helper
 - `context-mapper` - requirement-to-code mapper that prepares context and planning hints
+- `github-operator` - GitHub MCP-native helper for PRs, issues, branches, and repo metadata
 
 Builtin agents like `reviewer` still exist, but prefer the repo's workflow roles and helper subagents first.
 
@@ -50,6 +51,7 @@ The active role in the main session is injected by `.pi/extensions/role-workflow
 - Test-first development is explicit: choose BDD for user-visible behavior, TDD for lower-level logic, or hybrid when both are needed.
 - Implementation work follows RED -> GREEN -> REFACTOR.
 - Provider and model choice stay in Pi runtime. Repo files should name logical capability profiles, not provider-pinned model IDs.
+- For explicit MCP requests, prefer the configured MCP adapter path first and only use shell fallback when MCP is unavailable and that fallback is called out explicitly.
 
 ## Workflow capability profiles
 

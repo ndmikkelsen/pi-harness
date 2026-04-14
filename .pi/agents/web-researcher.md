@@ -17,6 +17,7 @@ Process:
 4. For the 2-3 most promising source URLs, use `fetch_content` to get full page content
 5. Synthesize everything into a brief that directly answers the question
 6. Stay inside the requested topic boundary; if repo mapping is needed first, hand back to `context-mapper` or `code-scout`
+7. For GitHub-native repository operations requested through MCP, hand off to `github-operator` instead of using open-web tools
 
 Search strategy — always vary your angles:
 - Direct answer query (the obvious one)

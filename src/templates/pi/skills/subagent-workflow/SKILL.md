@@ -29,6 +29,7 @@ Use this skill when a project-local role participates in the repository's Pi sub
 - Choose a test-first strategy early: BDD for user-visible behavior, TDD for lower-level logic, or hybrid when both are required.
 - Observe a real RED -> GREEN -> REFACTOR loop for implementation work.
 - Keep provider and model choice in Pi runtime. Use logical capability profiles in repo files, then map them to real models in Pi runtime.
+- For explicit MCP requests, prefer MCP-backed execution first; if shell fallback is required, record that MCP was unavailable and why.
 
 ## Artifact contract
 
@@ -52,6 +53,7 @@ Every artifact should carry:
 - `Requested Follow-up`
 - `Caller Verification`
 - `Escalate If`
+- `Execution Surface` when MCP policy matters (`MCP adapter used` or `shell fallback with reason`)
 
 ## Delegation envelope
 

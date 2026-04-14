@@ -337,6 +337,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/implementer.md',
     '.pi/agents/web-researcher.md',
     '.pi/agents/context-mapper.md',
+    '.pi/agents/github-operator.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -381,6 +382,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/implementer.md',
     '.pi/agents/web-researcher.md',
     '.pi/agents/context-mapper.md',
+    '.pi/agents/github-operator.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -503,6 +505,23 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       if (Object.keys(parsedSettings.capabilityProfiles.toolProfiles).length === 0) {
         pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing tool capability profiles');
       }
+      if (!hasNamedProfile(parsedSettings, 'toolProfiles', 'github-mcp')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing tool capability profile: github-mcp');
+      } else {
+        const githubProfile = parsedSettings.capabilityProfiles.toolProfiles['github-mcp'];
+        const packages = Array.isArray(githubProfile?.packages)
+          ? githubProfile.packages.filter((item): item is string => typeof item === 'string')
+          : [];
+        if (!packages.includes('npm:pi-mcp-adapter')) {
+          pushRuntimeInvalid(invalid, '.pi/settings.json', 'github-mcp profile missing package requirement: npm:pi-mcp-adapter');
+        }
+        const tools = Array.isArray(githubProfile?.tools)
+          ? githubProfile.tools.filter((item): item is string => typeof item === 'string')
+          : [];
+        if (!tools.includes('mcp:github')) {
+          pushRuntimeInvalid(invalid, '.pi/settings.json', 'github-mcp profile missing tool requirement: mcp:github');
+        }
+      }
     }
   }
 
@@ -517,6 +536,12 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!mcpConfig.includes('${GITHUB_PERSONAL_ACCESS_TOKEN}')) {
       pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP token interpolation');
     }
+    if (!mcpConfig.includes('"directTools": true')) {
+      pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP direct tools flag');
+    }
+    if (!mcpConfig.includes('"lifecycle": "lazy"')) {
+      pushRuntimeInvalid(invalid, '.pi/mcp.json', 'missing GitHub MCP lazy lifecycle');
+    }
   }
 
   const systemGuide = await readFileIfPresent(targetDir, '.pi/SYSTEM.md');
@@ -527,12 +552,15 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!systemGuide.includes('.pi/agents/*')) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing .pi/agents runtime reference');
     }
+    if (!systemGuide.includes('prefer the configured MCP adapter path first')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing MCP-first runtime reference');
+    }
   }
 
   const leadAgent = await readFileIfPresent(targetDir, '.pi/agents/lead.md');
   if (leadAgent !== null) {
     validateAgentFrontmatter(alignmentInvalid, '.pi/agents/lead.md', leadAgent, 'lead');
-    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid', 'toolProfile: orchestrator', 'modelProfile: orchestrate-deep', 'maxSubagentDepth: 2', '## Delegation Units']) {
+    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid', 'toolProfile: orchestrator', 'modelProfile: orchestrate-deep', 'maxSubagentDepth: 2', '## Delegation Units', 'MCP-capable path first']) {
       if (!leadAgent.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/agents/lead.md', `missing Pi role guidance: ${token}`);
       }
@@ -580,11 +608,12 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   }
 
   for (const helperAgent of [
-    { path: '.pi/agents/code-scout.md', name: 'code-scout', toolProfile: 'scout-fast', modelProfile: 'investigate-fast' },
-    { path: '.pi/agents/task-planner.md', name: 'task-planner', toolProfile: 'planning-collab', modelProfile: 'plan-deep' },
-    { path: '.pi/agents/implementer.md', name: 'implementer', toolProfile: 'implementation-write', modelProfile: 'build-balanced' },
-    { path: '.pi/agents/web-researcher.md', name: 'web-researcher', toolProfile: 'research-web', modelProfile: 'research-web' },
-    { path: '.pi/agents/context-mapper.md', name: 'context-mapper', toolProfile: 'repo-map', modelProfile: 'context-balanced' },
+    { path: '.pi/agents/code-scout.md', name: 'code-scout', toolProfile: 'scout-fast', modelProfile: 'investigate-fast', requiredTool: undefined },
+    { path: '.pi/agents/task-planner.md', name: 'task-planner', toolProfile: 'planning-collab', modelProfile: 'plan-deep', requiredTool: undefined },
+    { path: '.pi/agents/implementer.md', name: 'implementer', toolProfile: 'implementation-write', modelProfile: 'build-balanced', requiredTool: undefined },
+    { path: '.pi/agents/web-researcher.md', name: 'web-researcher', toolProfile: 'research-web', modelProfile: 'research-web', requiredTool: undefined },
+    { path: '.pi/agents/context-mapper.md', name: 'context-mapper', toolProfile: 'repo-map', modelProfile: 'context-balanced', requiredTool: undefined },
+    { path: '.pi/agents/github-operator.md', name: 'github-operator', toolProfile: 'github-mcp', modelProfile: 'investigate-fast', requiredTool: 'mcp:github' },
   ]) {
     const content = await readFileIfPresent(targetDir, helperAgent.path);
     if (content === null) {
@@ -617,6 +646,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (helperAgent.name == 'context-mapper' && hasWebTooling(content)) {
       pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'context-mapper should stay repo-focused; use web-researcher for external lookup');
     }
+    if (helperAgent.requiredTool && !content.includes(helperAgent.requiredTool)) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, `missing helper MCP tool declaration: ${helperAgent.requiredTool}`);
+    }
   }
 
   const roleWorkflowExtension = await readFileIfPresent(targetDir, '.pi/extensions/role-workflow.ts');
@@ -645,7 +677,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
   if (agentsGuide !== null) {
-    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh']) {
+    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh', 'When a user explicitly asks to use an MCP']) {
       if (!agentsGuide.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
       }
@@ -722,6 +754,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (planChangePrompt !== null && !planChangePrompt.includes('Allowed Files')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing structured handoff guidance');
   }
+  if (planChangePrompt !== null && !planChangePrompt.includes('MCP adapter-first route')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/plan-change.md', 'missing MCP-first planning guidance');
+  }
 
   const shipChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/ship-change.md');
   if (shipChangePrompt !== null && !shipChangePrompt.includes('explore -> plan -> build -> review')) {
@@ -733,6 +768,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (shipChangePrompt !== null && !shipChangePrompt.includes('Allowed Files')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing structured handoff guidance');
   }
+  if (shipChangePrompt !== null && !shipChangePrompt.includes('MCP adapter path first')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/ship-change.md', 'missing MCP-first execution guidance');
+  }
 
   const parallelWavePrompt = await readFileIfPresent(targetDir, '.pi/prompts/parallel-wave.md');
   if (parallelWavePrompt !== null && !parallelWavePrompt.includes('worktree: true')) {
@@ -741,15 +779,21 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   if (parallelWavePrompt !== null && !parallelWavePrompt.includes('Allowed Files')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing structured parallel-wave guidance');
   }
+  if (parallelWavePrompt !== null && !parallelWavePrompt.includes('MCP-capable path first')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing MCP-first parallel-wave guidance');
+  }
 
   const reviewChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/review-change.md');
   if (reviewChangePrompt !== null && !reviewChangePrompt.includes('`review`')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/review-change.md', 'missing review role guidance');
   }
+  if (reviewChangePrompt !== null && !reviewChangePrompt.includes('MCP adapter first')) {
+    pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/review-change.md', 'missing MCP-first review guidance');
+  }
 
   const featChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/feat-change.md');
   if (featChangePrompt !== null) {
-    for (const token of ['`lead`', 'plan-change', 'ship-change', 'parallel-wave', 'BDD, TDD, or hybrid', 'explicit RED command']) {
+    for (const token of ['`lead`', 'plan-change', 'ship-change', 'parallel-wave', 'BDD, TDD, or hybrid', 'explicit RED command', 'MCP adapter-first route']) {
       if (!featChangePrompt.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/feat-change.md', `missing feature-routing guidance: ${token}`);
       }
@@ -797,7 +841,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const subagentWorkflowSkill = await readFileIfPresent(targetDir, '.pi/skills/subagent-workflow/SKILL.md');
   if (subagentWorkflowSkill !== null) {
     validateSkillFrontmatter(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', subagentWorkflowSkill, 'subagent-workflow');
-    for (const token of ['Allowed Files', 'Requested Follow-up', 'Escalate If', 'Delegation Unit', 'lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR']) {
+    for (const token of ['Allowed Files', 'Requested Follow-up', 'Escalate If', 'Delegation Unit', 'lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR', 'MCP-backed execution first']) {
       if (!subagentWorkflowSkill.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', `missing Pi subagent guidance: ${token}`);
       }
