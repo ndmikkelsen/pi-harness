@@ -19,13 +19,25 @@ Use these controls first:
 
 ## Project-local roles
 
-These roles live under `.pi/agents/*`:
+These roles live under `.pi/agents/*` and define the canonical workflow:
 
 - `lead` - workflow coordination, routing, wave shaping, Beads issue continuity, and BDD/TDD strategy selection
 - `explore` - repo recon, acceptance criteria mapping, Cognee brief intake, and test-surface discovery
 - `plan` - scoped planning with explicit RED -> GREEN -> REFACTOR checkpoints
 - `build` - scoped implementation using narrow RED/GREEN commands without project-wide verification
 - `review` - read-only validation of correctness, acceptance coverage, and test-first discipline
+
+## Helper subagents
+
+These project-local helper subagents are available for narrow ad hoc delegation. They are not part of the default saved-chain path unless the caller chooses them explicitly:
+
+- `code-scout` - fast codebase recon helper for tightly scoped handoffs
+- `task-planner` - ad hoc planning helper when the workflow `plan` role is too broad for the delegation slice
+- `implementer` - generic implementation helper for isolated execution tasks
+- `web-researcher` - focused external research helper
+- `context-mapper` - requirement-to-code mapper that prepares context and planning hints
+
+Builtin agents like `reviewer` still exist, but prefer the repo's workflow roles and helper subagents first.
 
 The active role in the main session is injected by `.pi/extensions/role-workflow.ts`.
 
@@ -47,7 +59,7 @@ These chains can be launched from `/agents` or via the `subagent` tool:
 
 ## Advanced usage
 
-Use `/agents` (or `Ctrl+Shift+A`) to browse project roles and saved chains.
+Use `/agents` (or `Ctrl+Shift+A`) to browse project roles, helper subagents, and saved chains.
 
 You can also call roles directly:
 
@@ -59,6 +71,16 @@ You can also call roles directly:
 /run explore Map the files involved in the auth flow
 ```
 
+You can call helper subagents directly when you want a narrower specialist:
+
+```text
+/run code-scout Map the files involved in the auth flow
+/run task-planner Turn context.md into an isolated implementation slice
+/run implementer Execute the smallest isolated change in plan.md
+/run web-researcher Compare upstream approaches for this API
+/run context-mapper Map requirements to relevant files and patterns
+```
+
 For ad hoc chains:
 
 ```text
@@ -68,7 +90,7 @@ For ad hoc chains:
 For ad hoc parallel work:
 
 ```text
-/parallel explore "inspect frontend auth" -> explore "inspect backend auth"
+/parallel code-scout "inspect frontend auth" -> code-scout "inspect backend auth"
 ```
 
 ## Artifact contract

@@ -16,7 +16,7 @@ Keep Pi-native parallel work aligned with repo policy while avoiding a second or
 - `AGENTS.md` stays the canonical runtime instruction file.
 - Each delegated task owns at most 3-5 files.
 - Shared constraints go in the parent request or once in the delegated task text.
-- Prefer builtin `scout`, `planner`, `worker`, and `reviewer` agents unless a repo-local `.pi/agents/*` role is clearly better.
+- Prefer project-local workflow roles first. Use helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, and `context-mapper` for narrow delegation before reaching for builtins like `reviewer`.
 - Subagents do not run project-wide build, test, or lint commands.
 - Use `worktree: true` when parallel tasks would otherwise overlap or need isolated patches.
 - Sequence type, schema, or contract changes before consumer tasks.

@@ -234,6 +234,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     ['.pi/prompts/land.md', 'stale landing prompt alias present; renamed to `.pi/prompts/serve.md`'],
     ['scripts/land.sh', 'stale landing script alias present; renamed to `scripts/serve.sh`'],
     ['.pi/skills/harness/SKILL.md', 'stale setup skill alias present; renamed to `.pi/skills/bake/SKILL.md`'],
+    ['.pi/agents/scout.md', 'stale helper subagent present; renamed to `.pi/agents/code-scout.md`'],
+    ['.pi/agents/planner.md', 'stale helper subagent present; renamed to `.pi/agents/task-planner.md`'],
+    ['.pi/agents/worker.md', 'stale helper subagent present; renamed to `.pi/agents/implementer.md`'],
+    ['.pi/agents/researcher.md', 'stale helper subagent present; renamed to `.pi/agents/web-researcher.md`'],
+    ['.pi/agents/context-builder.md', 'stale helper subagent present; renamed to `.pi/agents/context-mapper.md`'],
   ]);
   const staleWorkflowMarkers = [
     '.codex/',
@@ -257,6 +262,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/plan.md',
     '.pi/agents/build.md',
     '.pi/agents/review.md',
+    '.pi/agents/code-scout.md',
+    '.pi/agents/task-planner.md',
+    '.pi/agents/implementer.md',
+    '.pi/agents/web-researcher.md',
+    '.pi/agents/context-mapper.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -296,6 +306,11 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/plan.md',
     '.pi/agents/build.md',
     '.pi/agents/review.md',
+    '.pi/agents/code-scout.md',
+    '.pi/agents/task-planner.md',
+    '.pi/agents/implementer.md',
+    '.pi/agents/web-researcher.md',
+    '.pi/agents/context-mapper.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -434,6 +449,27 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
       if (!leadAgent.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/agents/lead.md', `missing Pi role guidance: ${token}`);
       }
+    }
+  }
+
+  for (const helperAgent of [
+    { path: '.pi/agents/code-scout.md', name: 'code-scout' },
+    { path: '.pi/agents/task-planner.md', name: 'task-planner' },
+    { path: '.pi/agents/implementer.md', name: 'implementer' },
+    { path: '.pi/agents/web-researcher.md', name: 'web-researcher' },
+    { path: '.pi/agents/context-mapper.md', name: 'context-mapper' },
+  ]) {
+    const content = await readFileIfPresent(targetDir, helperAgent.path);
+    if (content === null) {
+      continue;
+    }
+    validateAgentFrontmatter(alignmentInvalid, helperAgent.path, content, helperAgent.name);
+    const lower = content.toLowerCase();
+    if (content.includes('model:')) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'helper agent should stay model-agnostic; configure the active Pi model at runtime');
+    }
+    if (lower.includes('claude') || lower.includes('anthropic')) {
+      pushAlignmentInvalid(alignmentInvalid, helperAgent.path, 'helper agent should not hardcode Claude/Anthropic references; use runtime model selection');
     }
   }
 

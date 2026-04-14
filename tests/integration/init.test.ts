@@ -19,6 +19,11 @@ const requiredRuntimePaths = [
   '.pi/agents/plan.md',
   '.pi/agents/build.md',
   '.pi/agents/review.md',
+  '.pi/agents/code-scout.md',
+  '.pi/agents/task-planner.md',
+  '.pi/agents/implementer.md',
+  '.pi/agents/web-researcher.md',
+  '.pi/agents/context-mapper.md',
   '.pi/agents/plan-change.chain.md',
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
@@ -52,6 +57,11 @@ const existingModeBaselinePaths = [
   '.pi/settings.json',
   '.pi/mcp.json',
   '.pi/agents/lead.md',
+  '.pi/agents/code-scout.md',
+  '.pi/agents/task-planner.md',
+  '.pi/agents/implementer.md',
+  '.pi/agents/web-researcher.md',
+  '.pi/agents/context-mapper.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
@@ -155,6 +165,11 @@ describe('runInit', () => {
     const envExample = await readFile(path.join(projectDir, '.env.example'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
     const bakeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
+    const codeScoutAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'code-scout.md'), 'utf8');
+    const taskPlannerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'task-planner.md'), 'utf8');
+    const implementerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'implementer.md'), 'utf8');
+    const webResearcherAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'web-researcher.md'), 'utf8');
+    const contextMapperAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'context-mapper.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(agentsGuide).toContain('.pi/extensions/*');
@@ -205,6 +220,11 @@ describe('runInit', () => {
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
     expect(featChangePrompt).toContain('explicit RED command');
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent]) {
+      expect(helperAgent).not.toContain('model:');
+      expect(helperAgent.toLowerCase()).not.toContain('claude');
+      expect(helperAgent.toLowerCase()).not.toContain('anthropic');
+    }
     expect(bakeSkill).toContain('/skill:bake');
     expect(bakeSkill).toContain('Do not create or preserve a repo-local `.pi/prompts/bake.md`; `/bake` is global-only');
     expect(bakeSkill).toContain('--cleanup-confirm-all');

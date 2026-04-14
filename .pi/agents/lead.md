@@ -24,7 +24,8 @@ Prefer these project-local roles and chains when they fit:
 - roles: `explore`, `plan`, `build`, `review`
 - saved chains: `plan-change`, `ship-change`
 
-Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks when a project-local role is missing or clearly weaker for the task.
+Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, and `context-mapper` are available for narrow delegation.
+Builtin `reviewer` remains an acceptable generic fallback when a project-local role or helper is missing or clearly weaker for the task.
 
 ## Operating sequence
 

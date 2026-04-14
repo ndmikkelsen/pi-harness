@@ -125,6 +125,53 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when a helper agent hardcodes a Claude model pin', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-helper-agent-model');
+    const codeScoutPath = path.join(targetDir, '.pi', 'agents', 'code-scout.md');
+    const codeScout = await readFile(codeScoutPath, 'utf8');
+
+    await writeFile(codeScoutPath, codeScout.replace('tools: read, grep, find, ls, bash, write\n', 'tools: read, grep, find, ls, bash, write\nmodel: anthropic/claude-haiku-4-5\n'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/code-scout.md',
+          reason: 'helper agent should stay model-agnostic; configure the active Pi model at runtime'
+        }),
+        expect.objectContaining({
+          path: '.pi/agents/code-scout.md',
+          reason: 'helper agent should not hardcode Claude/Anthropic references; use runtime model selection'
+        })
+      ])
+    );
+  });
+
+  it('fails when a stale helper subagent file is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-helper-subagent');
+
+    await writeFile(path.join(targetDir, '.pi', 'agents', 'scout.md'), '# stale helper\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/scout.md',
+          reason: 'stale helper subagent present; renamed to `.pi/agents/code-scout.md`'
+        })
+      ])
+    );
+  });
+
   it('fails when a stale OMO contract file is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-omo');
