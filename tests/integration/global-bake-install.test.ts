@@ -152,6 +152,7 @@ describe('global bake install', () => {
     expect(extension).toContain("const LEGACY_CLEANUP_MANIFEST = 'legacy-ai-frameworks-v1';");
     expect(extension).toContain('function buildAutomaticBakeArgs');
     expect(extension).toContain('--cleanup-confirm-all');
+    expect(extension).toContain('--merge-root-files');
     expect(extension).toContain("pi.registerCommand('bake'");
     expect(extension).toContain('Auto-detect new vs existing repositories and run pi-harness with Pi-native bake defaults.');
     expect(extension).toContain("ctx.ui.notify('pi-harness /bake finished.')");
@@ -200,6 +201,7 @@ describe('global bake install', () => {
           '--cleanup-manifest',
           'legacy-ai-frameworks-v1',
           '--cleanup-confirm-all',
+          '--merge-root-files',
           '--init-json',
         ],
       },

@@ -22,7 +22,7 @@ export async function applyManagedEntries(
       continue;
     }
 
-    if (existsSync(outputPath) && !options.force) {
+    if (existsSync(outputPath)) {
       const canMerge = entry.merge !== undefined && entry.mergeGroup === 'root' && options.mergeRootFiles === true;
 
       if (canMerge) {
@@ -39,10 +39,15 @@ export async function applyManagedEntries(
           }
           continue;
         }
+
+        skippedPaths.push(entry.path);
+        continue;
       }
 
-      skippedPaths.push(entry.path);
-      continue;
+      if (!options.force) {
+        skippedPaths.push(entry.path);
+        continue;
+      }
     }
 
     createdPaths.push(entry.path);

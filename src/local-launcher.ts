@@ -252,6 +252,7 @@ function buildAutomaticBakeArgs(args: string[], cwd: string): string[] {
       '--cleanup-manifest',
       LEGACY_CLEANUP_MANIFEST,
       '--cleanup-confirm-all',
+      '--merge-root-files',
       ...args,
     ]);
   }

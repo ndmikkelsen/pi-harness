@@ -36,3 +36,17 @@ Only if `scripts/cognee-brief.sh` already exists.
 ## 5. Runtime and package manifests
 
 Use `manifest-discovery.md`.
+
+## Output to capture
+
+- one-line project description
+- primary stack and package manager
+- app or service boundaries
+- deployment model
+- current workstream or roadmap hints
+- any repo-specific conventions that should shape `AGENTS.md`, `.pi/**/*`, or `scripts/*`
+
+## Legacy AI framework cleanup
+
+- identify whether curated legacy runtime files are present before invoking `--cleanup-manifest legacy-ai-frameworks-v1`
+- if a path looks user-authored or ambiguous, require a confirmation step before deletion

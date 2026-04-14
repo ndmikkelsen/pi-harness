@@ -3,7 +3,7 @@
 This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.
 Provider and model choice stay inside Pi runtime configuration, not in the scaffold identity.
 Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.
-This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.
+This scaffold also declares `npm:pi-mcp-adapter` and `npm:pi-web-access` in `.pi/settings.json`, preconfigures a project-local GitHub MCP server in `.pi/mcp.json`, and documents workflow capability profiles in `.pi/settings.json`.
 
 ## Runtime surfaces
 
@@ -22,7 +22,7 @@ The canonical workflow surfaces are:
 
 ## Bake baseline
 
-- Scaffolded with `pi-harness` v0.1.0 on 2026-04-05.
+- Scaffolded with `pi-harness` v0.1.0 on 2026-04-14.
 - Record the `pi-harness` version and source commit in the PR or handoff note each time you refresh this scaffold.
 - Supported update flow is checkout-based: pull the `pi-harness` checkout forward, rebuild `dist/`, rerun the user-global `/bake` surface for the target repo, then customize only the resulting managed outputs you intentionally want to tailor.
 - Finish updates with `pi-harness doctor <path>`.
@@ -55,8 +55,8 @@ The canonical workflow surfaces are:
 3. Start Pi in the repository so it can install any project packages declared in `.pi/settings.json`.
 4. Run `/login` to configure the provider credentials you want Pi to use.
 5. Run `/model` to select the current model.
-6. This scaffold declares `npm:pi-subagents` and `npm:pi-mcp-adapter` in `.pi/settings.json`; if Pi does not auto-install them on startup, run `pi install -l npm:pi-subagents` and `pi install -l npm:pi-mcp-adapter`.
-7. Use `.pi/settings.json` for project-local overrides and package sources, `.pi/mcp.json` for project-local MCP servers, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
+6. This scaffold declares `npm:pi-subagents`, `npm:pi-mcp-adapter`, and `npm:pi-web-access` in `.pi/settings.json`; if Pi does not auto-install them on startup, run `pi install -l npm:pi-subagents`, `pi install -l npm:pi-mcp-adapter`, and `pi install -l npm:pi-web-access`.
+7. Use `.pi/settings.json` for project-local overrides, package sources, and workflow capability profiles, `.pi/mcp.json` for project-local MCP servers, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
 
 ## Next steps
 

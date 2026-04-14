@@ -105,7 +105,13 @@ export function buildRootEntries(): ManagedEntry[] {
           return `${base}\n${envExampleMergeBlock(context)}`;
         }
       },
-    { kind: 'file', path: '.envrc', content: (context) => envrc(context) },
+    {
+      kind: 'file',
+      path: '.envrc',
+      content: (context) => envrc(context),
+      mergeGroup: 'root',
+      merge: (existingContent, context) => mergeUniqueLines(existingContent, envrc(context))
+    },
     { kind: 'file', path: 'scripts/hooks/post-checkout', content: () => postCheckoutHook(), executable: true },
     { kind: 'file', path: 'README.md', content: (context) => readme(context) }
   ];

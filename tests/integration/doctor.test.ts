@@ -125,6 +125,53 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when a helper agent hardcodes a Claude model pin', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-helper-agent-model');
+    const codeScoutPath = path.join(targetDir, '.pi', 'agents', 'code-scout.md');
+    const codeScout = await readFile(codeScoutPath, 'utf8');
+
+    await writeFile(codeScoutPath, codeScout.replace('tools: read, grep, find, ls, bash, write\n', 'tools: read, grep, find, ls, bash, write\nmodel: anthropic/claude-haiku-4-5\n'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.groups).toEqual(
+      expect.arrayContaining([expect.objectContaining({ name: 'workflow-alignment', status: 'fail' })])
+    );
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/code-scout.md',
+          reason: 'helper agent should stay model-agnostic; configure the active Pi model at runtime'
+        }),
+        expect.objectContaining({
+          path: '.pi/agents/code-scout.md',
+          reason: 'helper agent should not hardcode Claude/Anthropic references; use runtime model selection'
+        })
+      ])
+    );
+  });
+
+  it('fails when a stale helper subagent file is still present', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-stale-helper-subagent');
+
+    await writeFile(path.join(targetDir, '.pi', 'agents', 'scout.md'), '# stale helper\n', 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/scout.md',
+          reason: 'stale helper subagent present; renamed to `.pi/agents/code-scout.md`'
+        })
+      ])
+    );
+  });
+
   it('fails when a stale OMO contract file is still present', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-stale-omo');
@@ -482,6 +529,52 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/settings.json',
           reason: 'missing package registration for npm:pi-mcp-adapter'
+        })
+      ])
+    );
+  });
+
+  it('fails when project settings lose the role-workflow extension registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow-extension-registration');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    settings.extensions = settings.extensions.filter((entry: string) => entry !== '.pi/extensions/role-workflow.ts');
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing extension registration for role-workflow.ts'
+        })
+      ])
+    );
+  });
+
+  it('fails when project settings lose pi-web-access package registration', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-web-access-package');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    settings.packages = settings.packages.filter((entry: string) => entry !== 'npm:pi-web-access');
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'missing package registration for npm:pi-web-access'
         })
       ])
     );

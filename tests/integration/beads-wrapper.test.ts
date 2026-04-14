@@ -86,7 +86,7 @@ describe('Beads integration', () => {
     expect(bakeSkill).toContain('---\nname: bake\ndescription: Use the pi-harness CLI, the user-global `/bake` flow, and repo-local `/skill:bake` guidance to scaffold new and existing repositories for vanilla Pi with Beads, Cognee, and project-local `.pi/*` runtime surfaces.\n---');
     expect(bakeSkill).toContain('Do not create or preserve a repo-local `.pi/prompts/bake.md`; `/bake` is global-only and `/skill:bake` is the explain-first baked-repo surface.');
     expect(bakeSkill).toContain('If you are in `/skill:bake`, explain that the user-global `/bake` command auto-detects `new` vs `existing`, then invoke the same global `/bake` flow when execution is requested.');
-    expect(bakeSkill).toContain('For existing repos, `/bake` should refresh managed files and remove curated legacy AI scaffolding with `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json`.');
+    expect(bakeSkill).toContain('For existing repos, `/bake` should refresh managed files and remove curated legacy AI scaffolding with `pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json`.');
     expect(bakeSkill).toContain('Beads state if `bd` or `.beads/` is available');
     expect(bakeSkill).toContain('Run `pi-harness doctor <target>` after setup when you need an explicit audit.');
     expect(cogneeSkill).toContain('knowledge garden');

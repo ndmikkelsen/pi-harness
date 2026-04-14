@@ -18,6 +18,11 @@ const legacyPlanningSyncBackend = manifest.entries.find((entry) => entry.id === 
 const legacyPlanningSyncWrapper = manifest.entries.find((entry) => entry.id === 'legacy-planning-sync-wrapper')!.path;
 const legacyRepoLocalBakePrompt = manifest.entries.find((entry) => entry.id === 'legacy-repo-local-bake-prompt')!.path;
 const legacyRepoLocalBakeScript = manifest.entries.find((entry) => entry.id === 'legacy-repo-local-bake-script')!.path;
+const legacyHelperScout = manifest.entries.find((entry) => entry.id === 'legacy-helper-scout')!.path;
+const legacyHelperPlanner = manifest.entries.find((entry) => entry.id === 'legacy-helper-planner')!.path;
+const legacyHelperWorker = manifest.entries.find((entry) => entry.id === 'legacy-helper-worker')!.path;
+const legacyHelperResearcher = manifest.entries.find((entry) => entry.id === 'legacy-helper-researcher')!.path;
+const legacyHelperContextBuilder = manifest.entries.find((entry) => entry.id === 'legacy-helper-context-builder')!.path;
 
 describe('cleanup manifests', () => {
   it('exposes the curated legacy cleanup manifest', () => {
@@ -34,7 +39,12 @@ describe('cleanup manifests', () => {
         expect.objectContaining({ path: legacyPlanningSyncBackend, disposition: 'safe-delete' }),
         expect.objectContaining({ path: legacyPlanningSyncWrapper, disposition: 'safe-delete' }),
         expect.objectContaining({ path: legacyRepoLocalBakePrompt, disposition: 'safe-delete' }),
-        expect.objectContaining({ path: legacyRepoLocalBakeScript, disposition: 'safe-delete' })
+        expect.objectContaining({ path: legacyRepoLocalBakeScript, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyHelperScout, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyHelperPlanner, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyHelperWorker, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyHelperResearcher, disposition: 'safe-delete' }),
+        expect.objectContaining({ path: legacyHelperContextBuilder, disposition: 'safe-delete' })
       ])
     );
   });
@@ -197,6 +207,26 @@ describe('runCleanup', () => {
     );
     await expect(access(path.join(targetDir, legacyRepoLocalBakePrompt))).rejects.toThrow();
     await expect(access(path.join(targetDir, legacyRepoLocalBakeScript))).rejects.toThrow();
+  });
+
+  it('deletes stale helper subagent files during non-interactive cleanup', async () => {
+    const targetDir = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cleanup-'));
+    await mkdir(path.join(targetDir, '.pi', 'agents'), { recursive: true });
+    for (const helperPath of [legacyHelperScout, legacyHelperPlanner, legacyHelperWorker, legacyHelperResearcher, legacyHelperContextBuilder]) {
+      await writeFile(path.join(targetDir, helperPath), '# stale helper\n', 'utf8');
+    }
+
+    const result = await runCleanup({
+      targetDir,
+      manifestId: 'legacy-ai-frameworks-v1',
+      dryRun: false,
+      nonInteractive: true
+    });
+
+    expect(result.status).toBe('applied');
+    expect(result.removedPaths).toEqual(
+      expect.arrayContaining([legacyHelperScout, legacyHelperPlanner, legacyHelperWorker, legacyHelperResearcher, legacyHelperContextBuilder])
+    );
   });
 
   it('deletes deprecated planning-sync scripts even when the parent legacy runtime directory still requires confirmation', async () => {

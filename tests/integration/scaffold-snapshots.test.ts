@@ -106,6 +106,11 @@ describe('scaffold snapshots', () => {
         '.pi/agents/plan.md',
         '.pi/agents/build.md',
         '.pi/agents/review.md',
+        '.pi/agents/code-scout.md',
+        '.pi/agents/task-planner.md',
+        '.pi/agents/implementer.md',
+        '.pi/agents/web-researcher.md',
+        '.pi/agents/context-mapper.md',
         '.pi/agents/plan-change.chain.md',
         '.pi/agents/ship-change.chain.md',
         '.pi/extensions/repo-workflows.ts',
@@ -160,11 +165,12 @@ describe('scaffold snapshots', () => {
     );
     expect(result.readme).toContain('Run `bd init` once in the repository before using Beads.');
     expect(result.readme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
-    expect(result.readme).toContain('This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.');
+    expect(result.readme).toContain('This scaffold also declares `npm:pi-mcp-adapter` and `npm:pi-web-access` in `.pi/settings.json`, preconfigures a project-local GitHub MCP server in `.pi/mcp.json`, and documents workflow capability profiles in `.pi/settings.json`.');
     expect(result.readme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
     expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.');
     expect(result.readme).toContain('Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.');
+    expect(result.readme).toContain('workflow capability profiles');
     expect(result.readme).toContain('In untouched or baked repos, use the user-global `/bake` surface when you want Pi to run setup or refresh flows; use `/skill:bake` in baked repos when you want the local explanation first.');
     expect(result.readme).not.toContain('scripts/bake.sh');
     expect(result.readme).toContain('pnpm test:bdd');
@@ -178,8 +184,12 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(result.agents).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
     expect(JSON.parse(result.settings)).toEqual({
-      packages: ['npm:pi-subagents', 'npm:pi-mcp-adapter'],
-      extensions: ['.pi/extensions/repo-workflows.ts'],
+      packages: ['npm:pi-subagents', 'npm:pi-mcp-adapter', 'npm:pi-web-access'],
+      extensions: ['.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts'],
+      capabilityProfiles: {
+        modelProfiles: expect.any(Object),
+        toolProfiles: expect.any(Object),
+      },
     });
     expect(result.mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(result.mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
@@ -198,6 +208,8 @@ describe('scaffold snapshots', () => {
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(result.roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(result.roleWorkflowExtension).toContain('toolProfile');
+    expect(result.roleWorkflowExtension).toContain('modelProfile');
     expect(result.servePrompt).toContain('Fill in or refresh the local `STICKYNOTE.md` before serving; it must stay untracked');
     expect(result.servePrompt).toContain('Confirm the explicit PR description/body that serving will create or refresh from `STICKYNOTE.md`');
     expect(result.servePrompt).toContain('Serving refreshes the PR body for both new and existing PRs; do not rely on `gh pr create --fill` or a stale body.');
@@ -208,7 +220,7 @@ describe('scaffold snapshots', () => {
     expect(result.cogneeSkill).toContain('knowledge garden');
     expect(result.redGreenRefactorSkill).toContain('RED');
     expect(result.bakeSkill).toContain(
-      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
+      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json',
     );
     expect(result.bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
@@ -216,6 +228,7 @@ describe('scaffold snapshots', () => {
     expect(result.leadAgent).toContain('worktree: true');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
+    expect(result.subagentWorkflowSkill).toContain('Allowed Files');
     expect(result.stickyNoteExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
     expect(result.stickyNoteExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
     expect(result.stickyNoteExample).toContain('- Checks still needed before serving:');

@@ -1,31 +1,41 @@
 # Review Verdict
 
 ## Work Item
-untracked
+`pi-harness-vyv.6`
 
 ## Summary
-Ready to serve.
+The workflow expansion is coherent and internally consistent across dogfood `.pi/*`, scaffold templates, runtime settings, and doctor/test coverage. The main strengths are the new structured handoff contract, bounded middle-tier collaboration rules, runtime-facing capability profiles, and the new doctor checks for role-workflow registration plus web-access/tool-profile drift.
 
-The fix addresses the actual blocker in the `pin -> git worktree add -> post-checkout hook` path:
-- uninitialized existing repos no longer fail just because `bd` is installed
-- initialized repos still run the Beads post-checkout hook
-- genuine initialized-hook failures still propagate after worktree bootstrap
+## Test-First Trace
+- RED observed with targeted integration expectations before implementation via:
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
+- GREEN confirmed after updating workflow assets, settings, extension logic, and doctor enforcement.
+- REFACTOR completed by mirroring dogfood/template files and tightening related docs/prompts/skills.
 
-## What Changed
-- The tracked Beads post-checkout hook now determines whether Beads is actually initialized by checking runtime markers in the current checkout and canonical main worktree.
-- The scaffold template uses the same guard, so new or refreshed repos inherit the fix.
-- Integration coverage now proves both the uninitialized success path and the initialized failure path.
+## Inputs Consumed
+- `git diff`
+- `plan.md`
+- `wave.md`
+- `docs/pi-agentic-workflow-design.md`
+- targeted verification output recorded in the session
+
+## Handoff Compliance
+- Structured handoff sections now appear across the shared workflow skill, role prompts, helper prompts, and the planning/review prompts.
+- Ownership boundaries stay explicit through `Allowed Files`, `Non-Goals`, `Requested Follow-up`, and `Escalate If`.
+- `build` remains leaf-based while `lead`, `explore`, `plan`, and `review` gain bounded collaboration rather than open-ended recursion.
 
 ## Risks
-- The guard relies on current Beads runtime markers (`.beads/dolt` or `.beads/redirect`). If Beads changes its local runtime layout, this hook condition will need an update.
-- Already-baked repos need the updated hook content to benefit from this fix.
+- `modelProfile` is intentionally advisory/runtime-facing; the extension API still does not directly set the active model, so real provider/model binding remains a user-runtime concern.
+- `role-workflow.ts` now depends on `.pi/settings.json` as structured JSON. If users heavily customize that file, malformed JSON will break profile loading and doctor will fail as intended.
+- The workflow surface is broader now, so future drift between dogfood and template files will be costly unless the current targeted verification stays in regular use.
 
-## Suggested Verification
-Already completed:
+## Gaps
+- No dedicated BDD feature was added because the shipped behavior is scaffold/runtime-asset alignment rather than a new CLI user journey.
+- `review.md` is caller-authored here because the delegated review run returned an empty artifact.
 
-```bash
-pnpm test -- tests/integration/bootstrap-worktree.test.ts tests/integration/cli-init.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts
-```
+## Caller Verification
+- `pnpm typecheck`
+- `pnpm test -- tests/integration/init.test.ts tests/integration/cli-init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/beads-wrapper.test.ts tests/integration/doctor.test.ts`
 
-## Verdict
-No blocker found for serving this branch.
+## Escalate If
+Return to planning if future work needs automatic runtime model switching rather than advisory capability profiles, because that may require Pi extension APIs beyond the current scaffold contract.

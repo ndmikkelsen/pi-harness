@@ -67,6 +67,26 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'agents', 'review.md'],
       },
       {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'code-scout.md'],
+        targetPath: ['.pi', 'agents', 'code-scout.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'task-planner.md'],
+        targetPath: ['.pi', 'agents', 'task-planner.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'implementer.md'],
+        targetPath: ['.pi', 'agents', 'implementer.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'web-researcher.md'],
+        targetPath: ['.pi', 'agents', 'web-researcher.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'context-mapper.md'],
+        targetPath: ['.pi', 'agents', 'context-mapper.md'],
+      },
+      {
         sourcePath: ['src', 'templates', 'pi', 'agents', 'plan-change.chain.md'],
         targetPath: ['.pi', 'agents', 'plan-change.chain.md'],
       },
@@ -158,6 +178,11 @@ describe('workflow docs alignment', () => {
     const agentsGuide = normalizeDoc(await readRepoFile('AGENTS.md'));
     const piSystem = normalizeDoc(await readRepoFile('.pi', 'SYSTEM.md'));
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
+    const codeScoutAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'code-scout.md'));
+    const taskPlannerAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'task-planner.md'));
+    const implementerAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'implementer.md'));
+    const webResearcherAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'web-researcher.md'));
+    const contextMapperAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'context-mapper.md'));
     const workflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'repo-workflows.ts'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
@@ -212,7 +237,7 @@ describe('workflow docs alignment', () => {
     expect(templateRootReadme).toContain('This project is scaffolded for vanilla Pi with Beads, Cognee, and plain repo scripts.');
     expect(templateRootReadme).toContain('native `bd` with `.beads/**`');
     expect(rootReadme).toContain('Shared subagent support comes from the `pi-subagents` Pi package declared in `.pi/settings.json`, while project-local role switching comes from `.pi/extensions/role-workflow.ts`.');
-    expect(rootReadme).toContain('This scaffold also declares `npm:pi-mcp-adapter` in `.pi/settings.json` and preconfigures a project-local GitHub MCP server in `.pi/mcp.json`.');
+    expect(rootReadme).toContain('This scaffold also declares `npm:pi-mcp-adapter` and `npm:pi-web-access` in `.pi/settings.json`, preconfigures a project-local GitHub MCP server in `.pi/mcp.json`, and documents workflow capability profiles in `.pi/settings.json`.');
     expect(rootReadme).toContain('`pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`.');
     expect(rootReadme).toContain('That user-global `/bake` surface is the setup and refresh entrypoint for repos at every stage: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.');
     expect(rootReadme).toContain('After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. Keep using the user-global `/bake` surface when you want Pi to run setup or refresh flows, use `/skill:bake` when you want the same contract explained from inside the repo, do not expect any scaffolded local prompt or shell fallback for bake, and keep `/adopt` only as the conservative compatibility path.');
@@ -270,7 +295,7 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('user-global `/bake` command or repo-local `/skill:bake` guidance');
     expect(bakeSkill).toContain('--cleanup-confirm-all');
     expect(bakeSkill).toContain(
-      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --init-json',
+      'pi-harness --mode existing --force --cleanup-manifest legacy-ai-frameworks-v1 --cleanup-confirm-all --merge-root-files --init-json',
     );
     expect(bakeSkill).toContain('3. `.pi/mcp.json`');
     expect(bakeSkill).toContain('4. `.pi/extensions/role-workflow.ts`');
@@ -279,14 +304,22 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('8. `.pi/prompts/adopt.md`');
     expect(bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
-    expect(leadAgent).toContain('Builtin agents like `scout`, `planner`, `worker`, and `reviewer` are acceptable fallbacks');
+    expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, and `context-mapper` are available for narrow delegation.');
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent]) {
+      expect(helperAgent).not.toContain('model:');
+      expect(helperAgent.toLowerCase()).not.toContain('claude');
+      expect(helperAgent.toLowerCase()).not.toContain('anthropic');
+    }
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
     expect(roleWorkflowExtension).toContain("registerCommand('role'");
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
+    expect(roleWorkflowExtension).toContain('toolProfile');
+    expect(roleWorkflowExtension).toContain('modelProfile');
     expect(parallelSkill).toContain('`AGENTS.md` stays the canonical runtime instruction file.');
     expect(parallelSkill).toContain('worktree: true');
     expect(parallelSkill).toContain('- Active Beads issue: bd-...');
     expect(subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
+    expect(subagentWorkflowSkill).toContain('Allowed Files');
   });
 });
