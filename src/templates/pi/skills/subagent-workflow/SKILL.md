@@ -21,6 +21,7 @@ Use this skill when a project-local role participates in the repository's Pi sub
 - Full implementation: `explore -> plan -> build -> review`
 - Parallel work: let `lead` design the wave first, then launch parallel work only when ownership boundaries are explicit.
 - Bounded follow-up: allow a single middle-tier follow-up hop only when the caller names the missing evidence and the next agent's scope stays explicit.
+- When `wave.md` exists, downstream roles should consume it as the active routing contract instead of reinventing routing unless new evidence forces an explicit escalation.
 
 ## Shared operating loop
 
@@ -30,6 +31,7 @@ Use this skill when a project-local role participates in the repository's Pi sub
 - Observe a real RED -> GREEN -> REFACTOR loop for implementation work.
 - Keep provider and model choice in Pi runtime. Use logical capability profiles in repo files, then map them to real models in Pi runtime.
 - For explicit MCP requests, prefer MCP-backed execution first; if shell fallback is required, record that MCP was unavailable and why.
+- When `lead` has already chosen a mode in `wave.md`, other roles should preserve that mode by default and escalate instead of silently rerouting.
 
 ## Artifact contract
 
@@ -55,6 +57,15 @@ Every artifact should carry:
 - `Escalate If`
 - `Execution Surface` when MCP policy matters (`MCP adapter used` or `shell fallback with reason`)
 
+`wave.md` should also carry:
+- `Mode`
+- `Decision Rationale`
+- `Routing Signals`
+- `Agents / Chains`
+- `Verification`
+
+Downstream artifacts should state whether they are aligned with the active `wave.md` routing contract or are requesting escalation back to `lead`.
+
 ## Delegation envelope
 
 Use this minimum contract for every delegated slice:
@@ -69,8 +80,9 @@ Use this minimum contract for every delegated slice:
 - Non-Goals:
   - explicit exclusions
 - Inputs:
-  - context.md
-  - plan.md
+  - wave.md when present
+  - context.md when present
+  - plan.md when present
 - Output:
   - artifact to update
 - RED:
@@ -91,6 +103,8 @@ Use this minimum contract for every delegated slice:
 - Use `worktree: true` for parallel work when tasks could overlap or need isolated patches.
 - Sequence contract, schema, or type changes before consumer work.
 - Keep middle-tier delegation bounded to one explicit follow-up hop unless the caller says otherwise.
+- Downstream roles do not silently broaden or reroute work after `lead` has chosen a mode; they either honor it or escalate with evidence.
+- `plan` should convert `lead`'s routing intent into concrete delegation units instead of reopening the workflow choice unless evidence demands it.
 - The caller owns final verification, Beads updates, and serving.
 
 ## Output expectations
@@ -105,3 +119,4 @@ Every role should leave the next role with:
 6. `Inputs Consumed`, `Allowed Files`, and `Non-Goals`
 7. any `Requested Follow-up` or an explicit `none`
 8. an `Escalate If` condition when the next role must stop instead of expanding scope
+9. when `wave.md` exists, an explicit note about whether the role stayed aligned with the current routing contract
