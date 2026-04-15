@@ -68,6 +68,12 @@ function expectNoLegacyRuntimeReferences(content: string): void {
   expect(content).not.toContain('AssistantTarget');
 }
 
+function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
+  expect(roleWorkflowExtension).toContain('TLDR');
+  expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
+  expect(systemPrompt).toContain('TLDR');
+}
+
 describe('scaffold snapshots', () => {
   beforeAll(() => {
     vi.useFakeTimers();
@@ -203,12 +209,14 @@ describe('scaffold snapshots', () => {
     );
     expect(result.system).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(result.system).toContain('prefer the configured MCP adapter path first');
+    expectTldrScaffoldContract(result.roleWorkflowExtension, result.system);
     expect(result.workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(result.workflowExtension).not.toContain("pi.registerCommand('bake'");
     expect(result.workflowExtension).toContain("pi.registerCommand('bootstrap-worktree'");
     expect(result.workflowExtension).toContain("pi.registerCommand('cognee-brief'");
     expect(result.workflowExtension).not.toContain("pi.registerCommand('serve'");
     expect(result.files).not.toContain('.pi/prompts/bake.md');
+    expect(result.files).not.toContain('.pi/prompts/tldr.md');
     expect(result.roleWorkflowExtension).toContain("registerCommand('role'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+.'");
     expect(result.roleWorkflowExtension).toContain("registerShortcut('ctrl+,'");
