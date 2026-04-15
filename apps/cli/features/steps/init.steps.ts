@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 import { access } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -12,6 +13,24 @@ type NewProjectOptions = {
   dryRun?: boolean;
   [key: string]: unknown;
 };
+
+const TLDR_RESPONSE_HINT = /(brief|concise|short|succinct|summar)/i;
+
+function assertTldrScaffoldContract(world: CliFeatureWorld): void {
+  const result = requireResult(world);
+  const targetDir = requireTargetDir(world);
+  const roleWorkflow = readFileSync(path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
+  const repoWorkflows = readFileSync(path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
+  const systemPrompt = readFileSync(path.join(targetDir, '.pi', 'SYSTEM.md'), 'utf8');
+  const roleBodyIndex = roleWorkflow.indexOf('${role.body}');
+
+  expect(roleBodyIndex).toBeGreaterThan(-1);
+  expect(roleWorkflow.slice(roleBodyIndex + '${role.body}'.length)).toMatch(/TLDR/i);
+  expect(systemPrompt).toMatch(/TLDR/i);
+  expect(systemPrompt).toMatch(TLDR_RESPONSE_HINT);
+  expect(repoWorkflows).not.toMatch(/registerCommand\(['"]tldr['"]/i);
+  expect(result.createdPaths).not.toContain('.pi/extensions/tldr.ts');
+}
 
 export async function givenEmptyTargetDirectory(world: CliFeatureWorld): Promise<void> {
   expect(world.workspace).toBeTruthy();
@@ -51,6 +70,8 @@ export function thenTheCliCreatesTheAiWorkflowScaffoldFiles(world: CliFeatureWor
       'STICKYNOTE.example.md'
     ])
   );
+
+  assertTldrScaffoldContract(world);
 }
 
 export function thenTheCliReportsCreatedFilesInItsSummary(world: CliFeatureWorld): void {

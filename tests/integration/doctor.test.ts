@@ -147,6 +147,34 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when SYSTEM.md loses TLDR response guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-tldr-system-guidance');
+
+    const systemPath = path.join(targetDir, '.pi', 'SYSTEM.md');
+    const systemPrompt = await readFile(systemPath, 'utf8');
+    await writeFile(
+      systemPath,
+      systemPrompt.replace(
+        'Default to TLDR-style responses: prefer concise answers and lead with a brief summary when it helps.\n',
+        '',
+      ),
+      'utf8',
+    );
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/SYSTEM.md',
+          reason: 'missing TLDR runtime reference'
+        })
+      ])
+    );
+  });
+
   it('fails when a helper agent hardcodes a Claude model pin', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-helper-agent-model');
@@ -726,6 +754,27 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/role-workflow.ts',
           reason: "missing role workflow glue: registerShortcut('ctrl+.'"
+        })
+      ])
+    );
+  });
+
+  it('fails when the role workflow extension loses TLDR prompt-assembly guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow-tldr');
+
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    await writeFile(extensionPath, extension.replace('${TLDR_GUIDANCE}', '${TLDR_RULES}'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/extensions/role-workflow.ts',
+          reason: 'missing role workflow glue: ${TLDR_GUIDANCE}'
         })
       ])
     );
