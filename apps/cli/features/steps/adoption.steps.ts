@@ -12,6 +12,7 @@ import { requireResult, requireTargetDir } from '../support/world.js';
 
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
+const TLDR_RESPONSE_HINT = /(brief|concise|short|succinct|summar)/i;
 
 type ExistingRepoOptions = {
   mergeRootFiles?: boolean;
@@ -35,6 +36,22 @@ async function applyExistingRepo(world: CliFeatureWorld, options: ExistingRepoOp
 
   world.result = result;
   return result;
+}
+
+function assertTldrScaffoldContract(world: CliFeatureWorld): void {
+  const result = requireResult(world);
+  const targetDir = requireTargetDir(world);
+  const roleWorkflow = readFileSync(path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
+  const repoWorkflows = readFileSync(path.join(targetDir, '.pi', 'extensions', 'repo-workflows.ts'), 'utf8');
+  const systemPrompt = readFileSync(path.join(targetDir, '.pi', 'SYSTEM.md'), 'utf8');
+  const roleBodyIndex = roleWorkflow.indexOf('${role.body}');
+
+  expect(roleBodyIndex).toBeGreaterThan(-1);
+  expect(roleWorkflow.slice(roleBodyIndex + '${role.body}'.length)).toMatch(/TLDR/i);
+  expect(systemPrompt).toMatch(/TLDR/i);
+  expect(systemPrompt).toMatch(TLDR_RESPONSE_HINT);
+  expect(repoWorkflows).not.toMatch(/registerCommand\(['"]tldr['"]/i);
+  expect(result.createdPaths).not.toContain('.pi/extensions/tldr.ts');
 }
 
 function assertCanonicalBakeAndAdoptCompatibility(world: CliFeatureWorld): void {
@@ -131,6 +148,7 @@ export function thenMissingAiWorkflowFilesAreCreated(world: CliFeatureWorld): vo
   );
 
   assertCanonicalBakeAndAdoptCompatibility(world);
+  assertTldrScaffoldContract(world);
 }
 
 export async function thenPreExistingScaffoldFilesAreLeftUnchanged(world: CliFeatureWorld): Promise<void> {

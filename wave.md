@@ -1,109 +1,159 @@
 # Execution Approach
 
 ## Mode
-Parallel wave
+Custom chain with a gated parallel wave
 
 ## Work Item
-`pi-harness-vyv.7`
+Active Beads issue: `pi-harness-84z.2`
+
+Related context:
+- parent feature: `pi-harness-84z` — scaffold TLDR response guidance for baked Pi repos
+- follow-up verification/policy task: `pi-harness-84z.3` — regression coverage and doctor-enforcement decision
 
 ## Knowledge
-- Execution Surface target: MCP adapter first when explicitly requested; shell fallback only with explicit reason.
-Cognee attempted and unavailable (`DatasetNotFoundError`). Local repo evidence is sufficient.
+- Cognee status: reused latest brief attempt from this slice; `./scripts/cognee-brief.sh "Create a feature spec and task breakdown for scaffold-managed TLDR prompt enforcement in baked Pi repos"` returned `DatasetNotFoundError`.
+- Local repository evidence is already sufficient from:
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
+  - `src/templates/pi/extensions/role-workflow.ts`
+  - `src/templates/pi/SYSTEM.md`
+  - `tests/integration/init.test.ts`
+  - `tests/integration/scaffold-snapshots.test.ts`
+  - `tests/integration/docs-alignment.test.ts`
+  - `tests/integration/doctor.test.ts`
 
 ## Test Strategy
-Hybrid, led by TDD on workflow/scaffold drift.
-- RED: targeted integration tests fail for missing MCP-first policy, missing GitHub MCP-native helper/capability alignment, and missing doctor/test enforcement.
-- GREEN: update policy/routing surfaces, add the MCP-native helper and capability metadata, and extend doctor/tests.
-- REFACTOR: mirror dogfood/template updates and keep wording aligned.
+BDD-led hybrid.
+
+RED first:
+- add failing scaffold assertions for TLDR behavior in the BDD lane and focused integration lane
+- keep assertions semantic and file-scoped so parallel RED work does not depend on exact final copy
+
+GREEN next:
+- implement the smallest prompt-assembly and SYSTEM-surface changes in dogfood and template mirrors
+
+REFACTOR last:
+- decide whether TLDR drift belongs in `doctor` now or should remain covered by tests only
+- avoid adding any repo-local TLDR extension or slash command
+
+## Should Parallel Execution Actually Happen?
+Yes, but only for the RED verification wave.
+
+Do **not** split the implementation first. The production change is a tight 4-file contract cluster and should stay serial. After the contract boundaries below are fixed, run the RED test slices in parallel with `worktree: true`, then return to the main session for the GREEN implementation and final verification.
+
+## Dependency Order
+1. Main session: freeze the semantic TLDR contract for assertions
+   - `role-workflow.ts` is the enforcement point
+   - `.pi/SYSTEM.md` is visibility only
+   - no repo-local TLDR extension/command
+2. Parallel RED wave (`worktree: true`)
+   - BDD scaffold assertions slice
+   - focused integration assertions slice
+3. Main session GREEN implementation
+   - update dogfood + template prompt surfaces together
+4. Main session adjudication
+   - decide whether `doctor` should enforce TLDR drift now under `pi-harness-84z.3`
+5. Main session final verification, Beads updates, and serving decisions
 
 ## Agents / Chains
-Parallel scout wave already completed:
-- `code-scout` mapped policy/routing surfaces.
-- `code-scout` mapped MCP helper/capability/verification surfaces.
-
-Implementation will stay mostly direct in the main session because the change is tightly coupled across policy, helper, generator, doctor, and test surfaces.
+- main session `lead`: owns routing, contract freeze, adjudication, final verification, and Beads updates
+- delegated `build` slices: add failing RED assertions in isolated worktrees
+- no MCP path is required for this request; local repository files are the execution surface
 
 ## Delegation Units
 
-### Delegation Unit: policy-routing
-- Owner: `lead`
-- Goal: add MCP-first policy and routing guidance to canonical workflow files
+### Delegation Unit: red-bdd-scaffold
+- Owner: `build`
+- Goal: add failing BDD assertions for TLDR scaffold behavior in init and adoption flows
 - Allowed Files:
-  - `AGENTS.md`
-  - `.pi/SYSTEM.md`
-  - `.pi/agents/lead.md`
-  - `.pi/skills/subagent-workflow/SKILL.md`
-  - `.pi/prompts/feat-change.md`
-  - `.pi/prompts/plan-change.md`
-  - `.pi/prompts/ship-change.md`
-  - `.pi/prompts/review-change.md`
-  - template mirrors under `src/templates/pi/`
+  - `apps/cli/features/init/init.spec.ts`
+  - `apps/cli/features/steps/init.steps.ts`
+  - `apps/cli/features/adoption/adoption.spec.ts`
+  - `apps/cli/features/steps/adoption.steps.ts`
+  - `apps/cli/features/steps/index.ts`
 - Non-Goals:
-  - do not add provider-pinned model behavior
+  - do not edit production scaffold files
+  - do not decide final TLDR prose beyond semantic assertions
+  - do not add a new repo-local TLDR extension command
 - Inputs:
-  - `context.md`
-  - `docs/pi-subagent-workflow.md`
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
+  - `wave.md`
 - Output:
-  - updated workflow policy/routing surfaces
+  - failing BDD assertions proving the TLDR contract is not implemented yet
 - RED:
-  - targeted docs/init/scaffold expectations fail because MCP-first wording is absent
+  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
 - Caller Verification:
-  - targeted integration docs/scaffold tests
+  - rerun `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
 - Escalate If:
-  - policy wording conflicts with existing global-only prompt/serve rules
+  - the BDD lane needs a brand-new shared helper file outside `apps/cli/features/steps/*`
+  - assertions require exact final TLDR wording instead of semantic contract checks
 
-### Delegation Unit: github-mcp-helper
-- Owner: `lead`
-- Goal: add a GitHub MCP-native helper and capability metadata
+### Delegation Unit: red-integration-scaffold
+- Owner: `build`
+- Goal: add failing focused integration assertions for TLDR scaffold output and template/dogfood alignment expectations
 - Allowed Files:
-  - `.pi/agents/*github*.md`
-  - `.pi/settings.json`
-  - `.pi/mcp.json`
-  - `src/generators/pi.ts`
-  - template mirrors under `src/templates/pi/`
-- Non-Goals:
-  - do not add shell fallback logic as the default path
-- Inputs:
-  - `context.md`
-  - `plan.md`
-- Output:
-  - helper/capability surfaces aligned to MCP-first behavior
-- RED:
-  - init/scaffold tests fail because the helper/profile do not exist
-- Caller Verification:
-  - targeted integration/init/scaffold tests
-- Escalate If:
-  - `pi-subagents` MCP tool declaration semantics require a different helper naming or tool shape
-
-### Delegation Unit: doctor-verification
-- Owner: `lead`
-- Goal: add drift detection and focused tests for MCP-first workflow behavior
-- Allowed Files:
-  - `src/commands/doctor.ts`
-  - `tests/integration/doctor.test.ts`
   - `tests/integration/init.test.ts`
   - `tests/integration/scaffold-snapshots.test.ts`
   - `tests/integration/docs-alignment.test.ts`
 - Non-Goals:
+  - do not edit production scaffold files
+  - do not add `doctor` enforcement yet
   - do not broaden into unrelated runtime checks
 - Inputs:
-  - updated policy/helper surfaces
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
+  - `wave.md`
 - Output:
-  - passing targeted regression coverage
+  - failing integration assertions proving generated scaffold outputs lack the TLDR contract
 - RED:
-  - targeted integration suite fails for missing helper/policy/drift checks
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 - Caller Verification:
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
+  - rerun `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 - Escalate If:
-  - drift detection needs repo-wide test expansion beyond the targeted workflow suite
+  - assertions cannot stay semantic without first choosing exact TLDR prompt copy
+  - the slice needs to touch `tests/integration/doctor.test.ts` before the caller decides doctor policy
+
+### Delegation Unit: green-prompt-surfaces
+- Owner: main session `lead` or delegated `build` only after RED lands
+- Goal: implement the TLDR contract in the scaffold enforcement surfaces and mirror dogfood/template files together
+- Allowed Files:
+  - `src/templates/pi/extensions/role-workflow.ts`
+  - `.pi/extensions/role-workflow.ts`
+  - `src/templates/pi/SYSTEM.md`
+  - `.pi/SYSTEM.md`
+- Non-Goals:
+  - do not add any repo-local TLDR extension, command, or shortcut
+  - do not expand into unrelated workflow prompt changes
+  - do not modify doctor in the same slice
+- Inputs:
+  - failing RED output from `red-bdd-scaffold`
+  - failing RED output from `red-integration-scaffold`
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
+- Output:
+  - passing implementation of the TLDR prompt-assembly contract in dogfood and templates
+- RED:
+  - consume the failing commands from both RED slices before editing production files
+- Caller Verification:
+  - rerun the BDD and focused integration commands, then `pnpm typecheck`
+- Escalate If:
+  - the implementation requires changing additional generated surfaces beyond these 4 files
+  - the TLDR contract appears to belong in a different assembly layer than `role-workflow.ts`
 
 ## Verification
-Initial RED target:
+Recommended caller-side verification after the wave:
+
 ```bash
-pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts
+pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts \
+  && pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts \
+  && pnpm typecheck
 ```
 
+If `pi-harness-84z.3` explicitly defers doctor enforcement, keep the same command; `doctor.test.ts` should remain green without requiring new TLDR-specific checks.
+
 ## Risks
-- MCP is extension-backed, so policy alone is insufficient; helper and doctor surfaces must land together.
-- A too-generic helper name may blur the distinction between GitHub MCP and open-web research.
-- Token-only doctor checks may be too weak if `.pi/mcp.json` structure changes later.
+- The biggest coupling risk is wording churn: if tests assert exact TLDR prose too early, both RED slices will become brittle.
+- `src/templates/pi/*` and dogfood `.pi/*` must change together or docs-alignment will fail immediately.
+- Doctor enforcement is still a policy choice under `pi-harness-84z.3`; folding it into the GREEN slice would mix two decisions and enlarge scope.
+- Parallel work is only safe in isolated worktrees before production edits; broad parallel implementation would create avoidable merge pressure on the same 4-file contract cluster.

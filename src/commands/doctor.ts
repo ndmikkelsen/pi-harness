@@ -555,6 +555,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!systemGuide.includes('prefer the configured MCP adapter path first')) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing MCP-first runtime reference');
     }
+    if (!systemGuide.includes('TLDR-style responses')) {
+      pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing TLDR runtime reference');
+    }
   }
 
   const leadAgent = await readFileIfPresent(targetDir, '.pi/agents/lead.md');
@@ -653,10 +656,13 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const roleWorkflowExtension = await readFileIfPresent(targetDir, '.pi/extensions/role-workflow.ts');
   if (roleWorkflowExtension !== null) {
-    for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES', 'loadWorkflowSettings', 'toolProfile', 'modelProfile', 'capabilityProfiles']) {
+    for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES', 'loadWorkflowSettings', 'toolProfile', 'modelProfile', 'capabilityProfiles', 'TLDR_GUIDANCE']) {
       if (!roleWorkflowExtension.includes(token)) {
         pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', `missing role workflow glue: ${token}`);
       }
+    }
+    if (!roleWorkflowExtension.includes('${TLDR_GUIDANCE}')) {
+      pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', 'missing role workflow glue: ${TLDR_GUIDANCE}');
     }
   }
 

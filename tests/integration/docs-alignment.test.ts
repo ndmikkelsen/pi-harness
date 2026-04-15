@@ -39,6 +39,12 @@ function expectNoLegacyRuntimeReferences(content: string): void {
   expect(content).not.toContain('/gsd-');
 }
 
+function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
+  expect(roleWorkflowExtension).toContain('TLDR');
+  expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
+  expect(systemPrompt).toContain('TLDR');
+}
+
 describe('workflow docs alignment', () => {
   it('keeps Pi runtime template surfaces aligned with dogfooded root files', async () => {
     const literalRuntimeSurfaces = [
@@ -181,6 +187,7 @@ describe('workflow docs alignment', () => {
     const bakeUsage = normalizeDoc(await readRepoFile('docs', 'bake-usage.md'));
     const agentsGuide = normalizeDoc(await readRepoFile('AGENTS.md'));
     const piSystem = normalizeDoc(await readRepoFile('.pi', 'SYSTEM.md'));
+    const templatePiSystem = normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'SYSTEM.md'));
     const leadAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'lead.md'));
     const codeScoutAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'code-scout.md'));
     const taskPlannerAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'task-planner.md'));
@@ -190,6 +197,7 @@ describe('workflow docs alignment', () => {
     const githubOperatorAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'github-operator.md'));
     const workflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'repo-workflows.ts'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
+    const templateRoleWorkflowExtension = normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'extensions', 'role-workflow.ts'));
     const adoptPrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'adopt.md'));
     const servePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'serve.md'));
     const promotePrompt = normalizeDoc(await readRepoFile('.pi', 'prompts', 'promote.md'));
@@ -275,6 +283,8 @@ describe('workflow docs alignment', () => {
     );
     expect(piSystem).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as `/serve` intent when the current lane is allowed to publish.");
     expect(piSystem).toContain('prefer the configured MCP adapter path first');
+    expectTldrScaffoldContract(roleWorkflowExtension, piSystem);
+    expectTldrScaffoldContract(templateRoleWorkflowExtension, templatePiSystem);
     expect(workflowExtension).toContain('Keep `/bake`, `/serve`, and `/promote` out of repo-local extensions.');
     expect(workflowExtension).not.toContain("registerCommand('bake'");
     expect(workflowExtension).not.toContain('scripts/bake.sh');

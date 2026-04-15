@@ -79,6 +79,10 @@ const ROLE_ALIASES: Record<string, string> = {
   oracle: 'review',
 };
 const STATE_ENTRY = 'role-workflow-state';
+const TLDR_GUIDANCE = `TLDR
+- Prefer concise, direct responses by default.
+- Lead with a brief summary when the task, plan, or review has multiple parts.
+- Expand only when the user asks for more detail or the risk warrants it.`;
 
 async function pathExists(targetPath: string): Promise<boolean> {
   try {
@@ -465,7 +469,7 @@ export default function registerRoleWorkflow(pi: ExtensionAPI): void {
     const capabilityBlock = capabilityPrompt(role);
 
     return {
-      systemPrompt: `${event.systemPrompt}\n\nACTIVE WORKFLOW ROLE: ${role.name}\n${capabilityBlock}\n${skillBlocks.join('\n\n')}\n\n${role.body}`,
+      systemPrompt: `${event.systemPrompt}\n\nACTIVE WORKFLOW ROLE: ${role.name}\n${capabilityBlock}\n${skillBlocks.join('\n\n')}\n\n${role.body}\n\n${TLDR_GUIDANCE}`,
     };
   });
 }

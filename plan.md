@@ -1,156 +1,123 @@
 # Implementation Plan
 
 ## Work Item
-`pi-harness-vyv.7` — enforce MCP-first workflow for explicit MCP requests.
+`pi-harness-84z.2` — implement TLDR guidance in role-workflow prompt assembly and SYSTEM visibility.
 
 Acceptance criteria:
-- `AGENTS.md`, `.pi/SYSTEM.md`, and workflow guidance state that explicit MCP requests should use the MCP adapter first
-- the workflow has a GitHub MCP-capable helper or equivalent repo-local path that explicitly declares MCP usage instead of implicit shell fallback
-- runtime capability/profile guidance and doctor checks cover MCP adapter/package/server/helper drift
-- dogfood `.pi/*`, scaffold templates, docs, and verification remain aligned
+- `src/templates/pi/extensions/role-workflow.ts` appends TLDR guidance at the end of the final assembled system prompt
+- dogfood and template `.pi/SYSTEM.md` files mention the TLDR expectation for visibility
+- dogfood and template workflow surfaces stay aligned
+- no repo-local global TLDR extension or command is introduced
 
 ## Knowledge Inputs
 - Cognee brief attempted and unavailable (`DatasetNotFoundError`)
-- Beads feature: `pi-harness-vyv.7`
-- Parallel scout findings captured in `context.md`
+- active Beads task: `pi-harness-84z.2`
+- feature contract captured in `apps/cli/features/tldr/tldr.feature` and `apps/cli/features/tldr/tldr.plan.md`
 
 ## Inputs Consumed
-- Execution Surface
-  - target policy: explicit MCP requests should use the MCP adapter first; shell fallback only when MCP is unavailable and stated explicitly
 - `context.md`
-- `AGENTS.md`
-- `.pi/SYSTEM.md`
-- `.pi/settings.json`
-- `.pi/mcp.json`
-- `src/generators/pi.ts`
-- `src/commands/doctor.ts`
-- targeted integration tests
+- `wave.md`
+- `apps/cli/features/tldr/tldr.feature`
+- `apps/cli/features/tldr/tldr.plan.md`
+- current BDD and integration verification surfaces
 
 ## Goal
-Make explicit MCP requests route through the MCP adapter first, with explicit fallback behavior and drift detection.
+Add TLDR behavior at the prompt-assembly enforcement point and visible SYSTEM guidance without expanding scope into repo-local commands or unrelated workflow changes.
 
 ## Approach
-1. Add MCP-first policy and routing guidance in canonical workflow files.
-2. Add a dedicated GitHub MCP-native helper plus matching capability profile metadata.
-3. Wire the helper into scaffold generation/templates and extend doctor + targeted tests.
-4. Verify with the narrowest focused suite, then close the Beads tasks.
+1. RED: add failing BDD and focused integration assertions in separate bounded slices.
+2. GREEN: update template and dogfood prompt surfaces together.
+3. REFACTOR: keep assertions semantic and leave doctor-policy expansion to `pi-harness-84z.3` unless required.
 
 ## Test Strategy
-Hybrid, led by TDD on integration drift checks.
+BDD-led hybrid.
 
 ## RED
-Run the targeted workflow verification suite after updating tests to expect MCP-first behavior:
-
-```bash
-pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts
-```
+- `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 
 ## GREEN
-Implement the smallest changes that make the targeted suite pass:
-- policy/routing wording
-- a GitHub MCP-native helper with explicit MCP tool declaration
-- capability profile entry in `.pi/settings.json`
-- generator + doctor + tests updated to match
+Implement the smallest change in these 4 files only:
+- `src/templates/pi/extensions/role-workflow.ts`
+- `.pi/extensions/role-workflow.ts`
+- `src/templates/pi/SYSTEM.md`
+- `.pi/SYSTEM.md`
 
 ## REFACTOR
-- align wording between dogfood and templates
-- keep helper/tool/profile naming consistent
-- avoid duplicating policy text more than necessary
+- keep template/dogfood wording aligned
+- keep assertions semantic instead of brittle exact-copy matching when possible
+- do not mix in doctor changes unless the caller explicitly pulls `pi-harness-84z.3` forward
 
 ## Delegation Units
 
-### Delegation Unit: mcp-policy-routing
-- Owner: `lead`
-- Goal: add canonical MCP-first workflow guidance
+### Delegation Unit: red-bdd-scaffold
+- Owner: `build`
+- Goal: add failing BDD assertions for TLDR scaffold behavior in init and adoption flows
 - Allowed Files:
-  - `AGENTS.md`
-  - `.pi/SYSTEM.md`
-  - `.pi/agents/lead.md`
-  - `.pi/skills/subagent-workflow/SKILL.md`
-  - `.pi/prompts/feat-change.md`
-  - `.pi/prompts/plan-change.md`
-  - `.pi/prompts/ship-change.md`
-  - `.pi/prompts/review-change.md`
-  - template mirrors under `src/templates/pi/`
+  - `apps/cli/features/init/init.spec.ts`
+  - `apps/cli/features/steps/init.steps.ts`
+  - `apps/cli/features/adoption/adoption.spec.ts`
+  - `apps/cli/features/steps/adoption.steps.ts`
+  - `apps/cli/features/steps/index.ts`
 - Non-Goals:
-  - no provider/model pinning
+  - no production scaffold edits
+  - no exact final TLDR prose decisions
+  - no repo-local TLDR command surface
 - Inputs:
   - `context.md`
+  - `plan.md`
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
 - Output:
-  - updated policy/routing surfaces
-- Dependency:
-  - none
+  - BDD assertion changes and RED evidence
 - RED:
-  - targeted docs/scaffold expectations fail because MCP-first wording is absent
+  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
 - GREEN Target:
-  - concise MCP-first rule appears in canonical and routed workflow surfaces
+  - none in this delegated slice; return after RED evidence
 - Caller Verification:
-  - targeted docs-alignment/init/scaffold suite
+  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
 - Escalate If:
-  - wording conflicts with existing prompt-native `/serve` or global-only `/bake` rules
+  - a new helper is needed outside `apps/cli/features/steps/*`
+  - semantic assertions are impossible without final copy
 
-### Delegation Unit: github-mcp-helper
-- Owner: `lead`
-- Goal: add a GitHub MCP-native helper and capability profile
+### Delegation Unit: red-integration-scaffold
+- Owner: `build`
+- Goal: add failing focused integration assertions for TLDR scaffold output
 - Allowed Files:
-  - `.pi/agents/github-operator.md`
-  - `.pi/settings.json`
-  - `.pi/mcp.json`
-  - `src/generators/pi.ts`
-  - template mirrors under `src/templates/pi/`
-- Non-Goals:
-  - do not make shell fallback the default path
-- Inputs:
-  - `context.md`
-- Output:
-  - explicit GitHub MCP helper + scaffold wiring
-- Dependency:
-  - helper naming and profile choice settled
-- RED:
-  - targeted init/scaffold tests fail because the helper/profile are absent
-- GREEN Target:
-  - helper exists, is scaffolded, and uses `mcp:github`
-- Caller Verification:
-  - targeted init/scaffold suite
-- Escalate If:
-  - direct MCP tool declaration needs a more specific `mcp:github/...` shape
-
-### Delegation Unit: mcp-drift-detection
-- Owner: `lead`
-- Goal: extend doctor and focused tests
-- Allowed Files:
-  - `src/commands/doctor.ts`
-  - `tests/integration/doctor.test.ts`
   - `tests/integration/init.test.ts`
   - `tests/integration/scaffold-snapshots.test.ts`
   - `tests/integration/docs-alignment.test.ts`
 - Non-Goals:
-  - no unrelated doctor broadening
+  - no production scaffold edits
+  - no doctor changes
+  - no unrelated runtime assertions
 - Inputs:
-  - completed policy/helper changes
+  - `context.md`
+  - `plan.md`
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
 - Output:
-  - passing focused regression suite
-- Dependency:
-  - policy/helper changes merged locally first
+  - integration assertion changes and RED evidence
 - RED:
-  - targeted suite fails for missing helper/policy/drift detection
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 - GREEN Target:
-  - doctor and tests enforce MCP-first baseline
+  - none in this delegated slice; return after RED evidence
 - Caller Verification:
-  - targeted test suite + `pnpm typecheck`
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 - Escalate If:
-  - drift detection requires new project-wide test infrastructure
+  - doctor coverage is required before the caller decides `pi-harness-84z.3`
+  - semantic assertions are impossible without final copy
 
 ## Requested Follow-up
 none
 
 ## Verification
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
-- then broader caller sweep if needed:
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/cli-init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
-- `pnpm typecheck`
+- after RED + GREEN:
+  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
+  - `pnpm typecheck`
 
 ## Risks
-- Helper naming could need refinement if `github-operator` is too broad or too narrow.
-- Doctor may need structural JSON checks if token checks prove too brittle.
-- If a user asks for MCP but the session lacks the adapter/server connection, the workflow must be explicit about fallback rather than silently substituting shell tools.
+- brittle tests if TLDR wording is over-specified too early
+- template/dogfood drift if mirrored files are not changed together
+- accidental scope creep into `doctor` or other prompt surfaces

@@ -74,6 +74,12 @@ const existingModeBaselinePaths = [
   'scripts/sync-artifacts-to-cognee.sh'
 ];
 
+function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
+  expect(roleWorkflowExtension).toContain('TLDR');
+  expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
+  expect(systemPrompt).toContain('TLDR');
+}
+
 describe('runInit', () => {
   it('creates the scaffold for a new project', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-'));
@@ -210,6 +216,7 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
     expect(roleWorkflowExtension).toContain('toolProfile');
     expect(roleWorkflowExtension).toContain('modelProfile');
+    expectTldrScaffoldContract(roleWorkflowExtension, systemPrompt);
     await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     expect(servePrompt).toContain('scripts/serve.sh');
     expect(servePrompt).toContain('./scripts/serve.sh --commit-message "<message>"');
@@ -386,6 +393,8 @@ describe('runInit', () => {
     const readme = await readFile(readmePath, 'utf8');
     const gitignore = await readFile(gitignorePath, 'utf8');
     const envExample = await readFile(envExamplePath, 'utf8');
+    const systemPrompt = await readFile(path.join(targetDir, '.pi', 'SYSTEM.md'), 'utf8');
+    const roleWorkflowExtension = await readFile(path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts'), 'utf8');
 
     expect(readme).toBe(originalReadme);
     expect(gitignore).toBe(originalGitignore);
@@ -396,6 +405,7 @@ describe('runInit', () => {
     expect(result.createdPaths).not.toContain('.gitignore');
     expect(result.createdPaths).not.toContain('.env.example');
     expect(result.createdPaths).toEqual(expect.arrayContaining(existingModeBaselinePaths));
+    expectTldrScaffoldContract(roleWorkflowExtension, systemPrompt);
     expect(result.createdPaths).not.toContain('.pi/prompts/bake.md');
     expect(result.createdPaths).not.toContain('scripts/bake.sh');
     expect(result.cleanup.enabled).toBe(false);
