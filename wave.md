@@ -1,159 +1,101 @@
 # Execution Approach
 
 ## Mode
-Custom chain with a gated parallel wave
+Saved chain
 
 ## Work Item
-Active Beads issue: `pi-harness-84z.2`
+`untracked`
 
-Related context:
-- parent feature: `pi-harness-84z` — scaffold TLDR response guidance for baked Pi repos
-- follow-up verification/policy task: `pi-harness-84z.3` — regression coverage and doctor-enforcement decision
+Beads status:
+- `bd ready --json` returned `[]`, so no active ready issue was available to claim for this request.
 
 ## Knowledge
-- Cognee status: reused latest brief attempt from this slice; `./scripts/cognee-brief.sh "Create a feature spec and task breakdown for scaffold-managed TLDR prompt enforcement in baked Pi repos"` returned `DatasetNotFoundError`.
-- Local repository evidence is already sufficient from:
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
-  - `src/templates/pi/extensions/role-workflow.ts`
-  - `src/templates/pi/SYSTEM.md`
+- Cognee: skipped.
+- Reason: the bug is already localized by repository evidence from targeted reads, so a Cognee brief would add overhead without reducing uncertainty.
+- Repository evidence already consumed:
+  - `README.md`
+  - `.pi/skills/bake/SKILL.md`
+  - `src/generators/root.ts`
+  - `src/templates/root/env.example`
+  - `src/templates/root/env.example-append.md`
+  - `tests/integration/cli-init.test.ts`
   - `tests/integration/init.test.ts`
-  - `tests/integration/scaffold-snapshots.test.ts`
-  - `tests/integration/docs-alignment.test.ts`
-  - `tests/integration/doctor.test.ts`
+  - `apps/cli/features/adoption/adoption.spec.ts`
+  - `apps/cli/features/steps/adoption.steps.ts`
 
 ## Test Strategy
-BDD-led hybrid.
+Hybrid, led by a real RED -> GREEN -> REFACTOR loop.
 
-RED first:
-- add failing scaffold assertions for TLDR behavior in the BDD lane and focused integration lane
-- keep assertions semantic and file-scoped so parallel RED work does not depend on exact final copy
+Expected path:
+- RED: add or tighten focused regression coverage proving existing-repo root-file merging duplicates `.env.example` entries when the repo already contains scaffold-equivalent variables.
+- GREEN: change the `.env.example` merge behavior to append only genuinely missing entries.
+- REFACTOR: keep the merge rule readable and aligned with existing root-file merge behavior without broadening scope.
 
-GREEN next:
-- implement the smallest prompt-assembly and SYSTEM-surface changes in dogfood and template mirrors
+## Decision Rationale
+- This is an implementation request with code and tests, so a delegated execution path is preferred over broad main-session editing.
+- The project already provides the `ship-change` saved chain for exactly this `explore -> plan -> build -> review` workflow.
+- Direct mode was rejected because the task touches behavior, merge semantics, and regression coverage across multiple files, and the structured artifacts from the saved chain are worth the overhead.
 
-REFACTOR last:
-- decide whether TLDR drift belongs in `doctor` now or should remain covered by tests only
-- avoid adding any repo-local TLDR extension or slash command
+## Routing Signals
+Hard triggers present:
+- implementation request with real code/test work
+- structured artifacts are useful (`context.md`, `plan.md`, `progress.md`, `review.md`)
+- multiple roles and verification stages are involved
 
-## Should Parallel Execution Actually Happen?
-Yes, but only for the RED verification wave.
+Soft triggers present:
+- more than 3 files are likely relevant
+- acceptance should be pinned down through existing BDD/integration coverage
+- the next best step is specialist recon/planning/implementation rather than more lead-session digging
 
-Do **not** split the implementation first. The production change is a tight 4-file contract cluster and should stay serial. After the contract boundaries below are fixed, run the RED test slices in parallel with `worktree: true`, then return to the main session for the GREEN implementation and final verification.
-
-## Dependency Order
-1. Main session: freeze the semantic TLDR contract for assertions
-   - `role-workflow.ts` is the enforcement point
-   - `.pi/SYSTEM.md` is visibility only
-   - no repo-local TLDR extension/command
-2. Parallel RED wave (`worktree: true`)
-   - BDD scaffold assertions slice
-   - focused integration assertions slice
-3. Main session GREEN implementation
-   - update dogfood + template prompt surfaces together
-4. Main session adjudication
-   - decide whether `doctor` should enforce TLDR drift now under `pi-harness-84z.3`
-5. Main session final verification, Beads updates, and serving decisions
+Why this split is safe:
+- the saved chain keeps ownership explicit by role
+- the likely file fence is compact and local to root-file merge logic plus targeted regression tests
+- no MCP path is required; execution is local repository work
 
 ## Agents / Chains
-- main session `lead`: owns routing, contract freeze, adjudication, final verification, and Beads updates
-- delegated `build` slices: add failing RED assertions in isolated worktrees
-- no MCP path is required for this request; local repository files are the execution surface
+- `ship-change` (project saved chain)
+  - `explore`: confirm the precise failing merge path and bounded file fence
+  - `plan`: choose the narrowest RED coverage and implementation slice
+  - `build`: implement the fix within the fenced files
+  - `review`: validate scope, risks, and caller verification
 
 ## Delegation Units
 
-### Delegation Unit: red-bdd-scaffold
-- Owner: `build`
-- Goal: add failing BDD assertions for TLDR scaffold behavior in init and adoption flows
+### Delegation Unit: explore-plan-build-review-env-example-merge
+- Owner: `ship-change`
+- Goal: fix `.env.example` merge behavior so existing-repo bake refreshes do not duplicate scaffold entries already present in the file.
 - Allowed Files:
-  - `apps/cli/features/init/init.spec.ts`
-  - `apps/cli/features/steps/init.steps.ts`
+  - `src/generators/root.ts`
+  - `src/templates/root/env.example-append.md`
+  - `tests/integration/cli-init.test.ts`
+  - `tests/integration/init.test.ts`
   - `apps/cli/features/adoption/adoption.spec.ts`
   - `apps/cli/features/steps/adoption.steps.ts`
-  - `apps/cli/features/steps/index.ts`
 - Non-Goals:
-  - do not edit production scaffold files
-  - do not decide final TLDR prose beyond semantic assertions
-  - do not add a new repo-local TLDR extension command
+  - do not change provider/model runtime policy
+  - do not broaden into unrelated bake/adopt cleanup behavior
+  - do not change `.env.example` placeholder values except as required by the merge contract
+  - do not run project-wide verification in child steps beyond narrow scoped RED/GREEN checks
 - Inputs:
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
   - `wave.md`
+  - targeted reads already identified above
 - Output:
-  - failing BDD assertions proving the TLDR contract is not implemented yet
+  - `context.md`, `plan.md`, `progress.md`, `review.md`
 - RED:
-  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+  - choose the narrowest failing regression that demonstrates duplicate `.env.example` entries during existing-repo merge mode
 - Caller Verification:
-  - rerun `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+  - rerun the scoped tests selected by the chain, then confirm merged `.env.example` keeps existing content without duplicate scaffold keys
 - Escalate If:
-  - the BDD lane needs a brand-new shared helper file outside `apps/cli/features/steps/*`
-  - assertions require exact final TLDR wording instead of semantic contract checks
-
-### Delegation Unit: red-integration-scaffold
-- Owner: `build`
-- Goal: add failing focused integration assertions for TLDR scaffold output and template/dogfood alignment expectations
-- Allowed Files:
-  - `tests/integration/init.test.ts`
-  - `tests/integration/scaffold-snapshots.test.ts`
-  - `tests/integration/docs-alignment.test.ts`
-- Non-Goals:
-  - do not edit production scaffold files
-  - do not add `doctor` enforcement yet
-  - do not broaden into unrelated runtime checks
-- Inputs:
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
-  - `wave.md`
-- Output:
-  - failing integration assertions proving generated scaffold outputs lack the TLDR contract
-- RED:
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
-- Caller Verification:
-  - rerun `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
-- Escalate If:
-  - assertions cannot stay semantic without first choosing exact TLDR prompt copy
-  - the slice needs to touch `tests/integration/doctor.test.ts` before the caller decides doctor policy
-
-### Delegation Unit: green-prompt-surfaces
-- Owner: main session `lead` or delegated `build` only after RED lands
-- Goal: implement the TLDR contract in the scaffold enforcement surfaces and mirror dogfood/template files together
-- Allowed Files:
-  - `src/templates/pi/extensions/role-workflow.ts`
-  - `.pi/extensions/role-workflow.ts`
-  - `src/templates/pi/SYSTEM.md`
-  - `.pi/SYSTEM.md`
-- Non-Goals:
-  - do not add any repo-local TLDR extension, command, or shortcut
-  - do not expand into unrelated workflow prompt changes
-  - do not modify doctor in the same slice
-- Inputs:
-  - failing RED output from `red-bdd-scaffold`
-  - failing RED output from `red-integration-scaffold`
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
-- Output:
-  - passing implementation of the TLDR prompt-assembly contract in dogfood and templates
-- RED:
-  - consume the failing commands from both RED slices before editing production files
-- Caller Verification:
-  - rerun the BDD and focused integration commands, then `pnpm typecheck`
-- Escalate If:
-  - the implementation requires changing additional generated surfaces beyond these 4 files
-  - the TLDR contract appears to belong in a different assembly layer than `role-workflow.ts`
+  - fixing the bug requires changing shared scaffold contracts outside the bounded root merge/test surfaces
+  - the duplication is actually caused by a different layer than `src/generators/root.ts`
 
 ## Verification
-Recommended caller-side verification after the wave:
-
-```bash
-pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts \
-  && pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts \
-  && pnpm typecheck
-```
-
-If `pi-harness-84z.3` explicitly defers doctor enforcement, keep the same command; `doctor.test.ts` should remain green without requiring new TLDR-specific checks.
+Expected caller-side verification will be a focused test command selected by the chain, likely around:
+- `tests/integration/cli-init.test.ts`
+- `tests/integration/init.test.ts`
+- any targeted adoption BDD coverage if needed
 
 ## Risks
-- The biggest coupling risk is wording churn: if tests assert exact TLDR prose too early, both RED slices will become brittle.
-- `src/templates/pi/*` and dogfood `.pi/*` must change together or docs-alignment will fail immediately.
-- Doctor enforcement is still a policy choice under `pi-harness-84z.3`; folding it into the GREEN slice would mix two decisions and enlarge scope.
-- Parallel work is only safe in isolated worktrees before production edits; broad parallel implementation would create avoidable merge pressure on the same 4-file contract cluster.
+- A naive duplicate filter could incorrectly preserve stale scaffold values when the intent is to add newer required keys only.
+- Existing tests currently prove append behavior, but may not yet distinguish append-without-duplication from blind block append.
+- The merge behavior should stay narrow so it does not accidentally reorder or normalize user-managed `.env.example` content.

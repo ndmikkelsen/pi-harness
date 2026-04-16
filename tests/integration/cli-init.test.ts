@@ -16,6 +16,10 @@ const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
 const existingModeBaselinePaths = ['AGENTS.md', '.pi/settings.json', '.pi/mcp.json', '.pi/agents/lead.md', '.pi/agents/code-scout.md', '.pi/agents/task-planner.md', '.pi/agents/implementer.md', '.pi/agents/web-researcher.md', '.pi/agents/context-mapper.md', '.pi/agents/github-operator.md', '.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts', 'scripts/bootstrap-worktree.sh', 'scripts/sync-artifacts-to-cognee.sh'];
 
+function countEnvKey(content: string, key: string): number {
+  return content.split('\n').filter((line) => line.startsWith(`${key}=`)).length;
+}
+
 describe('CLI init', () => {
   it('prints local install guidance in the human-readable report', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-cli-init-'));
@@ -169,7 +173,11 @@ exit 0
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
-    await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(
+      envExamplePath,
+      'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n',
+      'utf8'
+    );
 
     const result = await execFile(process.execPath, [tsxCli, 'src/cli.ts', '--mode', 'existing', '--init-json', targetDir], {
       cwd: repoRoot,
@@ -183,7 +191,9 @@ exit 0
     expect(payload.skippedPaths).toContain('.gitignore');
     expect(payload.skippedPaths).toContain('.env.example');
     expect(await readFile(gitignorePath, 'utf8')).toBe('dist/\n');
-    expect(await readFile(envExamplePath, 'utf8')).toBe('EXISTING_ONLY=true\n');
+    expect(await readFile(envExamplePath, 'utf8')).toBe(
+      'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n'
+    );
   });
 
   it('merges root files only when merge-root-files is set', async () => {
@@ -195,7 +205,11 @@ exit 0
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
-    await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(
+      envExamplePath,
+      'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n',
+      'utf8'
+    );
     await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
 
     const result = await execFile(
@@ -217,7 +231,20 @@ exit 0
     expect(payload.createdPaths).toContain('.envrc');
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('# AI workflow scaffold');
-    expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envExample).toContain('EXISTING_ONLY=true');
+    expect(envExample).toContain('# Custom comment');
+    expect(envExample).toContain('APP_ENV=production');
+    expect(envExample).not.toContain('APP_ENV=development');
+    expect(countEnvKey(envExample, 'APP_ENV')).toBe(1);
+    expect(envExample).toContain('LLM_API_KEY=EXISTING_KEY');
+    expect(envExample).not.toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(countEnvKey(envExample, 'LLM_API_KEY')).toBe(1);
+    expect(envExample).toContain('GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE');
+    expect(countEnvKey(envExample, 'GITHUB_PERSONAL_ACCESS_TOKEN')).toBe(1);
+    expect(countEnvKey(envExample, 'APP_PORT')).toBe(1);
+    expect(countEnvKey(envExample, 'APP_SECRET')).toBe(1);
+    expect(countEnvKey(envExample, 'DATABASE_URL')).toBe(1);
+    expect(countEnvKey(envExample, 'COGNEE_URL')).toBe(1);
     expect(envExample).not.toContain('BEADS_DOLT_PASSWORD');
     expect(envrc).toContain('# custom envrc');
     expect(envrc).toContain('export FOO=bar');
