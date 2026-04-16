@@ -59,7 +59,7 @@ describeFeature(feature, ({ Scenario }) => {
       adoptionSteps.thenMissingAiWorkflowFilesAreCreated(world);
     });
 
-    And('scaffold entries are appended to `.gitignore` and `.env.example` without removing custom content', async () => {
+    And('scaffold entries are appended to `.gitignore` and only missing `.env.example` keys are added without removing custom content', async () => {
       await adoptionSteps.thenScaffoldEntriesAreAppendedToRootFilesWithoutRemovingCustomContent(world);
     });
   });

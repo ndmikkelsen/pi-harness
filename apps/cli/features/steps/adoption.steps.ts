@@ -73,7 +73,11 @@ export async function givenExistingProjectDirectoryWithCustomRootFiles(world: Cl
   world.targetDir = path.join(world.workspace, 'existing-project');
   await mkdir(requireTargetDir(world), { recursive: true });
   await writeFile(path.join(requireTargetDir(world), '.gitignore'), 'dist/\n', 'utf8');
-  await writeFile(path.join(requireTargetDir(world), '.env.example'), 'EXISTING_ONLY=true\n', 'utf8');
+  await writeFile(
+    path.join(requireTargetDir(world), '.env.example'),
+    'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n',
+    'utf8'
+  );
   await writeFile(path.join(requireTargetDir(world), 'README.md'), '# Custom README\n', 'utf8');
 }
 
@@ -157,7 +161,9 @@ export async function thenPreExistingScaffoldFilesAreLeftUnchanged(world: CliFea
   expect(result.skippedPaths).toEqual(expect.arrayContaining(['README.md', '.gitignore', '.env.example']));
   expect(await readFile(path.join(requireTargetDir(world), 'README.md'), 'utf8')).toBe('# Custom README\n');
   expect(await readFile(path.join(requireTargetDir(world), '.gitignore'), 'utf8')).toBe('dist/\n');
-  expect(await readFile(path.join(requireTargetDir(world), '.env.example'), 'utf8')).toBe('EXISTING_ONLY=true\n');
+  expect(await readFile(path.join(requireTargetDir(world), '.env.example'), 'utf8')).toBe(
+    'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n'
+  );
 }
 
 export async function thenScaffoldEntriesAreAppendedToRootFilesWithoutRemovingCustomContent(
@@ -166,12 +172,26 @@ export async function thenScaffoldEntriesAreAppendedToRootFilesWithoutRemovingCu
   const result = requireResult(world);
   const gitignore = await readFile(path.join(requireTargetDir(world), '.gitignore'), 'utf8');
   const envExample = await readFile(path.join(requireTargetDir(world), '.env.example'), 'utf8');
+  const countEnvKey = (key: string) => envExample.split('\n').filter((line) => line.startsWith(`${key}=`)).length;
 
   expect(result.createdPaths).toEqual(expect.arrayContaining(['.gitignore', '.env.example']));
   expect(gitignore).toContain('dist/');
   expect(gitignore).toContain('.kamal/secrets');
   expect(envExample).toContain('EXISTING_ONLY=true');
-  expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+  expect(envExample).toContain('# Custom comment');
+  expect(envExample).toContain('# AI workflow scaffold');
+  expect(envExample).toContain('APP_ENV=production');
+  expect(envExample).not.toContain('APP_ENV=development');
+  expect(countEnvKey('APP_ENV')).toBe(1);
+  expect(envExample).toContain('LLM_API_KEY=EXISTING_KEY');
+  expect(envExample).not.toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+  expect(countEnvKey('LLM_API_KEY')).toBe(1);
+  expect(envExample).toContain('GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE');
+  expect(countEnvKey('GITHUB_PERSONAL_ACCESS_TOKEN')).toBe(1);
+  expect(countEnvKey('APP_PORT')).toBe(1);
+  expect(countEnvKey('APP_SECRET')).toBe(1);
+  expect(countEnvKey('DATABASE_URL')).toBe(1);
+  expect(countEnvKey('COGNEE_URL')).toBe(1);
 }
 
 export async function thenCuratedLegacyFilesAreRemovedBeforeNewScaffoldFilesAreCreated(

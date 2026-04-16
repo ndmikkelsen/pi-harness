@@ -13,7 +13,7 @@ Feature: Adopt an existing project into the AI workflow scaffold
     Given an existing project directory with custom root files
     When I apply the scaffold in existing-project mode with root-file merging enabled
     Then missing AI workflow files are created
-    And scaffold entries are appended to `.gitignore` and `.env.example` without removing custom content
+    And scaffold entries are appended to `.gitignore` and only missing `.env.example` keys are added without removing custom content
 
   Scenario: Remove curated legacy AI-framework files during adoption
     Given an existing project directory with curated legacy AI-framework files

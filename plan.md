@@ -1,123 +1,83 @@
 # Implementation Plan
 
 ## Work Item
-`pi-harness-84z.2` — implement TLDR guidance in role-workflow prompt assembly and SYSTEM visibility.
-
-Acceptance criteria:
-- `src/templates/pi/extensions/role-workflow.ts` appends TLDR guidance at the end of the final assembled system prompt
-- dogfood and template `.pi/SYSTEM.md` files mention the TLDR expectation for visibility
-- dogfood and template workflow surfaces stay aligned
-- no repo-local global TLDR extension or command is introduced
+`untracked` — fix existing-repo bake refresh so `.env.example` does not duplicate scaffold entries that are already present.
 
 ## Knowledge Inputs
-- Cognee brief attempted and unavailable (`DatasetNotFoundError`)
-- active Beads task: `pi-harness-84z.2`
-- feature contract captured in `apps/cli/features/tldr/tldr.feature` and `apps/cli/features/tldr/tldr.plan.md`
-
-## Inputs Consumed
+- Beads unavailable for this slice (`bd ready --json` returned `[]`)
+- Cognee skipped; targeted repository evidence was sufficient
 - `context.md`
-- `wave.md`
-- `apps/cli/features/tldr/tldr.feature`
-- `apps/cli/features/tldr/tldr.plan.md`
-- current BDD and integration verification surfaces
+- user-provided duplicate `.env.example` example
 
 ## Goal
-Add TLDR behavior at the prompt-assembly enforcement point and visible SYSTEM guidance without expanding scope into repo-local commands or unrelated workflow changes.
-
-## Approach
-1. RED: add failing BDD and focused integration assertions in separate bounded slices.
-2. GREEN: update template and dogfood prompt surfaces together.
-3. REFACTOR: keep assertions semantic and leave doctor-policy expansion to `pi-harness-84z.3` unless required.
+Keep existing-repo merge mode additive without duplicating already-defined env keys, while still appending genuinely missing scaffold variables.
 
 ## Test Strategy
-BDD-led hybrid.
+Hybrid, with a real RED -> GREEN -> REFACTOR loop.
 
 ## RED
-- `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
+Tighten focused regression coverage so merge-mode tests fail when:
+- an existing `.env.example` already has `APP_ENV` and `LLM_API_KEY`
+- merge mode re-adds those keys from the scaffold block
+- merge mode omits newer scaffold keys like `GITHUB_PERSONAL_ACCESS_TOKEN`
+
+Commands:
+- `pnpm test -- tests/integration/cli-init.test.ts tests/integration/init.test.ts`
+- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 
 ## GREEN
-Implement the smallest change in these 4 files only:
-- `src/templates/pi/extensions/role-workflow.ts`
-- `.pi/extensions/role-workflow.ts`
-- `src/templates/pi/SYSTEM.md`
-- `.pi/SYSTEM.md`
+Implement the smallest change in:
+- `src/generators/root.ts`
+- `src/templates/root/env.example-append.md`
+
+by:
+- extracting env keys from existing and generated lines
+- appending only missing keys under the scaffold marker
+- keeping the append template aligned with the full scaffold env contract
 
 ## REFACTOR
-- keep template/dogfood wording aligned
-- keep assertions semantic instead of brittle exact-copy matching when possible
-- do not mix in doctor changes unless the caller explicitly pulls `pi-harness-84z.3` forward
+- keep merge logic local to root generation
+- preserve comments and existing file order outside the appended scaffold block
+- keep tests semantic by asserting key counts rather than entire file snapshots
 
 ## Delegation Units
 
-### Delegation Unit: red-bdd-scaffold
-- Owner: `build`
-- Goal: add failing BDD assertions for TLDR scaffold behavior in init and adoption flows
+### Delegation Unit: env-example-merge-fix
+- Owner: main session
+- Goal: prevent duplicate scaffold env keys during existing-repo merge mode
 - Allowed Files:
-  - `apps/cli/features/init/init.spec.ts`
-  - `apps/cli/features/steps/init.steps.ts`
+  - `src/generators/root.ts`
+  - `src/templates/root/env.example-append.md`
+  - `tests/integration/cli-init.test.ts`
+  - `tests/integration/init.test.ts`
+  - `apps/cli/features/adoption/adoption.feature`
   - `apps/cli/features/adoption/adoption.spec.ts`
   - `apps/cli/features/steps/adoption.steps.ts`
-  - `apps/cli/features/steps/index.ts`
 - Non-Goals:
-  - no production scaffold edits
-  - no exact final TLDR prose decisions
-  - no repo-local TLDR command surface
+  - no unrelated bake workflow changes
+  - no provider/model config changes
+  - no doctor-policy expansion
 - Inputs:
   - `context.md`
-  - `plan.md`
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
+  - `wave.md`
+  - current `.env.example` templates and merge code
 - Output:
-  - BDD assertion changes and RED evidence
+  - code + tests + `progress.md`
 - RED:
-  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+  - the focused integration and BDD commands above
 - GREEN Target:
-  - none in this delegated slice; return after RED evidence
+  - passing merge behavior with unique env keys only
 - Caller Verification:
-  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
+  - `pnpm test -- tests/integration/cli-init.test.ts tests/integration/init.test.ts`
+  - `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
+  - `pnpm typecheck`
 - Escalate If:
-  - a new helper is needed outside `apps/cli/features/steps/*`
-  - semantic assertions are impossible without final copy
-
-### Delegation Unit: red-integration-scaffold
-- Owner: `build`
-- Goal: add failing focused integration assertions for TLDR scaffold output
-- Allowed Files:
-  - `tests/integration/init.test.ts`
-  - `tests/integration/scaffold-snapshots.test.ts`
-  - `tests/integration/docs-alignment.test.ts`
-- Non-Goals:
-  - no production scaffold edits
-  - no doctor changes
-  - no unrelated runtime assertions
-- Inputs:
-  - `context.md`
-  - `plan.md`
-  - `apps/cli/features/tldr/tldr.feature`
-  - `apps/cli/features/tldr/tldr.plan.md`
-- Output:
-  - integration assertion changes and RED evidence
-- RED:
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
-- GREEN Target:
-  - none in this delegated slice; return after RED evidence
-- Caller Verification:
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
-- Escalate If:
-  - doctor coverage is required before the caller decides `pi-harness-84z.3`
-  - semantic assertions are impossible without final copy
+  - the fix requires rewriting merge behavior across other root files
+  - key-based parsing proves too weak for the supported env syntax
 
 ## Requested Follow-up
 none
 
-## Verification
-- after RED + GREEN:
-  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts apps/cli/features/adoption/adoption.spec.ts`
-  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
-  - `pnpm typecheck`
-
 ## Risks
-- brittle tests if TLDR wording is over-specified too early
-- template/dogfood drift if mirrored files are not changed together
-- accidental scope creep into `doctor` or other prompt surfaces
+- skipping updates when the scaffold marker already exists means older merged files still keep their prior merged block unless a separate migration path is added
+- simplistic key parsing assumes one env assignment per line
