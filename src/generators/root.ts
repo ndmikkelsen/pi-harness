@@ -42,7 +42,6 @@ function postCheckoutHook(): string {
   return loadTemplate('root/scripts/hooks/post-checkout');
 }
 
-
 function envExample(context: ScaffoldContext): string {
   return loadTemplate('root/env.example', {
     APP_TITLE: context.appTitle,
@@ -52,6 +51,43 @@ function envExample(context: ScaffoldContext): string {
 }
 
 const scaffoldMarker = '# AI workflow scaffold';
+const envEntryPattern = /^(?:export\s+)?([A-Z_][A-Z0-9_]*)\s*=/;
+
+function extractEnvKey(line: string): string | null {
+  const trimmedLine = line.trim();
+
+  if (trimmedLine.length === 0 || trimmedLine.startsWith('#')) {
+    return null;
+  }
+
+  return trimmedLine.match(envEntryPattern)?.[1] ?? null;
+}
+
+function mergeEnvExample(existingContent: string, generatedContent: string): string | null {
+  if (existingContent.includes(scaffoldMarker)) {
+    return null;
+  }
+
+  const existingKeys = new Set(
+    existingContent
+      .split('\n')
+      .map((line) => extractEnvKey(line))
+      .filter((key): key is string => key !== null)
+  );
+  const missingEntries = generatedContent
+    .split('\n')
+    .filter((line) => {
+      const key = extractEnvKey(line);
+      return key !== null && !existingKeys.has(key);
+    });
+
+  if (missingEntries.length === 0) {
+    return null;
+  }
+
+  const base = existingContent.endsWith('\n') ? existingContent : `${existingContent}\n`;
+  return `${base}${base.endsWith('\n\n') ? '' : '\n'}${scaffoldMarker}\n${missingEntries.join('\n')}\n`;
+}
 
 function envExampleMergeBlock(context: ScaffoldContext): string {
   return loadTemplate('root/env.example-append.md', {
@@ -91,20 +127,13 @@ export function buildRootEntries(): ManagedEntry[] {
     { kind: 'file', path: '.pre-commit-config.yaml', content: () => preCommit() },
     { kind: 'file', path: '.beads/config.yaml', content: () => beadsConfig() },
     { kind: 'file', path: '.beads/hooks/post-checkout', content: () => beadsPostCheckoutHook(), executable: true },
-      {
-        kind: 'file',
-        path: '.env.example',
-        content: (context) => envExample(context),
-        mergeGroup: 'root',
-        merge: (existingContent, context) => {
-          if (existingContent.includes(scaffoldMarker)) {
-            return null;
-          }
-
-          const base = existingContent.endsWith('\n') ? existingContent : `${existingContent}\n`;
-          return `${base}\n${envExampleMergeBlock(context)}`;
-        }
-      },
+    {
+      kind: 'file',
+      path: '.env.example',
+      content: (context) => envExample(context),
+      mergeGroup: 'root',
+      merge: (existingContent, context) => mergeEnvExample(existingContent, envExampleMergeBlock(context))
+    },
     {
       kind: 'file',
       path: '.envrc',

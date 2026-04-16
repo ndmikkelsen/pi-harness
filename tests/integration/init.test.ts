@@ -74,6 +74,10 @@ const existingModeBaselinePaths = [
   'scripts/sync-artifacts-to-cognee.sh'
 ];
 
+function countEnvKey(content: string, key: string): number {
+  return content.split('\n').filter((line) => line.startsWith(`${key}=`)).length;
+}
+
 function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
   expect(roleWorkflowExtension).toContain('TLDR');
   expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
@@ -420,7 +424,11 @@ describe('runInit', () => {
 
     await mkdir(targetDir, { recursive: true });
     await writeFile(gitignorePath, 'dist/\n', 'utf8');
-    await writeFile(envExamplePath, 'EXISTING_ONLY=true\n', 'utf8');
+    await writeFile(
+      envExamplePath,
+      'EXISTING_ONLY=true\nAPP_ENV=production\nLLM_API_KEY=EXISTING_KEY\n# Custom comment\n',
+      'utf8'
+    );
     await writeFile(envrcPath, '# custom envrc\nexport FOO=bar\n', 'utf8');
 
     const result = await runInit({
@@ -443,7 +451,20 @@ describe('runInit', () => {
     expect(gitignore).toContain('dist/');
     expect(gitignore).toContain('.kamal/secrets');
     expect(envExample).toContain('EXISTING_ONLY=true');
-    expect(envExample).toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(envExample).toContain('# Custom comment');
+    expect(envExample).toContain('# AI workflow scaffold');
+    expect(envExample).toContain('APP_ENV=production');
+    expect(envExample).not.toContain('APP_ENV=development');
+    expect(countEnvKey(envExample, 'APP_ENV')).toBe(1);
+    expect(envExample).toContain('LLM_API_KEY=EXISTING_KEY');
+    expect(envExample).not.toContain('LLM_API_KEY=YOUR_OPENAI_API_KEY_HERE');
+    expect(countEnvKey(envExample, 'LLM_API_KEY')).toBe(1);
+    expect(envExample).toContain('GITHUB_PERSONAL_ACCESS_TOKEN=YOUR_GITHUB_PERSONAL_ACCESS_TOKEN_HERE');
+    expect(countEnvKey(envExample, 'GITHUB_PERSONAL_ACCESS_TOKEN')).toBe(1);
+    expect(countEnvKey(envExample, 'APP_PORT')).toBe(1);
+    expect(countEnvKey(envExample, 'APP_SECRET')).toBe(1);
+    expect(countEnvKey(envExample, 'DATABASE_URL')).toBe(1);
+    expect(countEnvKey(envExample, 'COGNEE_URL')).toBe(1);
     expect(envrc).toContain('# custom envrc');
     expect(envrc).toContain('export FOO=bar');
     expect(envrc).toContain('# direnv file for local, machine-specific secrets.');
