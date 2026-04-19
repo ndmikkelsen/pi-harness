@@ -80,8 +80,12 @@ const ROLE_ALIASES: Record<string, string> = {
 };
 const STATE_ENTRY = 'role-workflow-state';
 const TLDR_GUIDANCE = `TLDR
+- Put the main answer first.
+- After the main answer, always include a section labeled \`Summary\`.
+- After \`Summary\`, always include a section labeled \`TLDR\`.
+- Keep \`TLDR\` shorter than \`Summary\`.
+- Keep \`TLDR\` as the final section at the very bottom of the response.
 - Prefer concise, direct responses by default.
-- Lead with a brief summary when the task, plan, or review has multiple parts.
 - Expand only when the user asks for more detail or the risk warrants it.`;
 
 async function pathExists(targetPath: string): Promise<boolean> {

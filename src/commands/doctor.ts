@@ -266,6 +266,35 @@ function hasWebTooling(content: string): boolean {
   return ['web_search', 'fetch_content', 'get_search_content'].some((token) => content.includes(token));
 }
 
+function normalizeTldrSource(content: string): string {
+  return content.replace(/\\`/g, '`');
+}
+
+function markerIndex(content: string, marker: string): number {
+  return normalizeTldrSource(content).indexOf(marker);
+}
+
+function hasTldrContractMarkers(content: string): boolean {
+  const markers = [
+    'main answer first',
+    'always include a section labeled `Summary`',
+    'always include a section labeled `TLDR`',
+    'Keep `TLDR` shorter than `Summary`',
+    'final section at the very bottom of the response',
+  ] as const;
+
+  let previousIndex = -1;
+  for (const marker of markers) {
+    const index = markerIndex(content, marker);
+    if (index < 0 || index <= previousIndex) {
+      return false;
+    }
+    previousIndex = index;
+  }
+
+  return true;
+}
+
 export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorResult> {
   const targetDir = path.resolve(options.cwd, options.targetArg ?? '.');
   const targetLabel = path.relative(options.cwd, targetDir) || '.';
@@ -555,7 +584,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     if (!systemGuide.includes('prefer the configured MCP adapter path first')) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing MCP-first runtime reference');
     }
-    if (!systemGuide.includes('TLDR-style responses')) {
+    if (!systemGuide.includes('TLDR-style responses') || !hasTldrContractMarkers(systemGuide)) {
       pushAlignmentInvalid(alignmentInvalid, '.pi/SYSTEM.md', 'missing TLDR runtime reference');
     }
   }
@@ -663,6 +692,9 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
     if (!roleWorkflowExtension.includes('${TLDR_GUIDANCE}')) {
       pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', 'missing role workflow glue: ${TLDR_GUIDANCE}');
+    }
+    if (!hasTldrContractMarkers(roleWorkflowExtension)) {
+      pushRuntimeInvalid(invalid, '.pi/extensions/role-workflow.ts', 'missing role workflow TLDR contract markers');
     }
   }
 
