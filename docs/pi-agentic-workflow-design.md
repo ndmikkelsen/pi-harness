@@ -113,6 +113,15 @@ The scaffold only names them; the user maps them to actual providers/models in P
 - Keep GitHub MCP as the default project-local MCP server.
 - Make `context-mapper` repo-first and hand off external lookup to `web-researcher`.
 
+## Bounded Swarm Lane (v1)
+
+Decision for this repository:
+- add a prompt-native `/swarm-change` lane on top of the current role workflow
+- keep saved chains focused on `plan-change` and `ship-change`
+- use ephemeral `{chain_dir}/swarm/` mailbox artifacts instead of repo-root swarm state
+- use `swarm-worker` for bounded claim-and-respond slices and `swarm-adjudicator` for synthesis
+- cap the lane at `roundLimit: 2` and end in adjudicated planning or escalation
+
 ## Parallel Wave Plan
 
 ### Wave 1 — Design + contract alignment (`pi-harness-vyv.6.1`)

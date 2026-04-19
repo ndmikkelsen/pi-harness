@@ -367,6 +367,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/web-researcher.md',
     '.pi/agents/context-mapper.md',
     '.pi/agents/github-operator.md',
+    '.pi/agents/swarm-worker.md',
+    '.pi/agents/swarm-adjudicator.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -378,6 +380,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
     '.pi/prompts/parallel-wave.md',
+    '.pi/prompts/swarm-change.md',
     '.pi/prompts/review-change.md',
     '.pi/prompts/feat-change.md',
     '.pi/skills/beads/SKILL.md',
@@ -389,6 +392,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
+    '.pi/skills/swarm-collaboration/SKILL.md',
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-brief.sh',
     'scripts/sync-artifacts-to-cognee.sh',
@@ -412,6 +416,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/agents/web-researcher.md',
     '.pi/agents/context-mapper.md',
     '.pi/agents/github-operator.md',
+    '.pi/agents/swarm-worker.md',
+    '.pi/agents/swarm-adjudicator.md',
     '.pi/agents/plan-change.chain.md',
     '.pi/agents/ship-change.chain.md',
     '.pi/extensions/repo-workflows.ts',
@@ -423,6 +429,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/prompts/plan-change.md',
     '.pi/prompts/ship-change.md',
     '.pi/prompts/parallel-wave.md',
+    '.pi/prompts/swarm-change.md',
     '.pi/prompts/review-change.md',
     '.pi/prompts/feat-change.md',
     '.pi/skills/beads/SKILL.md',
@@ -434,6 +441,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     '.pi/skills/bake/references/existing-repo-context-checklist.md',
     '.pi/skills/parallel-wave-design/SKILL.md',
     '.pi/skills/subagent-workflow/SKILL.md',
+    '.pi/skills/swarm-collaboration/SKILL.md',
     'scripts/bootstrap-worktree.sh',
     'scripts/cognee-bridge.sh',
     'scripts/cognee-brief.sh',
@@ -592,7 +600,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
   const leadAgent = await readFileIfPresent(targetDir, '.pi/agents/lead.md');
   if (leadAgent !== null) {
     validateAgentFrontmatter(alignmentInvalid, '.pi/agents/lead.md', leadAgent, 'lead');
-    for (const token of ['plan-change', 'ship-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid', 'toolProfile: orchestrator', 'modelProfile: orchestrate-deep', 'maxSubagentDepth: 2', '## Delegation Units', 'MCP-capable path first']) {
+    for (const token of ['plan-change', 'ship-change', 'swarm-change', 'worktree: true', 'bd ready --json', './scripts/cognee-brief.sh', 'BDD | TDD | Hybrid', 'toolProfile: orchestrator', 'modelProfile: orchestrate-deep', 'maxSubagentDepth: 2', '## Delegation Units', 'MCP-capable path first']) {
       if (!leadAgent.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/agents/lead.md', `missing Pi role guidance: ${token}`);
       }
@@ -646,6 +654,8 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     { path: '.pi/agents/web-researcher.md', name: 'web-researcher', toolProfile: 'research-web', modelProfile: 'research-web', requiredTool: undefined },
     { path: '.pi/agents/context-mapper.md', name: 'context-mapper', toolProfile: 'repo-map', modelProfile: 'context-balanced', requiredTool: undefined },
     { path: '.pi/agents/github-operator.md', name: 'github-operator', toolProfile: 'github-mcp', modelProfile: 'investigate-fast', requiredTool: 'mcp:github' },
+    { path: '.pi/agents/swarm-worker.md', name: 'swarm-worker', toolProfile: 'planning-collab', modelProfile: 'investigate-fast', requiredTool: undefined },
+    { path: '.pi/agents/swarm-adjudicator.md', name: 'swarm-adjudicator', toolProfile: 'planning-collab', modelProfile: 'review-strict', requiredTool: undefined },
   ]) {
     const content = await readFileIfPresent(targetDir, helperAgent.path);
     if (content === null) {
@@ -683,6 +693,24 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     }
   }
 
+  const swarmWorkerAgent = await readFileIfPresent(targetDir, '.pi/agents/swarm-worker.md');
+  if (swarmWorkerAgent !== null) {
+    for (const token of ['Allowed Files', 'Output', 'Caller Verification', 'Escalate If']) {
+      if (!swarmWorkerAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/swarm-worker.md', `missing bounded swarm guidance: ${token}`);
+      }
+    }
+  }
+
+  const swarmAdjudicatorAgent = await readFileIfPresent(targetDir, '.pi/agents/swarm-adjudicator.md');
+  if (swarmAdjudicatorAgent !== null) {
+    for (const token of ['Allowed Files', 'Non-Goals', 'Output', 'Caller Verification', 'Escalate If']) {
+      if (!swarmAdjudicatorAgent.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/agents/swarm-adjudicator.md', `missing bounded swarm guidance: ${token}`);
+      }
+    }
+  }
+
   const roleWorkflowExtension = await readFileIfPresent(targetDir, '.pi/extensions/role-workflow.ts');
   if (roleWorkflowExtension !== null) {
     for (const token of ["registerCommand('role'", "registerCommand('next-role'", "registerCommand('prev-role'", "registerShortcut('ctrl+.'", "registerShortcut('ctrl+,'", 'before_agent_start', 'ROLE_ORDER', 'ROLE_ALIASES', 'loadWorkflowSettings', 'toolProfile', 'modelProfile', 'capabilityProfiles', 'TLDR_GUIDANCE']) {
@@ -715,7 +743,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const agentsGuide = await readFileIfPresent(targetDir, 'AGENTS.md');
   if (agentsGuide !== null) {
-    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh', 'When a user explicitly asks to use an MCP']) {
+    for (const token of ['.pi/agents/*', '.pi/extensions/*', '.pi/prompts/*', '.pi/skills/*', '.pi/skills/cognee/SKILL.md', '.pi/skills/red-green-refactor/SKILL.md', '.pi/skills/swarm-collaboration/SKILL.md', 'Ctrl+.', '/role <name>', '/next-role', '/prev-role', '/feat-change', '.pi/prompts/swarm-change.md', './scripts/bootstrap-worktree.sh', './scripts/cognee-brief.sh', './scripts/serve.sh', './scripts/promote.sh', 'When a user explicitly asks to use an MCP']) {
       if (!agentsGuide.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, 'AGENTS.md', `missing Pi-native workflow reference: ${token}`);
       }
@@ -821,6 +849,15 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/parallel-wave.md', 'missing MCP-first parallel-wave guidance');
   }
 
+  const swarmChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/swarm-change.md');
+  if (swarmChangePrompt !== null) {
+    for (const token of ['{chain_dir}', 'roundLimit', 'swarm/mailbox', 'swarm-worker', 'swarm-adjudicator', 'MCP adapter-first route']) {
+      if (!swarmChangePrompt.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/swarm-change.md', `missing bounded swarm guidance: ${token}`);
+      }
+    }
+  }
+
   const reviewChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/review-change.md');
   if (reviewChangePrompt !== null && !reviewChangePrompt.includes('`review`')) {
     pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/review-change.md', 'missing review role guidance');
@@ -831,7 +868,7 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
 
   const featChangePrompt = await readFileIfPresent(targetDir, '.pi/prompts/feat-change.md');
   if (featChangePrompt !== null) {
-    for (const token of ['`lead`', 'plan-change', 'ship-change', 'parallel-wave', 'BDD, TDD, or hybrid', 'explicit RED command', 'MCP adapter-first route']) {
+    for (const token of ['`lead`', 'plan-change', 'swarm-change', 'ship-change', 'parallel-wave', 'BDD, TDD, or hybrid', 'explicit RED command', 'MCP adapter-first route']) {
       if (!featChangePrompt.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/prompts/feat-change.md', `missing feature-routing guidance: ${token}`);
       }
@@ -882,6 +919,16 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
     for (const token of ['Allowed Files', 'Requested Follow-up', 'Escalate If', 'Delegation Unit', 'lead', 'explore', 'plan', 'build', 'review', 'Cognee brief', 'RED -> GREEN -> REFACTOR', 'MCP-backed execution first']) {
       if (!subagentWorkflowSkill.includes(token)) {
         pushAlignmentInvalid(alignmentInvalid, '.pi/skills/subagent-workflow/SKILL.md', `missing Pi subagent guidance: ${token}`);
+      }
+    }
+  }
+
+  const swarmCollaborationSkill = await readFileIfPresent(targetDir, '.pi/skills/swarm-collaboration/SKILL.md');
+  if (swarmCollaborationSkill !== null) {
+    validateSkillFrontmatter(alignmentInvalid, '.pi/skills/swarm-collaboration/SKILL.md', swarmCollaborationSkill, 'swarm-collaboration');
+    for (const token of ['{chain_dir}', 'roundLimit', 'claims', 'adjudication', 'Allowed Files', 'No persistent background agents', 'callerVerification', 'escalateIf']) {
+      if (!swarmCollaborationSkill.includes(token)) {
+        pushAlignmentInvalid(alignmentInvalid, '.pi/skills/swarm-collaboration/SKILL.md', `missing bounded swarm guidance: ${token}`);
       }
     }
   }
