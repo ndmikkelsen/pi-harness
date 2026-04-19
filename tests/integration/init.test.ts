@@ -86,10 +86,37 @@ function countEnvKey(content: string, key: string): number {
   return content.split('\n').filter((line) => line.startsWith(`${key}=`)).length;
 }
 
+function normalizeTldrSource(source: string): string {
+  return source.replace(/\\`/g, '`');
+}
+
+function markerIndex(source: string, marker: string): number {
+  return normalizeTldrSource(source).indexOf(marker);
+}
+
+function expectOrderedTldrContract(source: string): void {
+  const markers = [
+    'main answer first',
+    'always include a section labeled `Summary`',
+    'always include a section labeled `TLDR`',
+    'Keep `TLDR` shorter than `Summary`',
+    'final section at the very bottom of the response',
+  ] as const;
+
+  let previousIndex = -1;
+  for (const marker of markers) {
+    const index = markerIndex(source, marker);
+    expect(index, `expected TLDR contract marker: ${marker}`).toBeGreaterThan(-1);
+    expect(index).toBeGreaterThan(previousIndex);
+    previousIndex = index;
+  }
+}
+
 function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
   expect(roleWorkflowExtension).toContain('TLDR');
   expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
-  expect(systemPrompt).toContain('TLDR');
+  expectOrderedTldrContract(roleWorkflowExtension);
+  expectOrderedTldrContract(systemPrompt);
 }
 
 describe('runInit', () => {

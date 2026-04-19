@@ -12,7 +12,34 @@ import { requireResult, requireTargetDir } from '../support/world.js';
 
 const manifest = getCleanupManifest('legacy-ai-frameworks-v1');
 const legacyRuntimeDir = manifest.entries.find((entry) => entry.id === 'legacy-runtime-dir')!.path;
-const TLDR_RESPONSE_HINT = /(brief|concise|short|succinct|summar)/i;
+const TLDR_CONTRACT_MARKERS = [
+  'main answer first',
+  'always include a section labeled `Summary`',
+  'always include a section labeled `TLDR`',
+  'Keep `TLDR` shorter than `Summary`',
+  'final section at the very bottom of the response',
+] as const;
+const LEGACY_TOP_SUMMARY_HINT = /lead with a brief summary/i;
+
+function normalizeTldrSource(source: string): string {
+  return source.replace(/\\`/g, '`');
+}
+
+function markerIndex(source: string, marker: string): number {
+  return normalizeTldrSource(source).indexOf(marker);
+}
+
+function expectOrderedMarkers(source: string): void {
+  let previousIndex = -1;
+
+  for (const marker of TLDR_CONTRACT_MARKERS) {
+    const index = markerIndex(source, marker);
+
+    expect(index, `expected TLDR contract marker: ${marker}`).toBeGreaterThan(-1);
+    expect(index).toBeGreaterThan(previousIndex);
+    previousIndex = index;
+  }
+}
 
 type ExistingRepoOptions = {
   mergeRootFiles?: boolean;
@@ -47,9 +74,13 @@ function assertTldrScaffoldContract(world: CliFeatureWorld): void {
   const roleBodyIndex = roleWorkflow.indexOf('${role.body}');
 
   expect(roleBodyIndex).toBeGreaterThan(-1);
-  expect(roleWorkflow.slice(roleBodyIndex + '${role.body}'.length)).toMatch(/TLDR/i);
-  expect(systemPrompt).toMatch(/TLDR/i);
-  expect(systemPrompt).toMatch(TLDR_RESPONSE_HINT);
+  const appendedPrompt = roleWorkflow.slice(roleBodyIndex + '${role.body}'.length);
+
+  expect(appendedPrompt).toContain('${TLDR_GUIDANCE}');
+  expectOrderedMarkers(roleWorkflow);
+  expect(roleWorkflow).not.toMatch(LEGACY_TOP_SUMMARY_HINT);
+  expectOrderedMarkers(systemPrompt);
+  expect(systemPrompt).not.toMatch(LEGACY_TOP_SUMMARY_HINT);
   expect(repoWorkflows).not.toMatch(/registerCommand\(['"]tldr['"]/i);
   expect(result.createdPaths).not.toContain('.pi/extensions/tldr.ts');
 }
