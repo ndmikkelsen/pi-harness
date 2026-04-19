@@ -156,7 +156,7 @@ describe('runDoctor', () => {
     await writeFile(
       systemPath,
       systemPrompt.replace(
-        'Default to TLDR-style responses: prefer concise answers and lead with a brief summary when it helps.\n',
+        'Default to TLDR-style responses: prefer concise answers. Put the main answer first. After the main answer, always include a section labeled `Summary`. After `Summary`, always include a section labeled `TLDR`. Keep `TLDR` shorter than `Summary`, and keep `TLDR` as the final section at the very bottom of the response.\n',
         '',
       ),
       'utf8',
@@ -521,6 +521,69 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the swarm-collaboration skill loses callerVerification guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-skill-guidance');
+
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'swarm-collaboration', 'SKILL.md');
+    const skill = await readFile(skillPath, 'utf8');
+    await writeFile(skillPath, skill.replaceAll('`callerVerification`', '`caller-check`'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/skills/swarm-collaboration/SKILL.md',
+          reason: 'missing bounded swarm guidance: callerVerification'
+        })
+      ])
+    );
+  });
+
+  it('fails when the swarm-worker agent loses Output guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-worker-guidance');
+
+    const agentPath = path.join(targetDir, '.pi', 'agents', 'swarm-worker.md');
+    const agent = await readFile(agentPath, 'utf8');
+    await writeFile(agentPath, agent.replaceAll('Output', 'Result'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/swarm-worker.md',
+          reason: 'missing bounded swarm guidance: Output'
+        })
+      ])
+    );
+  });
+
+  it('fails when the swarm-change prompt loses chain-dir guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-change-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'swarm-change.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('{chain_dir}', 'chain_dir'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/swarm-change.md',
+          reason: 'missing bounded swarm guidance: {chain_dir}'
+        })
+      ])
+    );
+  });
+
   it('fails when the parallel-wave skill loses worktree guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-parallel-guidance');
@@ -775,6 +838,32 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/role-workflow.ts',
           reason: 'missing role workflow glue: ${TLDR_GUIDANCE}'
+        })
+      ])
+    );
+  });
+
+
+  it('fails when the role workflow extension loses the TLDR-shorter-than-Summary contract marker', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow-tldr-length');
+
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    await writeFile(
+      extensionPath,
+      extension.replace('shorter than', 'not longer than'),
+      'utf8'
+    );
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/extensions/role-workflow.ts',
+          reason: 'missing role workflow TLDR contract markers'
         })
       ])
     );

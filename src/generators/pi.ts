@@ -20,6 +20,7 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'directory', path: '.pi/skills/red-green-refactor' },
     { kind: 'directory', path: '.pi/skills/parallel-wave-design' },
     { kind: 'directory', path: '.pi/skills/subagent-workflow' },
+    { kind: 'directory', path: '.pi/skills/swarm-collaboration' },
     { kind: 'directory', path: 'docker' },
     { kind: 'file', path: 'AGENTS.md', content: () => template('pi/AGENTS.md') },
     { kind: 'file', path: '.pi/settings.json', content: () => template('pi/settings.json') },
@@ -36,6 +37,8 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'file', path: '.pi/agents/web-researcher.md', content: () => template('pi/agents/web-researcher.md') },
     { kind: 'file', path: '.pi/agents/context-mapper.md', content: () => template('pi/agents/context-mapper.md') },
     { kind: 'file', path: '.pi/agents/github-operator.md', content: () => template('pi/agents/github-operator.md') },
+    { kind: 'file', path: '.pi/agents/swarm-worker.md', content: () => template('pi/agents/swarm-worker.md') },
+    { kind: 'file', path: '.pi/agents/swarm-adjudicator.md', content: () => template('pi/agents/swarm-adjudicator.md') },
     { kind: 'file', path: '.pi/agents/plan-change.chain.md', content: () => template('pi/agents/plan-change.chain.md') },
     { kind: 'file', path: '.pi/agents/ship-change.chain.md', content: () => template('pi/agents/ship-change.chain.md') },
     {
@@ -55,6 +58,7 @@ export function buildPiEntries(): ManagedEntry[] {
     { kind: 'file', path: '.pi/prompts/plan-change.md', content: () => template('pi/prompts/plan-change.md') },
     { kind: 'file', path: '.pi/prompts/ship-change.md', content: () => template('pi/prompts/ship-change.md') },
     { kind: 'file', path: '.pi/prompts/parallel-wave.md', content: () => template('pi/prompts/parallel-wave.md') },
+    { kind: 'file', path: '.pi/prompts/swarm-change.md', content: () => template('pi/prompts/swarm-change.md') },
     { kind: 'file', path: '.pi/prompts/review-change.md', content: () => template('pi/prompts/review-change.md') },
     { kind: 'file', path: '.pi/prompts/feat-change.md', content: () => template('pi/prompts/feat-change.md') },
     { kind: 'file', path: '.pi/skills/beads/SKILL.md', content: () => template('pi/skills/beads/SKILL.md') },
@@ -95,6 +99,11 @@ export function buildPiEntries(): ManagedEntry[] {
       kind: 'file',
       path: '.pi/skills/subagent-workflow/SKILL.md',
       content: () => template('pi/skills/subagent-workflow/SKILL.md'),
+    },
+    {
+      kind: 'file',
+      path: '.pi/skills/swarm-collaboration/SKILL.md',
+      content: () => template('pi/skills/swarm-collaboration/SKILL.md'),
     },
     {
       kind: 'file',

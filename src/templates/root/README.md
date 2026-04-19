@@ -66,7 +66,7 @@ The canonical workflow surfaces are:
 4. Keep `/adopt` available as the compatibility path for conservative existing-repo refreshes and older handoff notes.
 5. Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.
 6. Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.
-7. Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.
+7. Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/swarm-change`, `/review-change`, or `/promote` for common role-based flows.
 8. Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.
 9. Use the `github-operator` helper when the task explicitly requests GitHub MCP-backed repository operations.
 10. Copy `.env.example` to `.env` and fill in local values, including `GITHUB_PERSONAL_ACCESS_TOKEN` if you want the preconfigured GitHub MCP server.

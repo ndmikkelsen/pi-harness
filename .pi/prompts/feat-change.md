@@ -15,6 +15,7 @@ Requirements:
 - require an explicit RED step before production changes
 - choose the smallest suitable route:
   - `plan-change` for planning-only work
+  - `swarm-change` for bounded conversational compare/adjudicate planning when the task is ambiguous across multiple workflow surfaces
   - `ship-change` for scoped implementation
   - `parallel-wave` only when tasks are truly independent and ownership boundaries are explicit
 - keep delegated tasks to about 3-5 files
@@ -27,7 +28,7 @@ Return:
 - acceptance criteria
 - Cognee brief status
 - chosen BDD/TDD/hybrid strategy
-- chosen route: `plan-change`, `ship-change`, or `parallel-wave`
+- chosen route: `plan-change`, `swarm-change`, `ship-change`, or `parallel-wave`
 - explicit RED command
 - smallest GREEN target
 - REFACTOR guardrails

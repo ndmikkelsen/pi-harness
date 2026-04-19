@@ -45,7 +45,10 @@ async function snapshotForProject(rootDir: string) {
     bakeSkill: await readProjectFile(rootDir, '.pi', 'skills', 'bake', 'SKILL.md'),
     parallelSkill: await readProjectFile(rootDir, '.pi', 'skills', 'parallel-wave-design', 'SKILL.md'),
     subagentWorkflowSkill: await readProjectFile(rootDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
+    swarmCollaborationSkill: await readProjectFile(rootDir, '.pi', 'skills', 'swarm-collaboration', 'SKILL.md'),
     githubOperatorAgent: await readProjectFile(rootDir, '.pi', 'agents', 'github-operator.md'),
+    swarmWorkerAgent: await readProjectFile(rootDir, '.pi', 'agents', 'swarm-worker.md'),
+    swarmAdjudicatorAgent: await readProjectFile(rootDir, '.pi', 'agents', 'swarm-adjudicator.md'),
     stickyNoteExample: await readProjectFile(rootDir, 'STICKYNOTE.example.md'),
     bootstrapScript: await readProjectFile(rootDir, 'scripts', 'bootstrap-worktree.sh'),
     cogneeBridge: await readProjectFile(rootDir, 'scripts', 'cognee-bridge.sh'),
@@ -68,10 +71,37 @@ function expectNoLegacyRuntimeReferences(content: string): void {
   expect(content).not.toContain('AssistantTarget');
 }
 
+function normalizeTldrSource(source: string): string {
+  return source.replace(/\\`/g, '`');
+}
+
+function markerIndex(source: string, marker: string): number {
+  return normalizeTldrSource(source).indexOf(marker);
+}
+
+function expectOrderedTldrContract(source: string): void {
+  const markers = [
+    'main answer first',
+    'always include a section labeled `Summary`',
+    'always include a section labeled `TLDR`',
+    'Keep `TLDR` shorter than `Summary`',
+    'final section at the very bottom of the response',
+  ] as const;
+
+  let previousIndex = -1;
+  for (const marker of markers) {
+    const index = markerIndex(source, marker);
+    expect(index, `expected TLDR contract marker: ${marker}`).toBeGreaterThan(-1);
+    expect(index).toBeGreaterThan(previousIndex);
+    previousIndex = index;
+  }
+}
+
 function expectTldrScaffoldContract(roleWorkflowExtension: string, systemPrompt: string): void {
   expect(roleWorkflowExtension).toContain('TLDR');
   expect(roleWorkflowExtension).not.toContain("registerCommand('tldr'");
-  expect(systemPrompt).toContain('TLDR');
+  expectOrderedTldrContract(roleWorkflowExtension);
+  expectOrderedTldrContract(systemPrompt);
 }
 
 describe('scaffold snapshots', () => {
@@ -119,6 +149,8 @@ describe('scaffold snapshots', () => {
         '.pi/agents/web-researcher.md',
         '.pi/agents/context-mapper.md',
         '.pi/agents/github-operator.md',
+        '.pi/agents/swarm-worker.md',
+        '.pi/agents/swarm-adjudicator.md',
         '.pi/agents/plan-change.chain.md',
         '.pi/agents/ship-change.chain.md',
         '.pi/extensions/repo-workflows.ts',
@@ -130,6 +162,7 @@ describe('scaffold snapshots', () => {
         '.pi/prompts/plan-change.md',
         '.pi/prompts/ship-change.md',
         '.pi/prompts/parallel-wave.md',
+        '.pi/prompts/swarm-change.md',
         '.pi/prompts/review-change.md',
         '.pi/prompts/feat-change.md',
         '.pi/settings.json',
@@ -140,6 +173,7 @@ describe('scaffold snapshots', () => {
         '.pi/skills/bake/SKILL.md',
         '.pi/skills/parallel-wave-design/SKILL.md',
         '.pi/skills/subagent-workflow/SKILL.md',
+        '.pi/skills/swarm-collaboration/SKILL.md',
         'AGENTS.md',
         'README.md',
         'STICKYNOTE.example.md',
@@ -176,7 +210,7 @@ describe('scaffold snapshots', () => {
     expect(result.readme).toContain('This scaffold also declares `npm:pi-mcp-adapter` and `npm:pi-web-access` in `.pi/settings.json`, preconfigures a project-local GitHub MCP server in `.pi/mcp.json`, and documents workflow capability profiles in `.pi/settings.json`.');
     expect(result.readme).toContain('Use `Ctrl+.`, `Ctrl+,`, `/role <name>`, `/next-role`, or `/prev-role` to switch the active main-session workflow role.');
     expect(result.readme).toContain('Use `/agents`, `/run`, `/chain`, or `/parallel` once pi-subagents loads if the task benefits from delegation.');
-    expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/review-change`, or `/promote` for common role-based flows.');
+    expect(result.readme).toContain('Use `/feat-change`, `/plan-change`, `/ship-change`, `/parallel-wave`, `/swarm-change`, `/review-change`, or `/promote` for common role-based flows.');
     expect(result.readme).toContain('Use `/mcp` to inspect, reconnect, or toggle the project-local GitHub MCP server after Pi starts.');
     expect(result.readme).toContain('workflow capability profiles');
     expect(result.readme).toContain('In untouched or baked repos, use the user-global `/bake` surface when you want Pi to run setup or refresh flows; use `/skill:bake` in baked repos when you want the local explanation first.');
@@ -191,6 +225,8 @@ describe('scaffold snapshots', () => {
     expect(result.agents).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(result.agents).toContain('This project uses `bd` for issue tracking.');
     expect(result.agents).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
+    expect(result.agents).toContain('.pi/skills/swarm-collaboration/SKILL.md');
+    expect(result.agents).toContain('.pi/prompts/swarm-change.md');
     expect(result.agents).toContain('When a user explicitly asks to use an MCP');
     expect(JSON.parse(result.settings)).toEqual({
       packages: ['npm:pi-subagents', 'npm:pi-mcp-adapter', 'npm:pi-web-access'],
@@ -238,12 +274,15 @@ describe('scaffold snapshots', () => {
     expect(result.bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(result.leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(result.leadAgent).toContain('plan-change');
+    expect(result.leadAgent).toContain('swarm-change');
     expect(result.leadAgent).toContain('worktree: true');
     expect(result.leadAgent).toContain('MCP-capable path first');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
     expect(result.subagentWorkflowSkill).toContain('Allowed Files');
     expect(result.subagentWorkflowSkill).toContain('MCP-backed execution first');
+    expect(result.swarmCollaborationSkill).toContain('{chain_dir}');
+    expect(result.swarmCollaborationSkill).toContain('roundLimit');
     expect(result.stickyNoteExample).toContain('Keep `STICKYNOTE.md` untracked, and expect linked worktrees to point back to the main worktree copy.');
     expect(result.stickyNoteExample).toContain('`/serve` will reuse `## Completed This Session` for the PR summary');
     expect(result.stickyNoteExample).toContain('- Checks still needed before serving:');
@@ -281,7 +320,10 @@ describe('scaffold snapshots', () => {
       result.bakeSkill,
       result.parallelSkill,
       result.subagentWorkflowSkill,
+      result.swarmCollaborationSkill,
       result.githubOperatorAgent,
+      result.swarmWorkerAgent,
+      result.swarmAdjudicatorAgent,
     ]) {
       expectNoLegacyRuntimeReferences(content);
     }
