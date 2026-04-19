@@ -233,7 +233,7 @@ describe('scaffold snapshots', () => {
       extensions: ['.pi/extensions/repo-workflows.ts', '.pi/extensions/role-workflow.ts'],
       capabilityProfiles: {
         modelProfiles: expect.any(Object),
-        toolProfiles: expect.objectContaining({ 'github-mcp': expect.any(Object) }),
+        toolProfiles: expect.objectContaining({ 'github-mcp': expect.any(Object), orchestrator: expect.any(Object) }),
       },
     });
     expect(result.mcpConfig).toContain('@modelcontextprotocol/server-github');
@@ -277,6 +277,7 @@ describe('scaffold snapshots', () => {
     expect(result.leadAgent).toContain('swarm-change');
     expect(result.leadAgent).toContain('worktree: true');
     expect(result.leadAgent).toContain('MCP-capable path first');
+    expect(result.leadAgent).toContain('direct `mcp:github` from `lead`');
     expect(result.parallelSkill).toContain('Each delegated task owns at most 3-5 files.');
     expect(result.subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
     expect(result.subagentWorkflowSkill).toContain('Allowed Files');

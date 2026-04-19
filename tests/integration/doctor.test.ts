@@ -757,6 +757,29 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the orchestrator profile loses mcp:github support for lead', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-orchestrator-mcp-profile');
+
+    const settingsPath = path.join(targetDir, '.pi', 'settings.json');
+    const settings = JSON.parse(await readFile(settingsPath, 'utf8'));
+    settings.capabilityProfiles.toolProfiles.orchestrator.tools = settings.capabilityProfiles.toolProfiles.orchestrator.tools.filter((entry: string) => entry !== 'mcp:github');
+    await writeFile(settingsPath, `${JSON.stringify(settings, null, 2)}
+`, 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/settings.json',
+          reason: 'orchestrator profile missing tool requirement: mcp:github'
+        })
+      ])
+    );
+  });
+
   it('fails when project settings lose the github-mcp capability profile', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-github-mcp-profile');

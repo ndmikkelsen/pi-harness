@@ -4,103 +4,104 @@
 `untracked`
 
 ## Summary
-Ship, with caller-side verification still required.
+The implementation appears correct for the scoped fix.
 
 What looks solid:
-- The bounded swarm lane is additive, not a replacement. `plan-change`, `ship-change`, and `parallel-wave` remain present and unchanged as the canonical existing lanes.
-- The new lane stays prompt-native via `.pi/prompts/swarm-change.md` instead of inventing extension glue or a misleading saved chain.
-- Mailbox state is documented under `{chain_dir}/swarm/`, with worker/adjudicator helpers and a dedicated swarm skill added in both dogfood and template mirrors.
-- Generator registration, doctor allowlists, and scaffold/tests were updated together, which reduces drift risk.
-- Non-goals appear honored: no `.pi/settings.json` changes, no `.pi/extensions/*.ts` changes, no product-code changes, and no persistent repo-root swarm state.
+- `lead` now gets GitHub MCP access through the `orchestrator` tool profile in both repo-local runtime settings and scaffold templates (`.pi/settings.json`, `src/templates/pi/settings.json`).
+- The runtime contract actually uses that profile: `lead` still declares `toolProfile: orchestrator`, and `.pi/extensions/role-workflow.ts` merges profile tools with agent frontmatter tools before setting active tools.
+- Existing GitHub helper behavior is preserved. `github-operator` remains present, unchanged, MCP-first, and still the default route for explicit GitHub/MCP work, with `lead` only allowed to do small direct MCP actions when delegation overhead is higher.
+- Verification coverage is reasonably strong for a scaffold/runtime-contract change: doctor regression, scaffold/init assertions, snapshot assertions, and docs-alignment checks all moved with the change.
 
-What is less solid:
-- This review could not independently rerun the claimed passing tests; verification success is reported in `progress.md`, not re-executed here.
-- Automated coverage proves presence/parity and some key swarm tokens, but it does not specifically lock down every exact mailbox-path token (`adjudication.md`, `summary.md`) or every normalized contract field beyond the targeted checks.
+What is weaker:
+- `plan.md` in the repo is stale and unrelated to this work item, so the handoff trace relies on `wave.md` and `progress.md`, not a task-matching plan artifact.
+- I found no regression test that specifically removes `npm:pi-mcp-adapter` from the `orchestrator` profile, even though `doctor.ts` now validates that requirement.
+- RED/GREEN execution is described in `progress.md`, but this review did not have stored command output proving those commands were actually run.
 
 ## Inputs Consumed
+Artifacts and files reviewed:
 - `wave.md`
 - `plan.md`
 - `progress.md`
-- `context.md`
-- `.pi/prompts/swarm-change.md`
-- `.pi/agents/swarm-worker.md`
-- `.pi/agents/swarm-adjudicator.md`
-- `.pi/skills/swarm-collaboration/SKILL.md`
-- `AGENTS.md`
-- `README.md`
-- `docs/pi-subagent-workflow.md`
-- `docs/pi-agentic-workflow-design.md`
+- `.pi/settings.json`
 - `.pi/agents/lead.md`
-- `.pi/prompts/feat-change.md`
+- `.pi/agents/github-operator.md`
+- `.pi/extensions/role-workflow.ts`
+- `.pi/mcp.json`
+- `src/templates/pi/settings.json`
+- `src/templates/pi/agents/lead.md`
+- `src/templates/pi/agents/github-operator.md`
 - `src/generators/pi.ts`
 - `src/commands/doctor.ts`
+- `tests/integration/doctor.test.ts`
 - `tests/integration/init.test.ts`
 - `tests/integration/scaffold-snapshots.test.ts`
 - `tests/integration/docs-alignment.test.ts`
-- `tests/integration/doctor.test.ts`
-- `tests/integration/beads-wrapper.test.ts`
+- `README.md`
+- `src/templates/root/README.md`
+
+Read-only commands reviewed:
 - `git status --short`
-- `git diff --stat`
-- `git diff --check`
-- `git diff -- <targeted workflow/doc/test files>`
-- `bd ready --json`
+- `git diff -- .pi/settings.json .pi/agents/lead.md src/templates/pi/settings.json src/templates/pi/agents/lead.md src/commands/doctor.ts tests/integration/doctor.test.ts tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts`
 
 ## Routing Alignment
 - `wave.md` present: yes
 - Alignment: aligned
-- Notes: The implementation honored the active routing contract by keeping the swarm lane prompt-native and additive, preserving existing lanes, and leaving final review as a separate read-only step. I did not find evidence that the work silently rerouted into a second orchestration system or broadened into persistent swarm behavior.
+- Notes: the implementation stayed inside the wave-scoped contract: settings/profile change, lead guidance clarification, doctor coverage, and scaffold/template parity. However, `plan.md` is not for this work item, so artifact traceability is only partially aligned and should be cleaned up by `lead` if strict handoff hygiene is required.
 
 ## Execution Surface
-shell fallback with reason — read-only git/file inspection only; no MCP-native review path was requested.
+shell fallback with reason — read-only repository inspection and git diff review; no MCP-native review action was required.
 
 ## Handoff Compliance
 Mostly compliant.
-- Stayed inside the planned workflow-scaffold/doc/test surface.
-- Preserved stated non-goals: no settings changes, no extension changes, no provider/model pinning, no product-code edits, no persistent background-agent or repo-root mailbox state.
-- Added only the expected swarm prompt/helper/skill surfaces plus their template mirrors, generator registration, doctor checks, and scoped integration coverage.
-- Artifact updates (`wave.md`, `plan.md`, `progress.md`, `review.md`) match the repo workflow contract.
+- The changed files stayed inside the file fence implied by `wave.md`/`progress.md`.
+- Non-goals were honored: no `.pi/mcp.json` changes, no `github-operator` edits, no extension rewrites.
+- The current routing contract was respected.
+
+Handoff gaps:
+- `plan.md` does not describe this task.
+- There is an unrelated untracked `github.md` in the worktree, which is harmless to the fix itself but adds workflow noise.
 
 ## Test-First Trace
-A scoped TDD loop is evident from the handoff and diff.
-- RED is documented in `progress.md` and reflected in new doctor regressions, especially the swarm prompt/worker/skill checks in `tests/integration/doctor.test.ts`.
-- GREEN is evident in the additive implementation of `.pi/prompts/swarm-change.md`, swarm helper agents, the swarm skill, generator registration, and doctor allowlist updates.
-- REFACTOR is also evident: the implementation tightened wording around mailbox contract fields and mirrored the same surfaces into templates, then updated parity tests.
+Scoped TDD is evident, but not fully proven.
+- RED intent is visible from the newly added negative doctor regression: `fails when the orchestrator profile loses mcp:github support for lead`.
+- GREEN is visible in the paired settings/template changes plus doctor enforcement.
+- REFACTOR coverage is visible in broader scaffold/init/docs tests.
 
-Caveat: the RED -> GREEN -> REFACTOR story is documented and supported by the changed tests, but this review did not independently rerun those commands.
+What is missing is execution evidence: the artifact trail states the RED/GREEN/REFACTOR commands were run, but this review only saw the assertions and diffs, not test output.
 
 ## Decisions
 The caller can treat these points as validated:
-- The swarm lane is additive bounded collaboration on top of the existing workflow, not a replacement.
-- The chosen implementation preserves `AGENTS.md` authority.
-- The lane is prompt-native and centered on `{chain_dir}/swarm/` guidance rather than repo-persistent state.
-- Existing `plan-change`, `ship-change`, and `parallel-wave` lanes remain intact.
-- Dogfood/template parity, generator registration, doctor allowlists, and scoped integration coverage were updated together.
-- Cognee fallback assumptions were handled consistently and explicitly across artifacts.
+- `lead` now inherits `mcp:github` via the `orchestrator` capability profile in both repo-local and template settings.
+- The scaffold/runtime contract path is real, not just documentation: `role-workflow` resolves tool-profile tools into the active role tool set.
+- `github-operator` behavior remains preserved as the default GitHub MCP helper.
+- The change is covered by multiple static/integration checks, so regressions in settings, scaffold output, or lead guidance are likely to surface.
 
 ## Open Questions
-- The claimed passing verification commands were not independently rerun in this review.
-- Future contract drift on exact adjudication/summary path wording is only partially covered by automation today.
+- Were the claimed verification commands actually run successfully in this session? The artifacts say yes, but no command output was preserved.
+- Should there also be an explicit regression test for losing `npm:pi-mcp-adapter` from `orchestrator`, since `doctor.ts` now treats that as required?
 
 ## Requested Follow-up
 none
 
 ## Risks
-- `src/commands/doctor.ts` and the tests currently validate key swarm tokens, but not every exact mailbox-path string. Future edits could preserve `{chain_dir}` and `roundLimit` while still drifting on `adjudication.md` or `summary.md` wording.
-- The mailbox schema intentionally mixes human-readable contract labels and machine-style field names; that is acceptable as documented, but any future push toward stricter machine-readable schemas should revisit casing and naming consistency explicitly.
-- Final ship confidence still depends on the caller rerunning the named scoped test suite and typecheck.
+- A future edit could remove `npm:pi-mcp-adapter` from `orchestrator` without tripping a dedicated regression test; only the doctor implementation currently guards that path.
+- This fix does not guarantee live runtime success if Pi is not logged in, the GitHub MCP server is unavailable, or env/config is missing outside the scaffold contract.
+- Stale workflow artifacts (`plan.md`, untracked `github.md`) may confuse later routing or review.
 
 ## Gaps
-- No raw test/typecheck output was attached to the handoff; only the commands and claimed outcomes are present in `progress.md`.
-- There is no dedicated regression that pins the exact adjudication/summary artifact path strings in the swarm docs/agents/skill.
-- There is no separate automated assertion for the normalized `Inputs Consumed` vocabulary inside every swarm surface beyond the targeted token checks and manual contract inspection.
+- No task-specific `plan.md` for this work item.
+- No stored evidence of actual RED/GREEN/REFACTOR command execution.
+- No dedicated negative test for the new orchestrator package requirement.
+- No end-to-end runtime check proving a reloaded Pi session exposes `mcp:github` to `lead` after role activation.
 
 ## Caller Verification
-Run exactly:
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/beads-wrapper.test.ts`
-- `pnpm typecheck`
+Run the scoped suite the handoff names:
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
+
+If you want the narrowest live check after that, reload Pi in a scaffolded repo, switch to `lead`, and confirm the capability prompt/resolved tools include `mcp:github`.
 
 ## Escalate If
-- The caller reruns the scoped suite or typecheck and any swarm-related check fails.
-- Stakeholders require a stricter machine-readable mailbox schema than the current mixed human/documentation contract.
-- The swarm lane is later asked to perform broad implementation directly instead of ending in adjudicated planning or handoff.
-- Any follow-up proposes persistent repo state, extension glue, or new main-session roles for swarm behavior.
+- the scoped integration suite fails,
+- `doctor` no longer reports loss of `mcp:github` from `orchestrator`,
+- `github-operator` stops being the default GitHub/MCP helper route,
+- or a reloaded Pi runtime still cannot expose `mcp:github` to `lead`, which would indicate a deeper runtime/config issue beyond this scaffold fix.

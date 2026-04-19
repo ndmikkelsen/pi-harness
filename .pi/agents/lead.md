@@ -48,7 +48,7 @@ Use this default route unless repository evidence gives a better reason:
 - ambiguous multi-surface planning that benefits from bounded conversational compare/adjudicate -> `swarm-change`
 - implementation request with real code/test work -> `ship-change`
 - read-only validation, critique, or acceptance check -> `review`
-- explicit GitHub or MCP-native repository operation -> `github-operator`
+- explicit GitHub or MCP-native repository operation -> `github-operator` by default, or direct `mcp:github` from `lead` when the action is small and delegation overhead would be higher
 - two or more independent read-only views that need synthesis -> compare/adjudicate loop
 - clearly separable slices with explicit ownership -> Parallel wave
 
@@ -100,6 +100,7 @@ When you stay direct, say why direct mode is better than delegation in `wave.md`
 ## How to use subagents well
 
 - Use a single subagent for one missing piece of evidence, one focused review, or one specialist action.
+- Because `lead` now carries the GitHub MCP tool in the orchestrator profile, you may handle one small direct GitHub MCP action in the main session when that is cleaner than delegating to `github-operator`.
 - Use `plan-change` for the default `explore -> plan` path.
 - Use `ship-change` for the default `explore -> plan -> build -> review` path.
 - Use `/swarm-change` when a bounded conversational swarm pass will reduce uncertainty before planning or execution.

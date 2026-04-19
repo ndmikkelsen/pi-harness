@@ -79,6 +79,35 @@ const ROLE_ALIASES: Record<string, string> = {
   oracle: 'review',
 };
 const STATE_ENTRY = 'role-workflow-state';
+const GITHUB_MCP_ALIAS = 'mcp:github';
+const GITHUB_SERVER_TOOL_NAMES = new Set([
+  'create_or_update_file',
+  'search_repositories',
+  'create_repository',
+  'get_file_contents',
+  'push_files',
+  'create_issue',
+  'create_pull_request',
+  'fork_repository',
+  'create_branch',
+  'list_commits',
+  'list_issues',
+  'update_issue',
+  'add_issue_comment',
+  'search_code',
+  'search_issues',
+  'search_users',
+  'get_issue',
+  'get_pull_request',
+  'list_pull_requests',
+  'create_pull_request_review',
+  'merge_pull_request',
+  'get_pull_request_files',
+  'get_pull_request_status',
+  'update_pull_request_branch',
+  'get_pull_request_comments',
+  'get_pull_request_reviews',
+]);
 const TLDR_GUIDANCE = `TLDR
 - Put the main answer first.
 - After the main answer, always include a section labeled \`Summary\`.
@@ -216,6 +245,53 @@ function unique(items: string[]): string[] {
   return [...new Set(items)];
 }
 
+function matchesGithubDirectToolName(name: string): boolean {
+  if (GITHUB_SERVER_TOOL_NAMES.has(name)) {
+    return true;
+  }
+
+  const normalized = name.toLowerCase();
+  return [...GITHUB_SERVER_TOOL_NAMES].some(
+    (toolName) =>
+      normalized === `github_${toolName}` ||
+      normalized === `mcp_github_${toolName}` ||
+      normalized === `github:${toolName}` ||
+      normalized === `mcp:github:${toolName}` ||
+      normalized === `github/${toolName}` ||
+      normalized === `mcp/github/${toolName}`,
+  );
+}
+
+function resolveActiveTools(requested: string[], availableToolNames: string[]): { validTools: string[]; missingTools: string[] } {
+  const availableTools = new Set(availableToolNames);
+  const validTools: string[] = [];
+  const missingTools: string[] = [];
+
+  for (const tool of requested) {
+    if (tool === GITHUB_MCP_ALIAS) {
+      const githubTools = availableToolNames.filter(matchesGithubDirectToolName);
+      if (githubTools.length > 0) {
+        validTools.push(...githubTools);
+      } else {
+        missingTools.push(tool);
+      }
+      continue;
+    }
+
+    if (availableTools.has(tool)) {
+      validTools.push(tool);
+      continue;
+    }
+
+    missingTools.push(tool);
+  }
+
+  return {
+    validTools: unique(validTools),
+    missingTools: unique(missingTools),
+  };
+}
+
 export default function registerRoleWorkflow(pi: ExtensionAPI): void {
   let piRoot: string | null = null;
   let roles: RoleConfig[] = [];
@@ -270,10 +346,9 @@ export default function registerRoleWorkflow(pi: ExtensionAPI): void {
 
   function applyRoleState(ctx: CommandContext): void {
     const role = currentRole();
-    const availableTools = new Set(pi.getAllTools().map((tool) => tool.name));
+    const availableToolNames = pi.getAllTools().map((tool) => tool.name);
     const requested = requestedTools(role);
-    const validTools = requested.filter((tool) => availableTools.has(tool));
-    const missingTools = requested.filter((tool) => !availableTools.has(tool));
+    const { validTools, missingTools } = resolveActiveTools(requested, availableToolNames);
 
     if (validTools.length > 0) {
       pi.setActiveTools(validTools);
