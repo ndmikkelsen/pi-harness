@@ -366,6 +366,7 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
     expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, `github-operator`, `swarm-worker`, and `swarm-adjudicator` are available for narrow delegation.');
+    expect(leadAgent).toContain('direct `mcp:github` from `lead`');
     for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, swarmWorkerAgent, swarmAdjudicatorAgent]) {
       expect(helperAgent).not.toContain('model:');
       expect(helperAgent.toLowerCase()).not.toContain('claude');

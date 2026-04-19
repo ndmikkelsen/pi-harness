@@ -243,6 +243,7 @@ describe('runInit', () => {
     expect(settings).toContain('npm:pi-web-access');
     expect(settings).toContain('.pi/extensions/role-workflow.ts');
     expect(settings).toContain('capabilityProfiles');
+    expect(settings).toContain('mcp:github');
     expect(mcpConfig).toContain('@modelcontextprotocol/server-github');
     expect(mcpConfig).toContain('GITHUB_PERSONAL_ACCESS_TOKEN');
     expect(mcpConfig).toContain('directTools');
@@ -260,6 +261,7 @@ describe('runInit', () => {
     expect(roleWorkflowExtension).toContain('ROLE_ALIASES');
     expect(roleWorkflowExtension).toContain('toolProfile');
     expect(roleWorkflowExtension).toContain('modelProfile');
+    expect(agentsGuide).toContain('When a user explicitly asks to use an MCP');
     expectTldrScaffoldContract(roleWorkflowExtension, systemPrompt);
     await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     expect(servePrompt).toContain('scripts/serve.sh');

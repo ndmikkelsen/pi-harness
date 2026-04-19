@@ -48,9 +48,13 @@
           "ls",
           "bash",
           "subagent",
-          "write"
+          "write",
+          "mcp:github"
         ],
-        "purpose": "routing, wave shaping, and artifact updates"
+        "purpose": "routing, wave shaping, and artifact updates",
+        "packages": [
+          "npm:pi-mcp-adapter"
+        ]
       },
       "repo-investigation": {
         "tools": [
