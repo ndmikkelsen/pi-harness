@@ -5,66 +5,48 @@ Direct
 
 ## Work Item
 `untracked`
+- PR: `#44` (`dev` -> `main`)
 - Beads: `bd ready --json` returned `[]`; no active ready issue was claimed for this slice.
 
 ## Knowledge
-- Cognee: skipped; local repository evidence was sufficient.
-- `lead` now has direct GitHub MCP support in both the scaffold/runtime contract and live role activation.
-- A fresh live Pi startup probe confirmed `activeGithubToolCount: 26` for `lead`.
-- Serve was attempted and verification passed; publish retry work is only about branch synchronization with `origin/feat/paralell-agents`.
+- GitHub MCP was used for PR inspection.
+- Shell fallback was required for conflict resolution because the merge itself had to be resolved in git, not through a GitHub-side update action.
+- The conflicting surfaces were workflow artifacts plus one test expectation.
 
 ## Test Strategy
-TDD-first for the activation bug, then serve-lane verification.
-- Focused regression for role activation.
-- Targeted integration/typecheck proof for the scaffold/runtime contract.
-- Full serve-lane verification through `./scripts/serve.sh`.
+Hybrid.
+- Keep the merge resolution minimal and preserve both landed feature sets.
+- Verify the merged workflow scaffold/test surfaces with targeted commands.
+- Squash merge only after the PR returns to a clean mergeable state.
 
 ## Decision Rationale
-- The branch is now technically ready to publish.
-- The remaining blocker is operational: local branch history needed to be rebased onto the newer remote feature-branch tip before push/PR refresh can complete.
-- `wave.md` is being refreshed here only to resolve the rebase conflict with the latest accurate status.
+- This task is operational and bounded: resolve the PR conflict, keep both change sets, verify, and merge.
+- Direct mode is better than delegation because the conflict scope is small, the affected files are already known, and adding a subagent handoff would add overhead without reducing risk.
+- The safe resolution is to keep both the swarm-lane changes from `main` and the direct GitHub MCP support for `lead` from `dev`.
 
 ## Routing Signals
-Hard triggers present:
-- publish/serve intent
-- branch synchronization required after a failed push
-
-Soft triggers present:
-- tracked workflow artifact conflict during rebase
-
-Why direct mode is safe:
-- no new design/planning split is needed
-- the remaining work is operational branch synchronization plus retrying serve
+- Hard triggers present:
+  - explicit PR conflict resolution
+  - explicit squash-merge request
+  - GitHub-native repository operation
+- Soft triggers present:
+  - workflow artifact drift after branch divergence
+  - targeted verification needed after auto-merge updates
+- Why the split stays safe:
+  - only four files needed manual conflict resolution
+  - the functional code/test changes auto-merged cleanly
 
 ## Agents / Chains
-- none; direct publish retry path
+- none; direct merge-unblock path
 
-## Inputs Consumed
-- latest focused Vitest verification
-- latest targeted integration verification
-- latest live `lead` startup probe
-- serve retry failure output showing remote branch divergence
-
-## Decisions
-- Keep the GitHub MCP fix.
-- Rebase onto `origin/feat/paralell-agents`, resolve `wave.md`, and continue the publish retry.
-- Retry serving after branch sync instead of abandoning unpublished local work.
-
-## Caller Verification
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/role-workflow.test.ts`
-- `pnpm typecheck`
-- live Pi probe showing `activeGithubToolCount: 26` for `lead`
-
-## Execution Surface
-- shell fallback for repo publish mechanics via `./scripts/serve.sh`
-- no shell fallback for GitHub MCP repository operations was needed for the feature itself
+## Delegation Units
+- none
 
 ## Verification
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/role-workflow.test.ts` ✅
-- `pnpm typecheck` ✅
-- live Pi startup probe for `lead` GitHub MCP activation ✅
-- `./scripts/serve.sh` verification lane ✅ before push retry
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/beads-wrapper.test.ts tests/integration/role-workflow.test.ts`
+- `pnpm typecheck`
+- PR #44 must show mergeable before squash merge.
 
 ## Risks
-- If remote branch history changes again before retry, another sync may be required.
-- The activation matcher still depends on current GitHub MCP direct-tool naming/catalog and may need refresh if upstream naming changes.
+- The repo-root workflow artifacts are hand-maintained and can drift during branch merges.
+- If branch protection or GitHub mergeability metadata lags, the merge step may need a short retry after push.

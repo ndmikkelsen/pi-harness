@@ -7,70 +7,63 @@
 Completed
 
 ## Test Strategy
-TDD.
-- Cognee brief status: skipped because the issue was already localized to the MCP/tooling scaffold surfaces.
+Hybrid.
+- Beads: `bd ready --json` returned `[]`.
+- GitHub MCP: used for PR discovery/inspection.
+- Execution Surface: shell fallback with reason — the branch conflict had to be resolved locally in git before the PR could be merged.
+- Preserve both landed change sets, then run targeted verification over the merged workflow scaffold surfaces.
 
 ## Inputs Consumed
 - `wave.md`
-- `.pi/settings.json`
-- `.pi/mcp.json`
+- PR #44 metadata
 - `.pi/agents/lead.md`
-- `.pi/agents/github-operator.md`
+- `.pi/extensions/role-workflow.ts`
+- `.pi/settings.json`
+- `.pi/prompts/swarm-change.md`
+- `.pi/skills/swarm-collaboration/SKILL.md`
 - `src/commands/doctor.ts`
 - `tests/integration/init.test.ts`
 - `tests/integration/scaffold-snapshots.test.ts`
 - `tests/integration/docs-alignment.test.ts`
 - `tests/integration/doctor.test.ts`
+- `tests/integration/beads-wrapper.test.ts`
+- `tests/integration/role-workflow.test.ts`
 
 ## Routing Alignment
 - `wave.md` present: yes
 - Alignment: aligned
-- Notes: kept the fix scoped to the workflow/runtime contract so `lead` can use GitHub MCP in actual Pi runtime, without changing settings beyond the orchestrator profile or broadening into extension/runtime rewrites.
-
-## Execution Surface
-shell fallback with reason — local repository implementation and verification only; no MCP-backed action was required to fix the scaffold contract.
+- Notes: kept the work in a direct operational lane because this was a bounded merge-unblock task.
 
 ## Allowed Files
-- `.pi/settings.json`
-- `.pi/agents/lead.md`
-- `src/templates/pi/settings.json`
-- `src/templates/pi/agents/lead.md`
-- `src/commands/doctor.ts`
-- `tests/integration/init.test.ts`
-- `tests/integration/scaffold-snapshots.test.ts`
+- `wave.md`
+- `progress.md`
+- `review.md`
 - `tests/integration/docs-alignment.test.ts`
-- `tests/integration/doctor.test.ts`
 
 ## Non-Goals
-- no `.pi/extensions/*.ts` changes
-- no `.pi/mcp.json` changes
-- no changes to `github-operator`
-- no attempt to make this API session itself expose `mcp:github`
-- no product code or release workflow changes
+- no new feature work
+- no provider/model binding changes
+- no extension or settings redesign beyond preserving already-landed changes
+- no project-wide verification sweep beyond the targeted commands named here
 
 ## Tasks
-- [x] Added `mcp:github` to the orchestrator tool profile used by `lead`
-- [x] Added `npm:pi-mcp-adapter` as an explicit orchestrator profile package requirement
-- [x] Clarified in `lead` guidance that small direct GitHub MCP actions can be handled by `lead`
-- [x] Tightened doctor validation for orchestrator MCP support
-- [x] Added/updated integration expectations for lead MCP access
-- [x] Verified targeted integration suite and typecheck
+- [x] Merged `origin/main` into `dev`
+- [x] Resolved the remaining manual conflicts
+- [x] Kept both the swarm-lane workflow changes and the direct GitHub MCP support for `lead`
+- [x] Restored the docs-alignment assertion for direct `mcp:github` guidance
+- [x] Verified the merged branch with targeted tests and typecheck
+- [x] Prepared the branch for squash merge of PR #44
 
 ## Files Changed
-- `.pi/settings.json` - added `mcp:github` and `npm:pi-mcp-adapter` to the `orchestrator` tool profile so `lead` can use GitHub MCP directly in Pi runtime.
-- `.pi/agents/lead.md` - clarified that `lead` may handle one small direct GitHub MCP action when delegation overhead is higher.
-- `src/templates/pi/settings.json` - mirrored orchestrator MCP support into scaffold templates.
-- `src/templates/pi/agents/lead.md` - mirrored lead guidance into scaffold templates.
-- `src/commands/doctor.ts` - now validates that the orchestrator profile includes `mcp:github` and `npm:pi-mcp-adapter`.
-- `tests/integration/doctor.test.ts` - added regression coverage for losing `mcp:github` from the orchestrator profile.
-- `tests/integration/init.test.ts` - asserted scaffolded settings expose `mcp:github` for lead.
-- `tests/integration/scaffold-snapshots.test.ts` - asserted scaffolded lead guidance and orchestrator capability presence.
-- `tests/integration/docs-alignment.test.ts` - asserted updated lead guidance stays mirrored.
+- `wave.md` - refreshed for the current PR conflict-resolution lane
+- `progress.md` - recorded the merge-resolution work and verification
+- `review.md` - recorded the post-merge review verdict
+- `tests/integration/docs-alignment.test.ts` - preserved the direct `mcp:github` lead-guidance assertion after merge
 
 ## Decisions
-- The right fix is scaffold/runtime contract alignment, not shell fallback policy changes.
-- `lead` should gain direct GitHub MCP access through the `orchestrator` profile while `github-operator` remains the default bounded helper for richer GitHub workflows.
-- This repair improves actual Pi runtime behavior in baked repos, but cannot retroactively add `mcp:github` to this API session’s fixed tool surface.
+- Keep both change sets; do not discard either the swarm-lane additions or the direct GitHub MCP support for `lead`.
+- Rewrite the conflicted workflow artifacts instead of preserving stale task-specific merge text from either side.
+- Treat the PR as merge-ready only after targeted verification passes and GitHub reports a clean mergeable state.
 
 ## Open Questions
 - none
@@ -79,14 +72,14 @@ shell fallback with reason — local repository implementation and verification 
 none
 
 ## Verification Evidence
-- RED intent: without this change, `lead` inherited the `orchestrator` profile without `mcp:github`, which blocked direct GitHub MCP use in scaffolded Pi runtime.
-- GREEN: `pnpm test -- tests/integration/doctor.test.ts -t "orchestrator profile loses mcp:github support for lead"`
-- REFACTOR: `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts` and `pnpm typecheck`
-
-## Caller Verification
-- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts`
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/beads-wrapper.test.ts tests/integration/role-workflow.test.ts`
 - `pnpm typecheck`
 
+## Caller Verification
+- confirm the commands above passed
+- confirm PR #44 is mergeable
+
 ## Escalate If
-- actual Pi runtime still cannot see `mcp:github` after reloading the repo, which would point to runtime login/server/env issues rather than scaffold contract drift
-- the team wants `lead` to be the default merger/operator for all GitHub work instead of only small direct MCP actions
+- targeted verification fails
+- GitHub still reports conflicts after push
+- branch protection blocks the squash merge
