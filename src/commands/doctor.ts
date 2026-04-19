@@ -559,6 +559,23 @@ export async function runDoctor(options: DoctorCommandOptions): Promise<DoctorRe
           pushRuntimeInvalid(invalid, '.pi/settings.json', 'github-mcp profile missing tool requirement: mcp:github');
         }
       }
+      if (!hasNamedProfile(parsedSettings, 'toolProfiles', 'orchestrator')) {
+        pushRuntimeInvalid(invalid, '.pi/settings.json', 'missing tool capability profile: orchestrator');
+      } else {
+        const orchestratorProfile = parsedSettings.capabilityProfiles.toolProfiles['orchestrator'];
+        const packages = Array.isArray(orchestratorProfile?.packages)
+          ? orchestratorProfile.packages.filter((item): item is string => typeof item === 'string')
+          : [];
+        if (!packages.includes('npm:pi-mcp-adapter')) {
+          pushRuntimeInvalid(invalid, '.pi/settings.json', 'orchestrator profile missing package requirement: npm:pi-mcp-adapter');
+        }
+        const tools = Array.isArray(orchestratorProfile?.tools)
+          ? orchestratorProfile.tools.filter((item): item is string => typeof item === 'string')
+          : [];
+        if (!tools.includes('mcp:github')) {
+          pushRuntimeInvalid(invalid, '.pi/settings.json', 'orchestrator profile missing tool requirement: mcp:github');
+        }
+      }
     }
   }
 
