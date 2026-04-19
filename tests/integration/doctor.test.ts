@@ -156,7 +156,7 @@ describe('runDoctor', () => {
     await writeFile(
       systemPath,
       systemPrompt.replace(
-        'Default to TLDR-style responses: prefer concise answers and lead with a brief summary when it helps.\n',
+        'Default to TLDR-style responses: prefer concise answers. Put the main answer first. After the main answer, always include a section labeled `Summary`. After `Summary`, always include a section labeled `TLDR`. Keep `TLDR` shorter than `Summary`, and keep `TLDR` as the final section at the very bottom of the response.\n',
         '',
       ),
       'utf8',
@@ -775,6 +775,32 @@ describe('runDoctor', () => {
         expect.objectContaining({
           path: '.pi/extensions/role-workflow.ts',
           reason: 'missing role workflow glue: ${TLDR_GUIDANCE}'
+        })
+      ])
+    );
+  });
+
+
+  it('fails when the role workflow extension loses the TLDR-shorter-than-Summary contract marker', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-role-workflow-tldr-length');
+
+    const extensionPath = path.join(targetDir, '.pi', 'extensions', 'role-workflow.ts');
+    const extension = await readFile(extensionPath, 'utf8');
+    await writeFile(
+      extensionPath,
+      extension.replace('shorter than', 'not longer than'),
+      'utf8'
+    );
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/extensions/role-workflow.ts',
+          reason: 'missing role workflow TLDR contract markers'
         })
       ])
     );

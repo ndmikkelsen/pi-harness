@@ -1,101 +1,76 @@
 # Execution Approach
 
 ## Mode
-Saved chain
+Custom chain
 
 ## Work Item
-`untracked`
-
-Beads status:
-- `bd ready --json` returned `[]`, so no active ready issue was available to claim for this request.
+untracked (`bd ready --json` returned `[]`)
 
 ## Knowledge
-- Cognee: skipped.
-- Reason: the bug is already localized by repository evidence from targeted reads, so a Cognee brief would add overhead without reducing uncertainty.
-- Repository evidence already consumed:
-  - `README.md`
-  - `.pi/skills/bake/SKILL.md`
-  - `src/generators/root.ts`
-  - `src/templates/root/env.example`
-  - `src/templates/root/env.example-append.md`
-  - `tests/integration/cli-init.test.ts`
-  - `tests/integration/init.test.ts`
-  - `apps/cli/features/adoption/adoption.spec.ts`
-  - `apps/cli/features/steps/adoption.steps.ts`
+Cognee skipped. Local scaffold/runtime evidence was sufficient.
 
 ## Test Strategy
-Hybrid, led by a real RED -> GREEN -> REFACTOR loop.
-
-Expected path:
-- RED: add or tighten focused regression coverage proving existing-repo root-file merging duplicates `.env.example` entries when the repo already contains scaffold-equivalent variables.
-- GREEN: change the `.env.example` merge behavior to append only genuinely missing entries.
-- REFACTOR: keep the merge rule readable and aligned with existing root-file merge behavior without broadening scope.
+BDD-leading hybrid.
+- RED: tighten scaffold assertions so the old TLDR wording fails.
+- GREEN: update mirrored prompt files to require `main answer -> Summary -> TLDR` with `TLDR` last.
+- REFACTOR: harden alignment/doctor checks for the ordered contract without claiming runtime post-processing.
 
 ## Decision Rationale
-- This is an implementation request with code and tests, so a delegated execution path is preferred over broad main-session editing.
-- The project already provides the `ship-change` saved chain for exactly this `explore -> plan -> build -> review` workflow.
-- Direct mode was rejected because the task touches behavior, merge semantics, and regression coverage across multiple files, and the structured artifacts from the saved chain are worth the overhead.
+- This was an implementation request spanning prompt files plus verification surfaces, so a short `explore -> plan -> build -> review` chain was appropriate.
+- Parallel work was not justified because prompt wording and test drift checks are coupled.
 
 ## Routing Signals
-Hard triggers present:
-- implementation request with real code/test work
-- structured artifacts are useful (`context.md`, `plan.md`, `progress.md`, `review.md`)
-- multiple roles and verification stages are involved
-
-Soft triggers present:
-- more than 3 files are likely relevant
-- acceptance should be pinned down through existing BDD/integration coverage
-- the next best step is specialist recon/planning/implementation rather than more lead-session digging
-
-Why this split is safe:
-- the saved chain keeps ownership explicit by role
-- the likely file fence is compact and local to root-file merge logic plus targeted regression tests
-- no MCP path is required; execution is local repository work
+- Hard triggers: implementation, structured artifacts, verification/review.
+- Soft triggers: multiple scaffold and test surfaces.
+- Safe file fence: TLDR prompt files, BDD assertions, and narrow integration/doctor checks.
 
 ## Agents / Chains
-- `ship-change` (project saved chain)
-  - `explore`: confirm the precise failing merge path and bounded file fence
-  - `plan`: choose the narrowest RED coverage and implementation slice
-  - `build`: implement the fix within the fenced files
-  - `review`: validate scope, risks, and caller verification
+- `explore`: mapped the current TLDR contract and gaps.
+- `plan`: converted the requirement into a BDD-first implementation plan.
+- `build`: implemented the stronger always-on Summary/TLDR contract.
+- `review`: validated scope and verification sufficiency.
 
 ## Delegation Units
 
-### Delegation Unit: explore-plan-build-review-env-example-merge
-- Owner: `ship-change`
-- Goal: fix `.env.example` merge behavior so existing-repo bake refreshes do not duplicate scaffold entries already present in the file.
+### Delegation Unit: tldr-contract
+- Owner: build
+- Goal: require responses to follow `main answer -> Summary -> TLDR`, with `TLDR` always last.
 - Allowed Files:
-  - `src/generators/root.ts`
-  - `src/templates/root/env.example-append.md`
-  - `tests/integration/cli-init.test.ts`
-  - `tests/integration/init.test.ts`
-  - `apps/cli/features/adoption/adoption.spec.ts`
+  - `.pi/extensions/role-workflow.ts`
+  - `.pi/SYSTEM.md`
+  - `src/templates/pi/extensions/role-workflow.ts`
+  - `src/templates/pi/SYSTEM.md`
+  - `apps/cli/features/steps/init.steps.ts`
   - `apps/cli/features/steps/adoption.steps.ts`
+  - `apps/cli/features/tldr/tldr.feature`
+  - `apps/cli/features/tldr/tldr.plan.md`
+  - `src/commands/doctor.ts`
+  - `tests/integration/doctor.test.ts`
+  - `tests/integration/init.test.ts`
+  - `tests/integration/docs-alignment.test.ts`
+  - `tests/integration/scaffold-snapshots.test.ts`
 - Non-Goals:
-  - do not change provider/model runtime policy
-  - do not broaden into unrelated bake/adopt cleanup behavior
-  - do not change `.env.example` placeholder values except as required by the merge contract
-  - do not run project-wide verification in child steps beyond narrow scoped RED/GREEN checks
+  - no new `/tldr` command or `.pi/extensions/tldr.ts`
+  - no runtime output post-processing
+  - no model/provider policy changes
 - Inputs:
-  - `wave.md`
-  - targeted reads already identified above
+  - `AGENTS.md`
+  - `README.md`
+  - repo TLDR scaffold files
 - Output:
-  - `context.md`, `plan.md`, `progress.md`, `review.md`
+  - updated scaffold contract plus passing scoped verification
 - RED:
-  - choose the narrowest failing regression that demonstrates duplicate `.env.example` entries during existing-repo merge mode
+  - `pnpm test:bdd -- apps/cli/features/init/init.spec.ts`
 - Caller Verification:
-  - rerun the scoped tests selected by the chain, then confirm merged `.env.example` keeps existing content without duplicate scaffold keys
+  - `pnpm vitest run tests/integration/docs-alignment.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts tests/integration/init.test.ts && pnpm test:bdd -- apps/cli/features/init/init.spec.ts && pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 - Escalate If:
-  - fixing the bug requires changing shared scaffold contracts outside the bounded root merge/test surfaces
-  - the duplication is actually caused by a different layer than `src/generators/root.ts`
+  - a literal runtime guarantee is required beyond prompt guidance and text-drift checks
 
 ## Verification
-Expected caller-side verification will be a focused test command selected by the chain, likely around:
-- `tests/integration/cli-init.test.ts`
-- `tests/integration/init.test.ts`
-- any targeted adoption BDD coverage if needed
+Passed:
+- `pnpm vitest run tests/integration/docs-alignment.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/doctor.test.ts tests/integration/init.test.ts`
+- `pnpm test:bdd -- apps/cli/features/init/init.spec.ts`
+- `pnpm test:bdd -- apps/cli/features/adoption/adoption.spec.ts`
 
 ## Risks
-- A naive duplicate filter could incorrectly preserve stale scaffold values when the intent is to add newer required keys only.
-- Existing tests currently prove append behavior, but may not yet distinguish append-without-duplication from blind block append.
-- The merge behavior should stay narrow so it does not accidentally reorder or normalize user-managed `.env.example` content.
+- The repo now encodes the ordered contract strongly in prompts and tests, but it is still prompt guidance rather than runtime output post-processing.
