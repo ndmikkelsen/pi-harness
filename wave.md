@@ -1,101 +1,97 @@
 # Execution Approach
 
 ## Mode
-Saved chain
+Direct
 
 ## Work Item
 `untracked`
 
 Beads status:
-- `bd ready --json` returned `[]`, so no active ready issue was available to claim for this request.
+- `bd ready --json` returned `[]`, so no ready issue was available to claim for this workflow-scaffold change.
 
 ## Knowledge
-- Cognee: skipped.
-- Reason: the bug is already localized by repository evidence from targeted reads, so a Cognee brief would add overhead without reducing uncertainty.
-- Repository evidence already consumed:
+- Cognee: attempted earlier and unavailable because no dataset is present (`DatasetNotFoundError`).
+- Reused repository evidence:
+  - `AGENTS.md`
   - `README.md`
-  - `.pi/skills/bake/SKILL.md`
-  - `src/generators/root.ts`
-  - `src/templates/root/env.example`
-  - `src/templates/root/env.example-append.md`
-  - `tests/integration/cli-init.test.ts`
+  - `docs/pi-subagent-workflow.md`
+  - `docs/pi-agentic-workflow-design.md`
+  - `.pi/agents/lead.md`
+  - `.pi/prompts/feat-change.md`
+  - `.pi/skills/subagent-workflow/SKILL.md`
+  - `.pi/skills/parallel-wave-design/SKILL.md`
+  - `src/generators/pi.ts`
+  - `src/commands/doctor.ts`
   - `tests/integration/init.test.ts`
-  - `apps/cli/features/adoption/adoption.spec.ts`
-  - `apps/cli/features/steps/adoption.steps.ts`
+  - `tests/integration/scaffold-snapshots.test.ts`
+  - `tests/integration/docs-alignment.test.ts`
+  - `tests/integration/doctor.test.ts`
+- `tests/integration/beads-wrapper.test.ts`
 
 ## Test Strategy
-Hybrid, led by a real RED -> GREEN -> REFACTOR loop.
-
-Expected path:
-- RED: add or tighten focused regression coverage proving existing-repo root-file merging duplicates `.env.example` entries when the repo already contains scaffold-equivalent variables.
-- GREEN: change the `.env.example` merge behavior to append only genuinely missing entries.
-- REFACTOR: keep the merge rule readable and aligned with existing root-file merge behavior without broadening scope.
+TDD.
+- RED: add a failing swarm-specific doctor regression proving the new lane is missing.
+- GREEN: implement the smallest additive prompt/agent/skill/doc/scaffold updates for the bounded swarm lane.
+- REFACTOR: tighten mirror parity and doctor/test alignment while keeping the lane planning-first and prompt-native.
 
 ## Decision Rationale
-- This is an implementation request with code and tests, so a delegated execution path is preferred over broad main-session editing.
-- The project already provides the `ship-change` saved chain for exactly this `explore -> plan -> build -> review` workflow.
-- Direct mode was rejected because the task touches behavior, merge semantics, and regression coverage across multiple files, and the structured artifacts from the saved chain are worth the overhead.
+- The design and planning work was already completed through a bounded `explore -> plan` subagent pass.
+- Direct implementation in the main session was the lowest-risk way to keep the many mirrored scaffold surfaces aligned without spawning overlapping write tasks in one working tree.
+- Direct mode was selected only after the repository evidence and plan were already clear; final read-only review still benefits from delegation.
 
 ## Routing Signals
 Hard triggers present:
 - implementation request with real code/test work
-- structured artifacts are useful (`context.md`, `plan.md`, `progress.md`, `review.md`)
-- multiple roles and verification stages are involved
+- structured artifacts are useful (`context.md`, `plan.md`, `progress.md`, `review.md`, `wave.md`)
+- multiple docs, scaffold, and verification surfaces are involved
 
 Soft triggers present:
-- more than 3 files are likely relevant
-- acceptance should be pinned down through existing BDD/integration coverage
-- the next best step is specialist recon/planning/implementation rather than more lead-session digging
+- more than 3-5 files are relevant
+- template parity and doctor allowlists couple many updates together
+- the swarm lane needed one consistent contract across repo docs, dogfood assets, templates, and tests
 
-Why this split is safe:
-- the saved chain keeps ownership explicit by role
-- the likely file fence is compact and local to root-file merge logic plus targeted regression tests
-- no MCP path is required; execution is local repository work
+Why direct mode was safe:
+- the implementation stayed within the planned workflow scaffold boundary
+- the saved `.chain.md` format is sequential, so the new swarm lane had to remain prompt-native rather than adding an inaccurate saved chain
+- final verification remained narrow and local to the integration + typecheck surfaces
 
 ## Agents / Chains
-- `ship-change` (project saved chain)
-  - `explore`: confirm the precise failing merge path and bounded file fence
-  - `plan`: choose the narrowest RED coverage and implementation slice
-  - `build`: implement the fix within the fenced files
-  - `review`: validate scope, risks, and caller verification
+- `plan-change` was used earlier to produce the concrete implementation plan.
+- final read-only validation should use the project-local `review` agent.
 
 ## Delegation Units
 
-### Delegation Unit: explore-plan-build-review-env-example-merge
-- Owner: `ship-change`
-- Goal: fix `.env.example` merge behavior so existing-repo bake refreshes do not duplicate scaffold entries already present in the file.
+### Delegation Unit: final-review-bounded-swarm-lane
+- Owner: `review`
+- Goal: validate that the bounded swarm lane stayed additive, prompt-native, and aligned with the planned mailbox/claims contract.
 - Allowed Files:
-  - `src/generators/root.ts`
-  - `src/templates/root/env.example-append.md`
-  - `tests/integration/cli-init.test.ts`
-  - `tests/integration/init.test.ts`
-  - `apps/cli/features/adoption/adoption.spec.ts`
-  - `apps/cli/features/steps/adoption.steps.ts`
+  - `context.md`
+  - `plan.md`
+  - `progress.md`
+  - `review.md`
+  - changed workflow scaffold files only
 - Non-Goals:
-  - do not change provider/model runtime policy
-  - do not broaden into unrelated bake/adopt cleanup behavior
-  - do not change `.env.example` placeholder values except as required by the merge contract
-  - do not run project-wide verification in child steps beyond narrow scoped RED/GREEN checks
+  - no code edits
+  - no new routing design work
 - Inputs:
   - `wave.md`
-  - targeted reads already identified above
+  - `context.md`
+  - `plan.md`
+  - `progress.md`
 - Output:
-  - `context.md`, `plan.md`, `progress.md`, `review.md`
+  - `review.md`
 - RED:
-  - choose the narrowest failing regression that demonstrates duplicate `.env.example` entries during existing-repo merge mode
+  - already observed in the focused doctor regression for the missing swarm prompt
 - Caller Verification:
-  - rerun the scoped tests selected by the chain, then confirm merged `.env.example` keeps existing content without duplicate scaffold keys
+  - `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/beads-wrapper.test.ts`
+  - `pnpm typecheck`
 - Escalate If:
-  - fixing the bug requires changing shared scaffold contracts outside the bounded root merge/test surfaces
-  - the duplication is actually caused by a different layer than `src/generators/root.ts`
+  - the new lane weakened existing workflow authority, introduced persistent state, or drifted from the planning-first bounded-swarm contract
 
 ## Verification
-Expected caller-side verification will be a focused test command selected by the chain, likely around:
-- `tests/integration/cli-init.test.ts`
-- `tests/integration/init.test.ts`
-- any targeted adoption BDD coverage if needed
+- `pnpm test -- tests/integration/init.test.ts tests/integration/scaffold-snapshots.test.ts tests/integration/docs-alignment.test.ts tests/integration/doctor.test.ts tests/integration/beads-wrapper.test.ts`
+- `pnpm typecheck`
 
 ## Risks
-- A naive duplicate filter could incorrectly preserve stale scaffold values when the intent is to add newer required keys only.
-- Existing tests currently prove append behavior, but may not yet distinguish append-without-duplication from blind block append.
-- The merge behavior should stay narrow so it does not accidentally reorder or normalize user-managed `.env.example` content.
+- The swarm lane is intentionally prompt-native because saved `.chain.md` files are sequential today; if chain syntax grows parallel-step support, this lane may deserve a saved-chain revisit.
+- Any future attempt to let swarm workers implement broad code directly would need a new routing and isolation review.

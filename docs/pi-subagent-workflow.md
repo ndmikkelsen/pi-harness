@@ -15,6 +15,7 @@ Use these controls first:
 - `/plan-change <task>` - explore the code and produce a plan without implementing
 - `/ship-change <task>` - explore, plan, implement, and review a change
 - `/parallel-wave <task>` - shape a safe parallel wave and only launch it when boundaries are clear
+- `/swarm-change <task>` - run a bounded conversational swarm planning lane with ephemeral mailbox artifacts under `{chain_dir}`
 - `/review-change <task>` - run a read-only review pass
 
 ## Project-local roles
@@ -37,6 +38,8 @@ These project-local helper subagents are available for narrow ad hoc delegation.
 - `web-researcher` - focused external research helper
 - `context-mapper` - requirement-to-code mapper that prepares context and planning hints
 - `github-operator` - GitHub MCP-native helper for PRs, issues, branches, and repo metadata
+- `swarm-worker` - mailbox-driven swarm helper for one bounded claim-and-respond slice
+- `swarm-adjudicator` - read-only swarm synthesis helper that resolves worker outputs
 
 Builtin agents like `reviewer` still exist, but prefer the repo's workflow roles and helper subagents first.
 
@@ -70,6 +73,18 @@ These chains can be launched from `/agents` or via the `subagent` tool:
 
 - `plan-change` - `explore -> plan`
 - `ship-change` - `explore -> plan -> build -> review`
+
+## Prompt-native swarm lane
+
+`/swarm-change` is a bounded conversational swarm entrypoint.
+It is intentionally prompt-native because the current saved `.chain.md` format is sequential, while the swarm lane needs a custom chain with parallel fan-out plus ephemeral `{chain_dir}` mailbox artifacts.
+
+Use it when:
+- the task spans multiple workflow surfaces and a single scout or planner view is not enough
+- you want one bounded compare/adjudicate pass before committing to a plan
+- you still want `plan-change` and `ship-change` to remain the canonical planning and shipping lanes
+
+The swarm lane should keep state under `{chain_dir}/swarm/`, cap itself at two rounds, and end in adjudication or escalation rather than open-ended worker chatter.
 
 ## Structured handoff contract
 
@@ -138,7 +153,20 @@ Use `/parallel` for two bounded views, then hand the outputs to `review` or `lea
 /run review Adjudicate the two findings and recommend the safest next step
 ```
 
-### 4) Parallel implementation wave
+### 4) Bounded swarm compare -> adjudicate
+Use `/swarm-change` when the task needs autonomous conversational multi-agent collaboration but still must stay deterministic.
+
+```text
+/swarm-change shape a bounded swarm lane for the auth refactor
+```
+
+The lane should:
+- keep mailbox state under `{chain_dir}/swarm/`
+- use `swarm-worker` for one claimed slice each
+- require `swarm-adjudicator` before a second round or any implementation follow-up
+- stop after `roundLimit: 2` or escalate back to `lead`
+
+### 5) Parallel implementation wave
 Use only when ownership is explicit, contracts are sequenced, and the caller can verify the whole wave afterward.
 
 ## Advanced usage

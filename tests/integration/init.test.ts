@@ -25,6 +25,8 @@ const requiredRuntimePaths = [
   '.pi/agents/web-researcher.md',
   '.pi/agents/context-mapper.md',
   '.pi/agents/github-operator.md',
+  '.pi/agents/swarm-worker.md',
+  '.pi/agents/swarm-adjudicator.md',
   '.pi/agents/plan-change.chain.md',
   '.pi/agents/ship-change.chain.md',
   '.pi/extensions/repo-workflows.ts',
@@ -36,6 +38,7 @@ const requiredRuntimePaths = [
   '.pi/prompts/plan-change.md',
   '.pi/prompts/ship-change.md',
   '.pi/prompts/parallel-wave.md',
+  '.pi/prompts/swarm-change.md',
   '.pi/prompts/review-change.md',
   '.pi/prompts/feat-change.md',
   '.pi/skills/beads/SKILL.md',
@@ -44,6 +47,7 @@ const requiredRuntimePaths = [
   '.pi/skills/bake/SKILL.md',
   '.pi/skills/parallel-wave-design/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
+  '.pi/skills/swarm-collaboration/SKILL.md',
   'scripts/bootstrap-worktree.sh',
   'scripts/cognee-bridge.sh',
   'scripts/cognee-brief.sh',
@@ -64,12 +68,16 @@ const existingModeBaselinePaths = [
   '.pi/agents/web-researcher.md',
   '.pi/agents/context-mapper.md',
   '.pi/agents/github-operator.md',
+  '.pi/agents/swarm-worker.md',
+  '.pi/agents/swarm-adjudicator.md',
   '.pi/extensions/repo-workflows.ts',
   '.pi/extensions/role-workflow.ts',
   '.pi/prompts/adopt.md',
+  '.pi/prompts/swarm-change.md',
   '.pi/prompts/plan-change.md',
   '.pi/skills/bake/SKILL.md',
   '.pi/skills/subagent-workflow/SKILL.md',
+  '.pi/skills/swarm-collaboration/SKILL.md',
   'scripts/bootstrap-worktree.sh',
   'scripts/sync-artifacts-to-cognee.sh'
 ];
@@ -176,6 +184,7 @@ describe('runInit', () => {
     const promoteScript = await readFile(path.join(projectDir, 'scripts', 'promote.sh'), 'utf8');
     const envExample = await readFile(path.join(projectDir, '.env.example'), 'utf8');
     const featChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'feat-change.md'), 'utf8');
+    const swarmChangePrompt = await readFile(path.join(projectDir, '.pi', 'prompts', 'swarm-change.md'), 'utf8');
     const bakeSkill = await readFile(path.join(projectDir, '.pi', 'skills', 'bake', 'SKILL.md'), 'utf8');
     const codeScoutAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'code-scout.md'), 'utf8');
     const taskPlannerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'task-planner.md'), 'utf8');
@@ -183,6 +192,8 @@ describe('runInit', () => {
     const webResearcherAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'web-researcher.md'), 'utf8');
     const contextMapperAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'context-mapper.md'), 'utf8');
     const githubOperatorAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'github-operator.md'), 'utf8');
+    const swarmWorkerAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'swarm-worker.md'), 'utf8');
+    const swarmAdjudicatorAgent = await readFile(path.join(projectDir, '.pi', 'agents', 'swarm-adjudicator.md'), 'utf8');
 
     expect(result.createdPaths).toEqual(expect.arrayContaining(requiredRuntimePaths));
     expect(agentsGuide).toContain('.pi/extensions/*');
@@ -192,6 +203,8 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh');
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
+    expect(agentsGuide).toContain('.pi/skills/swarm-collaboration/SKILL.md');
+    expect(agentsGuide).toContain('.pi/prompts/swarm-change.md');
     expect(agentsGuide).toContain("Treat plain-language publish requests like `let's serve the dish`, `serve the pi`, `serve this branch`, `ship it`, or `publish the branch` as intent to use `/serve` or `./scripts/serve.sh` when the lane is allowed to publish.");
     expect(agentsGuide).toContain('When a user explicitly asks to use an MCP');
     expect(systemPrompt).toContain('Use `AGENTS.md` as the primary project instruction file.');
@@ -241,11 +254,13 @@ describe('runInit', () => {
     expect(syncArtifactsScript).toContain('progress.md');
     expect(featChangePrompt).toContain('project-local `lead` role');
     expect(featChangePrompt).toContain('plan-change');
+    expect(featChangePrompt).toContain('swarm-change');
+    expect(swarmChangePrompt).toContain('{chain_dir}');
     expect(featChangePrompt).toContain('explicit RED command');
     expect(featChangePrompt).toContain('MCP adapter-first route');
     expect(githubOperatorAgent).toContain('mcp:github');
     expect(githubOperatorAgent).toContain('toolProfile: github-mcp');
-    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, githubOperatorAgent]) {
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, githubOperatorAgent, swarmWorkerAgent, swarmAdjudicatorAgent]) {
       expect(helperAgent).not.toContain('model:');
       expect(helperAgent.toLowerCase()).not.toContain('claude');
       expect(helperAgent.toLowerCase()).not.toContain('anthropic');
@@ -264,6 +279,7 @@ describe('runInit', () => {
     expect(cogneeSkill).toContain('./scripts/cognee-brief.sh');
     expect(redGreenRefactorSkill).toContain('pnpm test:bdd');
     expect(await readFile(path.join(projectDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'), 'utf8')).toContain('Allowed Files');
+    expect(await readFile(path.join(projectDir, '.pi', 'skills', 'swarm-collaboration', 'SKILL.md'), 'utf8')).toContain('roundLimit');
   });
 
   it('configures the Cognee deploy template for single-tenant pgvector startup', async () => {
@@ -344,6 +360,8 @@ describe('runInit', () => {
     expect(agentsGuide).toContain('./scripts/cognee-brief.sh "<query>"');
     expect(agentsGuide).toContain('./scripts/serve.sh');
     expect(agentsGuide).toContain('./scripts/promote.sh');
+    expect(agentsGuide).toContain('.pi/skills/swarm-collaboration/SKILL.md');
+    expect(agentsGuide).toContain('.pi/prompts/swarm-change.md');
     expect(agentsGuide).toContain("let's serve the dish");
     await expect(readFile(path.join(projectDir, '.pi', 'prompts', 'bake.md'), 'utf8')).rejects.toThrow();
     await expect(readFile(path.join(projectDir, 'scripts', 'bake.sh'), 'utf8')).rejects.toThrow();

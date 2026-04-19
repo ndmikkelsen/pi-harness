@@ -521,6 +521,69 @@ describe('runDoctor', () => {
     );
   });
 
+  it('fails when the swarm-collaboration skill loses callerVerification guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-skill-guidance');
+
+    const skillPath = path.join(targetDir, '.pi', 'skills', 'swarm-collaboration', 'SKILL.md');
+    const skill = await readFile(skillPath, 'utf8');
+    await writeFile(skillPath, skill.replaceAll('`callerVerification`', '`caller-check`'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/skills/swarm-collaboration/SKILL.md',
+          reason: 'missing bounded swarm guidance: callerVerification'
+        })
+      ])
+    );
+  });
+
+  it('fails when the swarm-worker agent loses Output guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-worker-guidance');
+
+    const agentPath = path.join(targetDir, '.pi', 'agents', 'swarm-worker.md');
+    const agent = await readFile(agentPath, 'utf8');
+    await writeFile(agentPath, agent.replaceAll('Output', 'Result'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/agents/swarm-worker.md',
+          reason: 'missing bounded swarm guidance: Output'
+        })
+      ])
+    );
+  });
+
+  it('fails when the swarm-change prompt loses chain-dir guidance', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
+    const targetDir = await scaffoldProject(workspace, 'doctor-swarm-change-guidance');
+
+    const promptPath = path.join(targetDir, '.pi', 'prompts', 'swarm-change.md');
+    const prompt = await readFile(promptPath, 'utf8');
+    await writeFile(promptPath, prompt.replaceAll('{chain_dir}', 'chain_dir'), 'utf8');
+
+    const result = await auditProject(workspace, targetDir);
+
+    expect(result.status).toBe('fail');
+    expect(result.invalid).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          path: '.pi/prompts/swarm-change.md',
+          reason: 'missing bounded swarm guidance: {chain_dir}'
+        })
+      ])
+    );
+  });
+
   it('fails when the parallel-wave skill loses worktree guidance', async () => {
     const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-doctor-'));
     const targetDir = await scaffoldProject(workspace, 'doctor-parallel-guidance');

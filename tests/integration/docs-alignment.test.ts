@@ -97,6 +97,14 @@ describe('workflow docs alignment', () => {
         targetPath: ['.pi', 'agents', 'github-operator.md'],
       },
       {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'swarm-worker.md'],
+        targetPath: ['.pi', 'agents', 'swarm-worker.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'agents', 'swarm-adjudicator.md'],
+        targetPath: ['.pi', 'agents', 'swarm-adjudicator.md'],
+      },
+      {
         sourcePath: ['src', 'templates', 'pi', 'agents', 'plan-change.chain.md'],
         targetPath: ['.pi', 'agents', 'plan-change.chain.md'],
       },
@@ -119,6 +127,7 @@ describe('workflow docs alignment', () => {
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'plan-change.md'], targetPath: ['.pi', 'prompts', 'plan-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'ship-change.md'], targetPath: ['.pi', 'prompts', 'ship-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'parallel-wave.md'], targetPath: ['.pi', 'prompts', 'parallel-wave.md'] },
+      { sourcePath: ['src', 'templates', 'pi', 'prompts', 'swarm-change.md'], targetPath: ['.pi', 'prompts', 'swarm-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'review-change.md'], targetPath: ['.pi', 'prompts', 'review-change.md'] },
       { sourcePath: ['src', 'templates', 'pi', 'prompts', 'feat-change.md'], targetPath: ['.pi', 'prompts', 'feat-change.md'] },
       {
@@ -144,6 +153,10 @@ describe('workflow docs alignment', () => {
       {
         sourcePath: ['src', 'templates', 'pi', 'skills', 'subagent-workflow', 'SKILL.md'],
         targetPath: ['.pi', 'skills', 'subagent-workflow', 'SKILL.md'],
+      },
+      {
+        sourcePath: ['src', 'templates', 'pi', 'skills', 'swarm-collaboration', 'SKILL.md'],
+        targetPath: ['.pi', 'skills', 'swarm-collaboration', 'SKILL.md'],
       },
       {
         sourcePath: ['src', 'templates', 'pi', 'scripts', 'bootstrap-worktree.sh'],
@@ -195,6 +208,8 @@ describe('workflow docs alignment', () => {
     const webResearcherAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'web-researcher.md'));
     const contextMapperAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'context-mapper.md'));
     const githubOperatorAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'github-operator.md'));
+    const swarmWorkerAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'swarm-worker.md'));
+    const swarmAdjudicatorAgent = normalizeDoc(await readRepoFile('.pi', 'agents', 'swarm-adjudicator.md'));
     const workflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'repo-workflows.ts'));
     const roleWorkflowExtension = normalizeDoc(await readRepoFile('.pi', 'extensions', 'role-workflow.ts'));
     const templateRoleWorkflowExtension = normalizeDoc(await readRepoFile('src', 'templates', 'pi', 'extensions', 'role-workflow.ts'));
@@ -208,6 +223,7 @@ describe('workflow docs alignment', () => {
     const bakeSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'bake', 'SKILL.md'));
     const parallelSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'parallel-wave-design', 'SKILL.md'));
     const subagentWorkflowSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'subagent-workflow', 'SKILL.md'));
+    const swarmCollaborationSkill = normalizeDoc(await readRepoFile('.pi', 'skills', 'swarm-collaboration', 'SKILL.md'));
 
     const rootTitleMatch = rootReadme.match(/^# (.+)$/m);
     const scaffoldLineMatch = rootReadme.match(/Scaffolded with `pi-harness` v([^ ]+) on ([0-9-]+)\./);
@@ -241,6 +257,7 @@ describe('workflow docs alignment', () => {
       bakeSkill,
       parallelSkill,
       subagentWorkflowSkill,
+      swarmCollaborationSkill,
     ];
 
     for (const doc of migratedDocs) {
@@ -271,7 +288,7 @@ describe('workflow docs alignment', () => {
     expect(agentsGuide).toContain('.pi/agents/*');
     expect(agentsGuide).toContain('/role <name>');
     expect(agentsGuide).toContain(
-      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
+      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, `.pi/skills/subagent-workflow/SKILL.md`, and `.pi/skills/swarm-collaboration/SKILL.md` when the task matches.',
     );
     expect(agentsGuide).toContain('Only execution or autonomous serving lanes should run `./scripts/serve.sh`.');
     expect(agentsGuide).toContain('Only execution or autonomous release lanes should run `./scripts/promote.sh`.');
@@ -321,8 +338,8 @@ describe('workflow docs alignment', () => {
     expect(bakeSkill).toContain('8. `.pi/prompts/adopt.md`');
     expect(bakeSkill).toContain('Do not add a repo-local `.pi/prompts/bake.md`; keep `/bake` global-only and `/skill:bake` as the repo-local explain-first surface.');
     expect(leadAgent).toContain('Primary workflow lead for the repository\'s Pi role system');
-    expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, and `github-operator` are available for narrow delegation.');
-    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent]) {
+    expect(leadAgent).toContain('Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, `github-operator`, `swarm-worker`, and `swarm-adjudicator` are available for narrow delegation.');
+    for (const helperAgent of [codeScoutAgent, taskPlannerAgent, implementerAgent, webResearcherAgent, contextMapperAgent, swarmWorkerAgent, swarmAdjudicatorAgent]) {
       expect(helperAgent).not.toContain('model:');
       expect(helperAgent.toLowerCase()).not.toContain('claude');
       expect(helperAgent.toLowerCase()).not.toContain('anthropic');
@@ -338,5 +355,7 @@ describe('workflow docs alignment', () => {
     expect(parallelSkill).toContain('- Active Beads issue: bd-...');
     expect(subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
     expect(subagentWorkflowSkill).toContain('Allowed Files');
+    expect(swarmCollaborationSkill).toContain('{chain_dir}');
+    expect(swarmCollaborationSkill).toContain('roundLimit');
   });
 });

@@ -5,7 +5,7 @@ tools: read, grep, find, ls, bash, subagent, write
 toolProfile: orchestrator
 modelProfile: orchestrate-deep
 thinking: high
-skill: subagent-workflow, parallel-wave-design, beads, cognee, red-green-refactor
+skill: subagent-workflow, parallel-wave-design, swarm-collaboration, beads, cognee, red-green-refactor
 output: wave.md
 maxSubagentDepth: 2
 ---
@@ -33,7 +33,7 @@ Prefer these project-local roles and chains when they fit:
 - roles: `explore`, `plan`, `build`, `review`
 - saved chains: `plan-change`, `ship-change`
 
-Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, and `github-operator` are available for narrow delegation.
+Helper subagents like `code-scout`, `task-planner`, `implementer`, `web-researcher`, `context-mapper`, `github-operator`, `swarm-worker`, and `swarm-adjudicator` are available for narrow delegation.
 Builtin `reviewer` remains an acceptable generic fallback when a project-local role or helper is missing or clearly weaker for the task.
 
 Prefer project-local roles, saved chains, and helper subagents before inventing ad hoc workflows.
@@ -45,6 +45,7 @@ Use this default route unless repository evidence gives a better reason:
 - missing repo context, file map, or acceptance clues -> `explore`
 - narrow code lookup across a small file fence -> `code-scout`
 - planning or design request -> `plan-change`
+- ambiguous multi-surface planning that benefits from bounded conversational compare/adjudicate -> `swarm-change`
 - implementation request with real code/test work -> `ship-change`
 - read-only validation, critique, or acceptance check -> `review`
 - explicit GitHub or MCP-native repository operation -> `github-operator`
@@ -59,7 +60,7 @@ Delegate through pi-subagents when any hard trigger is true or when two or more 
 
 ### Hard triggers
 - the request asks for planning, implementation, review, comparison, or parallelization
-- the work naturally fits `explore`, `plan-change`, `ship-change`, `review`, or `github-operator`
+- the work naturally fits `explore`, `plan-change`, `swarm-change`, `ship-change`, `review`, or `github-operator`
 - the task needs a structured artifact such as `context.md`, `plan.md`, `progress.md`, `review.md`, or `wave.md`
 - the request explicitly requires MCP behavior or GitHub-native operations
 - the work spans multiple roles, handoffs, or verification stages
@@ -101,6 +102,7 @@ When you stay direct, say why direct mode is better than delegation in `wave.md`
 - Use a single subagent for one missing piece of evidence, one focused review, or one specialist action.
 - Use `plan-change` for the default `explore -> plan` path.
 - Use `ship-change` for the default `explore -> plan -> build -> review` path.
+- Use `/swarm-change` when a bounded conversational swarm pass will reduce uncertainty before planning or execution.
 - Use a custom chain only when the saved chains do not fit the dependency order.
 - Use a parallel wave only when each slice has explicit `Allowed Files`, `Non-Goals`, `Inputs`, `Output`, `Caller Verification`, and `Escalate If`.
 - Use `worktree: true` when parallel tasks could overlap or need isolated patches.

@@ -43,6 +43,10 @@ describe('Beads integration', () => {
       path.join(projectDir, '.pi', 'skills', 'subagent-workflow', 'SKILL.md'),
       'utf8',
     );
+    const swarmCollaborationSkill = await readFile(
+      path.join(projectDir, '.pi', 'skills', 'swarm-collaboration', 'SKILL.md'),
+      'utf8',
+    );
 
     expect(result.createdPaths).toEqual(
       expect.arrayContaining([
@@ -54,6 +58,7 @@ describe('Beads integration', () => {
         '.pi/skills/bake/SKILL.md',
         '.pi/skills/parallel-wave-design/SKILL.md',
         '.pi/skills/subagent-workflow/SKILL.md',
+        '.pi/skills/swarm-collaboration/SKILL.md',
       ]),
     );
     expect(
@@ -73,7 +78,7 @@ describe('Beads integration', () => {
     expect(agentsGuide).toContain('This project uses `bd` for issue tracking.');
     expect(agentsGuide).toContain('2. `bd update <id> --claim --json`');
     expect(agentsGuide).toContain(
-      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, and `.pi/skills/subagent-workflow/SKILL.md` when the task matches.',
+      'Use `.pi/skills/bake/SKILL.md`, `.pi/skills/beads/SKILL.md`, `.pi/skills/cognee/SKILL.md`, `.pi/skills/red-green-refactor/SKILL.md`, `.pi/skills/parallel-wave-design/SKILL.md`, `.pi/skills/subagent-workflow/SKILL.md`, and `.pi/skills/swarm-collaboration/SKILL.md` when the task matches.',
     );
     expect(beadsSkill).toContain('---\nname: beads\ndescription: Use this skill when the repository tracks work in Beads and you need the project-local operating loop.\n---');
     expect(beadsSkill).toContain('1. `bd ready --json`');
@@ -96,8 +101,10 @@ describe('Beads integration', () => {
     expect(parallelSkill).toContain('Keep follow-up work in Beads or repo-local handoff notes, not ad hoc TODO files.');
     expect(subagentWorkflowSkill).toContain('---\nname: subagent-workflow\ndescription: Shared role, artifact, and delegation contract for this repository\'s Pi subagent workflow.\n---');
     expect(subagentWorkflowSkill).toContain('`lead` owns workflow coordination, routing, and wave shaping.');
+    expect(swarmCollaborationSkill).toContain('---\nname: swarm-collaboration\ndescription: Bounded conversational swarm guidance for prompt-native custom chains that use ephemeral mailbox artifacts under `{chain_dir}`.\n---');
+    expect(swarmCollaborationSkill).toContain('roundLimit');
 
-    for (const content of [readme, agentsGuide, beadsSkill, cogneeSkill, redGreenRefactorSkill, bakeSkill, parallelSkill, subagentWorkflowSkill]) {
+    for (const content of [readme, agentsGuide, beadsSkill, cogneeSkill, redGreenRefactorSkill, bakeSkill, parallelSkill, subagentWorkflowSkill, swarmCollaborationSkill]) {
       expectNoLegacyRuntimeReferences(content);
     }
   });
