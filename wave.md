@@ -36,6 +36,6 @@ TDD.
 - `pnpm build`
 
 ## Risks
-- Provider/model binding must remain in Pi runtime only.
-- The user-global installer must merge existing `~/.pi/agent/models.json` entries without clobbering unrelated config.
-- The default compute Ollama endpoint may differ in some environments, so override flags are provided.
+- Existing-repo refresh can update many managed files at once.
+- Cognee context was unavailable, so decisions rely on current repo evidence only.
+
