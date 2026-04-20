@@ -7,54 +7,35 @@ Direct
 untracked
 
 ## Knowledge
-Cognee attempted via `./scripts/cognee-brief.sh "bake current repo scaffold refresh"`; unavailable for search because datasets are not seeded.
+Cognee attempted with `./scripts/cognee-brief.sh "Gemma 4 local install flow user-global settings models.json local launcher"` and fell back because no Cognee datasets were seeded. Repo evidence plus the local Pi `models.md` documentation were sufficient for this bounded change.
 
 ## Test Strategy
-TDD-style operational verification. RED is not a code test here; the narrow proof is a successful existing-repo bake refresh followed by `pi-harness doctor .` and a scoped git diff review.
+TDD.
+- RED: focused unit and integration tests for the user-global local-installer path did not cover registering a compute-hosted Gemma 4 Ollama entry in `~/.pi/agent/models.json`.
+- GREEN: add the minimal installer/model-config helpers needed to merge that entry without touching scaffolded repo files.
+- REFACTOR: tighten the README/docs guidance and add a convenience script while keeping provider/model choice in Pi runtime.
 
 ## Decision Rationale
-- The request maps cleanly to the repo's bake skill and the user-global `/bake` flow.
-- In this API session, the slash command surface is unavailable, so the underlying `pi-harness` CLI is the direct equivalent.
-- Direct mode is better than delegation because this is a single bounded scaffold refresh with one authoritative command and one follow-up audit.
+- The task was localized to the user-global local-installer/runtime-config surface.
+- Direct mode fit once the Pi `models.json` schema was confirmed from local Pi docs.
+- Delegation overhead was no longer worth it after the scoped evidence pass; the remaining work was a tight code-and-tests change.
 
 ## Routing Signals
-- Hard triggers present: execution request that matches the `bake` skill.
-- Soft triggers present: existing-repo refresh may touch multiple scaffold surfaces.
-- Safe to stay direct because ownership is explicit: run the supported bake refresh for the current repo, then audit the result.
+- Hard triggers present: implementation request, structured verification required.
+- Soft triggers present: code, tests, and user-facing docs all needed coordinated updates.
+- Safe direct scope: `scripts/install-local-launcher.ts`, `src/local-launcher.ts`, `package.json`, focused tests, and matching docs/template updates.
 
 ## Agents / Chains
-- None. Lead executes the supported bake refresh directly.
+- None. Lead implemented the bounded user-global installer/runtime-config change directly.
 
 ## Delegation Units
-- Owner: lead
-- Goal: Refresh the current repository to the supported pi-harness baseline using the bake contract.
-- Allowed Files:
-  - AGENTS.md
-  - .pi/**
-  - scripts/**
-  - scaffold-managed root files
-- Non-Goals:
-  - manual feature edits outside scaffold refresh
-  - provider/model configuration changes
-- Inputs:
-  - AGENTS.md
-  - README.md
-  - .pi/skills/bake/SKILL.md
-  - docs/bake-usage.md
-- Output:
-  - refreshed scaffold files
-  - updated `wave.md`
-- RED:
-  - bake or doctor reports drift or failure
-- Caller Verification:
-  - `pi-harness doctor .`
-- Escalate If:
-  - bake requests destructive cleanup not covered by the curated manifest
-  - doctor reports non-managed drift that needs manual policy decisions
+- none
 
 ## Verification
-`pi-harness doctor .`
+- `pnpm test -- tests/unit/local-launcher.test.ts tests/integration/global-bake-install.test.ts`
+- `pnpm build`
 
 ## Risks
-- Existing-repo refresh can update many managed files at once.
-- Cognee context was unavailable, so decisions rely on current repo evidence only.
+- Provider/model binding must remain in Pi runtime only.
+- The user-global installer must merge existing `~/.pi/agent/models.json` entries without clobbering unrelated config.
+- The default compute Ollama endpoint may differ in some environments, so override flags are provided.

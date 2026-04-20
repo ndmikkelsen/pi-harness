@@ -3,6 +3,35 @@ import path from 'node:path';
 
 export const LOCAL_LAUNCHER_NAMES = ['pi-harness'] as const;
 export const GLOBAL_BAKE_EXTENSION_NAME = 'pi-harness-bake';
+export const GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID = 'compute-ollama';
+export const DEFAULT_GEMMA4_COMPUTE_OLLAMA_MODEL_ID = 'gemma4';
+export const DEFAULT_GEMMA4_COMPUTE_OLLAMA_BASE_URL = 'http://chat.compute.lan:11434/v1';
+
+export interface PiModelConfig extends Record<string, unknown> {
+  id: string;
+}
+
+export interface PiProviderConfig extends Record<string, unknown> {
+  models?: PiModelConfig[];
+}
+
+export interface PiModelsConfig extends Record<string, unknown> {
+  providers?: Record<string, PiProviderConfig>;
+}
+
+export interface Gemma4ComputeOllamaOptions {
+  baseUrl?: string;
+  modelId?: string;
+}
+
+const GEMMA4_COMPUTE_OLLAMA_PROVIDER_CONFIG = {
+  api: 'openai-completions',
+  apiKey: 'ollama',
+  compat: {
+    supportsDeveloperRole: false,
+    supportsReasoningEffort: false,
+  },
+} as const;
 
 interface GlobalBakeExtensionOptions {
   launcherPath: string;
@@ -18,6 +47,73 @@ export function defaultPiAgentDir(): string {
 
 export function defaultPiExtensionsDir(piAgentDir = defaultPiAgentDir()): string {
   return path.join(piAgentDir, 'extensions');
+}
+
+export function defaultPiModelsPath(piAgentDir = defaultPiAgentDir()): string {
+  return path.join(piAgentDir, 'models.json');
+}
+
+function upsertProviderModel(models: PiModelConfig[], model: PiModelConfig): PiModelConfig[] {
+  const index = models.findIndex((existingModel) => existingModel.id === model.id);
+
+  if (index === -1) {
+    return [...models, model];
+  }
+
+  return models.map((existingModel, existingIndex) => {
+    if (existingIndex !== index) {
+      return existingModel;
+    }
+
+    return {
+      ...existingModel,
+      ...model,
+    };
+  });
+}
+
+function buildGemma4ComputeOllamaModelConfig(options: Gemma4ComputeOllamaOptions = {}): PiModelConfig {
+  const configuredModelId = options.modelId?.trim();
+  const modelId = configuredModelId && configuredModelId.length > 0
+    ? configuredModelId
+    : DEFAULT_GEMMA4_COMPUTE_OLLAMA_MODEL_ID;
+
+  return {
+    id: modelId,
+    name: 'Gemma 4 (compute Ollama)',
+    input: ['text'],
+    reasoning: false,
+  };
+}
+
+export function upsertGemma4ComputeOllamaModelsConfig(
+  existing: PiModelsConfig = {},
+  options: Gemma4ComputeOllamaOptions = {},
+): PiModelsConfig {
+  const providers = existing.providers ?? {};
+  const existingProvider = providers[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID] ?? {};
+  const existingModels = Array.isArray(existingProvider.models) ? existingProvider.models : [];
+  const configuredBaseUrl = options.baseUrl?.trim();
+  const baseUrl = configuredBaseUrl && configuredBaseUrl.length > 0
+    ? configuredBaseUrl
+    : DEFAULT_GEMMA4_COMPUTE_OLLAMA_BASE_URL;
+
+  return {
+    ...existing,
+    providers: {
+      ...providers,
+      [GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]: {
+        ...existingProvider,
+        ...GEMMA4_COMPUTE_OLLAMA_PROVIDER_CONFIG,
+        baseUrl,
+        models: upsertProviderModel(existingModels, buildGemma4ComputeOllamaModelConfig(options)),
+      },
+    },
+  };
+}
+
+export function renderPiModelsJson(config: PiModelsConfig): string {
+  return `${JSON.stringify(config, null, 2)}\n`;
 }
 
 export function defaultGlobalBakeExtensionDir(piAgentDir = defaultPiAgentDir()): string {

@@ -30,6 +30,8 @@ That gives you:
 - a user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`
 - a setup/refresh entrypoint that can run in untouched or baked repos without depending on any generated local bake command
 
+Optional user-global runtime helper: rerun `pnpm install:local:gemma4` when you want to merge the compute-hosted Gemma 4 Ollama entry into `~/.pi/agent/models.json`. That opt-in path only registers the runtime entry, does not change scaffold files, and does not auto-switch your active model; use `/model` to select it. The default entry points Pi at `http://chat.compute.lan:11434/v1` with model id `gemma4`, and you can override either value with `pnpm install:local -- --gemma4-compute-ollama --gemma4-base-url <url> --gemma4-model-id <id>`.
+
 Keep provider and model setup in Pi runtime configuration: use `/login`, `/model`, `.pi/settings.json`, and `~/.pi/agent/models.json` instead of baking providers into scaffold files.
 
 ## First bake in an untouched repo
@@ -121,11 +123,13 @@ pi-harness --mode existing . --cleanup-manifest legacy-ai-frameworks-v1 --non-in
 pnpm install
 pnpm build
 pnpm install:local
+# optional: also refresh the user-global Gemma 4 Ollama runtime entry
+pnpm install:local:gemma4
 # then run the user-global /bake in the target repo
 pi-harness doctor <path>
 ```
 
-In baked repos, keep using the user-global `/bake` surface for this refresh path, use `/skill:bake` when you want the repo-local explanation first, and keep `/adopt` as the compatibility alias when older notes still reference adoption language.
+In baked repos, keep using the user-global `/bake` surface for this refresh path, use `/skill:bake` when you want the repo-local explanation first, and keep `/adopt` as the compatibility alias when older notes still reference adoption language. The optional Gemma 4 helper only updates the user-global Pi runtime entry in `~/.pi/agent/models.json`; final model selection still happens through Pi runtime tools such as `/model`.
 
 Record the previous and new `pi-harness` versions plus the source commit in the PR or handoff note.
 
