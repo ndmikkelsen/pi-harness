@@ -20,7 +20,8 @@
     "test:bdd:watch": "vitest --config vitest.bdd.config.ts",
     "test:watch": "vitest",
     "test:smoke:dist": "pnpm build && node scripts/dist-smoke.mjs",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "install:local:gemma4": "tsx scripts/install-local-launcher.ts --gemma4-compute-ollama"
   },
   "engines": {
     "node": ">=22.0.0"

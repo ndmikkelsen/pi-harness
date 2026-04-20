@@ -38,7 +38,7 @@ The canonical workflow surfaces are:
    pnpm install:local
    ```
 
-2. `pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`.
+2. `pnpm install:local` installs the `pi-harness` launcher in `~/.local/bin` and a thin user-global Pi `/bake` extension in `~/.pi/agent/extensions/pi-harness-bake/`. Run `pnpm install:local:gemma4` when you also want to merge the compute-hosted Gemma 4 Ollama entry into `~/.pi/agent/models.json`; that opt-in path stays user-global, does not change scaffolded repo files, and does not auto-select the model for you. The default runtime entry points Pi at `http://chat.compute.lan:11434/v1` with model id `gemma4`, and you can override either value with `pnpm install:local -- --gemma4-compute-ollama --gemma4-base-url <url> --gemma4-model-id <id>`.
 3. That user-global `/bake` surface is the setup and refresh entrypoint for repos at every stage: it auto-detects `new` vs `existing`, delegates into `pi-harness`, and refreshes existing repos with curated legacy AI-scaffolding cleanup.
 4. After a repo is baked, repo-local authority lives in `AGENTS.md`, `.pi/*`, `scripts/*`, and native Beads state. Keep using the user-global `/bake` surface when you want Pi to run setup or refresh flows, use `/skill:bake` when you want the same contract explained from inside the repo, do not expect any scaffolded local prompt or shell fallback for bake, and keep `/adopt` only as the conservative compatibility path.
 
@@ -51,10 +51,10 @@ The canonical workflow surfaces are:
 ## Pi setup
 
 1. Install Pi locally: `npm install -g @mariozechner/pi-coding-agent`
-2. Install the global `/bake` surface from your local `pi-harness` checkout with `pnpm install && pnpm build && pnpm install:local`.
+2. Install the global `/bake` surface from your local `pi-harness` checkout with `pnpm install && pnpm build && pnpm install:local`; rerun it as `pnpm install:local:gemma4` when you want the optional user-global Gemma 4 Ollama entry for `chat.compute.lan` added to `~/.pi/agent/models.json`.
 3. Start Pi in the repository so it can install any project packages declared in `.pi/settings.json`.
 4. Run `/login` to configure the provider credentials you want Pi to use.
-5. Run `/model` to select the current model.
+5. Run `/model` to select the current model, including the optional Gemma 4 entry if you installed it with `pnpm install:local:gemma4` or the equivalent `--gemma4-compute-ollama` flags.
 6. This scaffold declares `npm:pi-subagents`, `npm:pi-mcp-adapter`, and `npm:pi-web-access` in `.pi/settings.json`; if Pi does not auto-install them on startup, run `pi install -l npm:pi-subagents`, `pi install -l npm:pi-mcp-adapter`, and `pi install -l npm:pi-web-access`.
 7. Use `.pi/settings.json` for project-local overrides, package sources, and workflow capability profiles, `.pi/mcp.json` for project-local MCP servers, and `~/.pi/agent/models.json` for global model/provider definitions when needed.
 

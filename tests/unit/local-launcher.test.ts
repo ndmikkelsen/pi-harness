@@ -6,7 +6,15 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { LOCAL_LAUNCHER_NAMES, renderGlobalBakeExtension, renderLauncherScript } from '../../src/local-launcher.js';
+import {
+  DEFAULT_GEMMA4_COMPUTE_OLLAMA_BASE_URL,
+  DEFAULT_GEMMA4_COMPUTE_OLLAMA_MODEL_ID,
+  GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID,
+  LOCAL_LAUNCHER_NAMES,
+  renderGlobalBakeExtension,
+  renderLauncherScript,
+  upsertGemma4ComputeOllamaModelsConfig,
+} from '../../src/local-launcher.js';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
@@ -146,6 +154,76 @@ describe('renderLauncherScript', () => {
     } finally {
       rmSync(workspace, { recursive: true, force: true });
     }
+  });
+});
+
+describe('upsertGemma4ComputeOllamaModelsConfig', () => {
+  it('upserts Gemma 4 compute-Ollama runtime config without clobbering unrelated models', () => {
+    const existingConfig = {
+      schemaVersion: 1,
+      providers: {
+        existing: {
+          api: 'openai-completions',
+          models: [{ id: 'gpt-4o-mini', name: 'GPT-4o mini' }],
+        },
+        [GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]: {
+          models: [{ id: 'other-remote-model', name: 'Other remote model' }],
+          notes: 'keep-me',
+        },
+      },
+    };
+
+    const mergedOnce = upsertGemma4ComputeOllamaModelsConfig(existingConfig);
+    const mergedTwice = upsertGemma4ComputeOllamaModelsConfig(mergedOnce);
+    const provider = mergedTwice.providers?.[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID];
+
+    expect(mergedTwice.schemaVersion).toBe(1);
+    expect(mergedTwice.providers?.existing).toEqual(existingConfig.providers.existing);
+    expect(provider).toMatchObject({
+      api: 'openai-completions',
+      apiKey: 'ollama',
+      baseUrl: DEFAULT_GEMMA4_COMPUTE_OLLAMA_BASE_URL,
+      notes: 'keep-me',
+      compat: {
+        supportsDeveloperRole: false,
+        supportsReasoningEffort: false,
+      },
+    });
+    expect(provider?.models).toEqual([
+      { id: 'other-remote-model', name: 'Other remote model' },
+      {
+        id: DEFAULT_GEMMA4_COMPUTE_OLLAMA_MODEL_ID,
+        name: 'Gemma 4 (compute Ollama)',
+        input: ['text'],
+        reasoning: false,
+      },
+    ]);
+    expect(provider?.models?.filter((model) => model.id === DEFAULT_GEMMA4_COMPUTE_OLLAMA_MODEL_ID)).toHaveLength(1);
+  });
+
+  it('accepts custom base-url and model-id overrides', () => {
+    const merged = upsertGemma4ComputeOllamaModelsConfig({}, {
+      baseUrl: 'https://chat.compute.lan/v1',
+      modelId: 'gemma4:31b',
+    });
+
+    expect(merged.providers?.[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]).toEqual({
+      api: 'openai-completions',
+      apiKey: 'ollama',
+      baseUrl: 'https://chat.compute.lan/v1',
+      compat: {
+        supportsDeveloperRole: false,
+        supportsReasoningEffort: false,
+      },
+      models: [
+        {
+          id: 'gemma4:31b',
+          name: 'Gemma 4 (compute Ollama)',
+          input: ['text'],
+          reasoning: false,
+        },
+      ],
+    });
   });
 });
 
