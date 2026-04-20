@@ -7,6 +7,8 @@ import { promisify } from 'node:util';
 
 import { describe, expect, it } from 'vitest';
 
+import { GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID } from '../../src/local-launcher.js';
+
 const execFile = promisify(execFileCallback);
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const tsxCli = path.join(repoRoot, 'node_modules', 'tsx', 'dist', 'cli.mjs');
@@ -216,6 +218,167 @@ describe('global bake install', () => {
     expect(JSON.parse(launchResult.stdout)).toEqual({
       cwd: await realpath(workspace),
       args: ['--init-json', '.'],
+    });
+  });
+
+  it('merges Gemma 4 compute-Ollama runtime config when explicitly opted in', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-global-bake-gemma4-'));
+    const repoDir = path.join(workspace, 'launcher-repo');
+    const binDir = path.join(workspace, 'bin');
+    const piAgentDir = path.join(workspace, 'pi-agent');
+    const settingsPath = path.join(piAgentDir, 'settings.json');
+    const modelsPath = path.join(piAgentDir, 'models.json');
+
+    await mkdir(path.join(repoDir, 'dist', 'src'), { recursive: true });
+    await writeFile(
+      path.join(repoDir, 'dist', 'src', 'cli.js'),
+      '#!/usr/bin/env node\nprocess.stdout.write(JSON.stringify({ cwd: process.cwd(), args: process.argv.slice(2) }));\n',
+      'utf8',
+    );
+    await chmod(path.join(repoDir, 'dist', 'src', 'cli.js'), 0o755);
+
+    await mkdir(piAgentDir, { recursive: true });
+
+    const originalSettings = `${JSON.stringify(
+      {
+        defaultProvider: 'openai',
+        defaultModel: 'gpt-4o-mini',
+      },
+      null,
+      2,
+    )}\n`;
+    const originalModels = `${JSON.stringify(
+      {
+        providers: {
+          existing: {
+            api: 'openai-completions',
+            models: [{ id: 'gpt-4o-mini', name: 'GPT-4o mini' }],
+          },
+          [GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]: {
+            models: [{ id: 'other-remote-model', name: 'Other remote model' }],
+            notes: 'keep-me',
+          },
+        },
+      },
+      null,
+      2,
+    )}\n`;
+
+    await writeFile(settingsPath, originalSettings, 'utf8');
+    await writeFile(modelsPath, originalModels, 'utf8');
+
+    const installResult = await execFile(
+      process.execPath,
+      [
+        tsxCli,
+        path.join(repoRoot, 'scripts', 'install-local-launcher.ts'),
+        '--bin-dir',
+        binDir,
+        '--pi-agent-dir',
+        piAgentDir,
+        '--repo',
+        repoDir,
+        '--gemma4-compute-ollama',
+      ],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+      },
+    );
+
+    expect(installResult.stdout).toContain(`Installed pi-harness -> ${path.join(binDir, 'pi-harness')}`);
+    expect(installResult.stdout).toContain(
+      `Installed global Pi /bake extension (pi-harness-bake) -> ${path.join(piAgentDir, 'extensions', 'pi-harness-bake', 'index.ts')}`,
+    );
+    expect(await readFile(settingsPath, 'utf8')).toBe(originalSettings);
+
+    const modelsConfig = JSON.parse(await readFile(modelsPath, 'utf8')) as {
+      providers: Record<string, { models?: Array<Record<string, unknown>> } & Record<string, unknown>>;
+    };
+
+    expect(modelsConfig.providers.existing).toEqual({
+      api: 'openai-completions',
+      models: [{ id: 'gpt-4o-mini', name: 'GPT-4o mini' }],
+    });
+    expect(modelsConfig.providers[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]).toMatchObject({
+      api: 'openai-completions',
+      apiKey: 'ollama',
+      baseUrl: 'http://chat.compute.lan:11434/v1',
+      notes: 'keep-me',
+      compat: {
+        supportsDeveloperRole: false,
+        supportsReasoningEffort: false,
+      },
+    });
+    expect(modelsConfig.providers[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID].models).toEqual([
+      { id: 'other-remote-model', name: 'Other remote model' },
+      {
+        id: 'gemma4',
+        name: 'Gemma 4 (compute Ollama)',
+        input: ['text'],
+        reasoning: false,
+      },
+    ]);
+  });
+
+  it('supports custom Gemma 4 compute-Ollama override flags', async () => {
+    const workspace = await mkdtemp(path.join(os.tmpdir(), 'pi-harness-global-bake-gemma4-override-'));
+    const repoDir = path.join(workspace, 'launcher-repo');
+    const binDir = path.join(workspace, 'bin');
+    const piAgentDir = path.join(workspace, 'pi-agent');
+    const modelsPath = path.join(piAgentDir, 'models.json');
+
+    await mkdir(path.join(repoDir, 'dist', 'src'), { recursive: true });
+    await writeFile(
+      path.join(repoDir, 'dist', 'src', 'cli.js'),
+      '#!/usr/bin/env node\nprocess.stdout.write(JSON.stringify({ cwd: process.cwd(), args: process.argv.slice(2) }));\n',
+      'utf8',
+    );
+    await chmod(path.join(repoDir, 'dist', 'src', 'cli.js'), 0o755);
+
+    await execFile(
+      process.execPath,
+      [
+        tsxCli,
+        path.join(repoRoot, 'scripts', 'install-local-launcher.ts'),
+        '--bin-dir',
+        binDir,
+        '--pi-agent-dir',
+        piAgentDir,
+        '--repo',
+        repoDir,
+        '--gemma4-compute-ollama',
+        '--gemma4-base-url',
+        'https://chat.compute.lan/v1',
+        '--gemma4-model-id',
+        'gemma4:31b',
+      ],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+      },
+    );
+
+    const modelsConfig = JSON.parse(await readFile(modelsPath, 'utf8')) as {
+      providers: Record<string, { models?: Array<Record<string, unknown>> } & Record<string, unknown>>;
+    };
+
+    expect(modelsConfig.providers[GEMMA4_COMPUTE_OLLAMA_PROVIDER_ID]).toEqual({
+      api: 'openai-completions',
+      apiKey: 'ollama',
+      baseUrl: 'https://chat.compute.lan/v1',
+      compat: {
+        supportsDeveloperRole: false,
+        supportsReasoningEffort: false,
+      },
+      models: [
+        {
+          id: 'gemma4:31b',
+          name: 'Gemma 4 (compute Ollama)',
+          input: ['text'],
+          reasoning: false,
+        },
+      ],
     });
   });
 });
